@@ -1,6 +1,7 @@
 # Summary
 
-[Cover](cover.md)
+[Cover](cover.md) 
+[Disclaimer] (disclaimer.md)
 [Preface](preface.md)
 [Introduction](introduction.md)
 
