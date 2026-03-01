@@ -20,4 +20,4 @@ We begin with the **Verbs Abstraction Layer** itself: the software architecture 
 
 These five objects, together with the verbs that operate on them, constitute the RDMA programming model. They are not merely API constructs -- they correspond to real data structures inside the NIC hardware. When you create a Queue Pair, the NIC allocates memory for ring buffers. When you register a Memory Region, the NIC builds page table entries. When you post a work request, the NIC's DMA engine reads your descriptor directly from user-space memory. Understanding this hardware correspondence is essential for understanding performance.
 
-Let us begin with the layer that ties it all together: the Verbs abstraction.
+We start with the layer that ties it all together: the Verbs abstraction.

@@ -14,7 +14,7 @@ Memory registration solves all three problems:
 
 - **Address translation**: Registration creates a mapping from virtual addresses to physical (DMA) addresses inside the NIC, so the NIC can translate the virtual addresses in work requests to the physical addresses it needs for DMA.
 - **Page pinning**: Registration pins the physical pages in memory (marks them as non-swappable), ensuring that the physical addresses remain valid for the lifetime of the registration.
-- **Access authorization**: Registration produces keys (lkey and rkey) that must be presented in work requests. The NIC checks these keys before performing any DMA operation, preventing unauthorized memory access.
+- **Access authorization**: Registration produces keys (lkey and rkey) that must be presented in work requests.[^1] The NIC checks these keys before performing any DMA operation, preventing unauthorized memory access.
 
 ```mermaid
 graph TB
@@ -214,12 +214,12 @@ Memory registration is not free. It involves:
 1. **System call overhead**: `ibv_reg_mr()` is a control-path operation that goes through the kernel.
 2. **Page pinning**: The kernel must walk the process's page table, pin each page (increment its reference count and remove it from the swap candidate list), and compute the DMA address for each page.
 3. **NIC programming**: The kernel driver must program the MTT and MPT in NIC-accessible memory.
-4. **Memory lock limits**: Pinned pages count against the process's `RLIMIT_MEMLOCK` ulimit. The default is often 64 KB, which is far too low for RDMA applications.
+4. **Memory lock limits**: Pinned pages count against the process's `RLIMIT_MEMLOCK` ulimit.[^2] The default is often 64 KB, which is far too low for RDMA applications.
 
-The cost of registration scales with the size of the region:
+The cost of registration scales roughly linearly with the number of pages, since the kernel must walk the page table, pin each page, and program the NIC's MTT. Approximate ranges on modern hardware (actual times vary with CPU speed, NUMA topology, and NIC generation):
 
-| Region Size | Pages (4KB) | Typical Registration Time |
-|-------------|-------------|---------------------------|
+| Region Size | Pages (4KB) | Approximate Registration Time |
+|-------------|-------------|-------------------------------|
 | 4 KB | 1 | ~5-10 us |
 | 1 MB | 256 | ~20-50 us |
 | 1 GB | 262,144 | ~5-50 ms |
@@ -229,7 +229,7 @@ For large regions, registration can take hundreds of milliseconds -- an eternity
 
 ### Registration Caching
 
-Many RDMA middleware libraries (including the MPI implementations and libfabric) implement **MR caching**: instead of registering and deregistering memory for every operation, they maintain a cache of previously registered regions and reuse them when possible. The cache is typically keyed by virtual address range and invalidated when memory is freed.
+Many RDMA middleware libraries (including the MPI implementations and libfabric) implement **MR caching**:[^4] instead of registering and deregistering memory for every operation, they maintain a cache of previously registered regions and reuse them when possible. The cache is typically keyed by virtual address range and invalidated when memory is freed.
 
 ### Pre-registration
 
@@ -290,7 +290,7 @@ You must ensure that no in-flight operations reference the MR before deregisteri
 
 ## Implicit vs. Explicit ODP
 
-Modern NVIDIA ConnectX NICs support **On-Demand Paging (ODP)**, which fundamentally changes the registration model. With ODP, pages are not pinned at registration time. Instead:
+Modern NVIDIA ConnectX NICs support **On-Demand Paging (ODP)**,[^3] which fundamentally changes the registration model. With ODP, pages are not pinned at registration time. Instead:
 
 1. Registration records the virtual address range but does not resolve or pin physical pages.
 2. When the NIC first attempts to access a page, it generates a page fault.
@@ -341,3 +341,11 @@ The right choice depends on the application's memory access patterns, latency re
 ## Summary
 
 Memory Regions are the bridge between the application's virtual address space and the NIC's DMA engine. Registration pins physical pages, builds address translation tables in the NIC, and produces keys that authorize access. The lkey authorizes local NIC access in every work request; the rkey authorizes remote RDMA operations and must be shared with peers. Registration is expensive and must be managed carefully -- through pre-registration, caching, huge pages, or On-Demand Paging -- to avoid becoming a performance bottleneck.
+
+[^1]: Memory key semantics (L_Key and R_Key), access flags, and the protection model are defined in the InfiniBand Architecture Specification, Volume 1, Chapter 10.6 (Memory Management). The `ibv_reg_mr(3)` man page in rdma-core documents the Linux implementation. See [rdma-core man pages](https://github.com/linux-rdma/rdma-core/blob/master/libibverbs/man/ibv_reg_mr.3).
+
+[^2]: The `RLIMIT_MEMLOCK` limit controls how much memory a process can pin (lock) using `mlock()`, `mlockall()`, or RDMA memory registration. See the `setrlimit(2)` man page. Since Linux 5.0, RDMA memory pinning uses the per-cgroup memory lock limit when running under cgroup v2, in addition to the per-process ulimit.
+
+[^3]: On-Demand Paging for RDMA was first implemented in the mlx5 driver for ConnectX-4 and later, with kernel support added in Linux 4.5. The ODP infrastructure uses MMU notifiers (`mmu_notifier`) to track page table changes and invalidate NIC-side translations. For implicit ODP (whole-address-space registration), see A. Margaritov et al., "Understanding and Improving the Cost of RDMA Memory Registration," *ACM SIGMETRICS*, 2019.
+
+[^4]: MR caching in MPI implementations is described in S. Sur, M. J. Koop, and D. K. Panda, "High-performance and scalable MPI over InfiniBand with reduced memory usage: an in-depth performance analysis," *ACM/IEEE Supercomputing Conference (SC)*, 2006. Modern implementations (Open MPI, MVAPICH2, libfabric) intercept `munmap()` and `free()` via `LD_PRELOAD` to invalidate cached registrations when the underlying memory is freed.

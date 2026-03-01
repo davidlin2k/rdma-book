@@ -2,14 +2,14 @@
 
 ## Origins: From Specification to Software
 
-The term "verbs" has a specific historical origin. The InfiniBand Architecture (IBA) Specification, first released in October 2000 by the InfiniBand Trade Association, defined the programming interface to InfiniBand hardware not as a concrete API with fixed function signatures, but as a set of abstract operations called **verbs**. The specification was deliberately abstract: it described *what* operations an implementation must support (e.g., "Create Queue Pair," "Post Send Request," "Poll for Completion") without dictating the exact function prototypes, data structures, or calling conventions. This was a design decision -- it allowed different operating systems, programming languages, and hardware vendors to implement the same semantics in platform-appropriate ways.
+The term "verbs" has a specific historical origin. The InfiniBand Architecture (IBA) Specification, first released on October 24, 2000, by the InfiniBand Trade Association (IBTA),[^2] defined the programming interface to InfiniBand hardware not as a concrete API with fixed function signatures, but as a set of abstract operations called **verbs**. The specification was deliberately abstract: it described *what* operations an implementation must support (e.g., "Create Queue Pair," "Post Send Request," "Poll for Completion") without dictating the exact function prototypes, data structures, or calling conventions. This was a design decision -- it allowed different operating systems, programming languages, and hardware vendors to implement the same semantics in platform-appropriate ways.
 
 The verb definitions in the IBA specification fall into two broad categories:
 
 - **Privileged verbs** (also called management verbs): operations that modify shared fabric state, such as configuring ports, managing partition keys, or programming forwarding tables in switches. These require elevated privilege.
 - **User verbs**: operations available to unprivileged applications, such as creating Queue Pairs, registering memory, posting work requests, and polling for completions.
 
-In practice, on Linux, the abstract verbs became a concrete C API through the **libibverbs** library, originally developed by Roland Dreier as part of the OpenFabrics Alliance (OFA) software stack, and now maintained as part of the **rdma-core** repository. This library is the single most important piece of software in the RDMA ecosystem. Every RDMA application on Linux -- whether it uses InfiniBand, RoCE, or iWARP -- links against libibverbs.
+In practice, on Linux, the abstract verbs became a concrete C API through the **libibverbs** library, originally developed by Roland Dreier as part of the OpenFabrics Alliance (OFA) software stack,[^3] and now maintained as part of the **rdma-core** repository on GitHub ([linux-rdma/rdma-core](https://github.com/linux-rdma/rdma-core)). This library is the single most important piece of software in the RDMA ecosystem. Every RDMA application on Linux -- whether it uses InfiniBand, RoCE, or iWARP -- links against libibverbs.
 
 ## The Provider Model
 
@@ -32,8 +32,8 @@ graph TB
         APP["Application"]
         LIBIBVERBS["libibverbs (dispatch layer)"]
         MLX5_U["mlx5 provider<br/>(libmlx5.so)"]
-        RXE_U["rxe provider<br/>(librxe.so)"]
-        EFA_U["efa provider<br/>(libefa.so)"]
+        RXE_U["rxe provider"]
+        EFA_U["efa provider"]
         OTHER_U["other providers..."]
     end
 
@@ -165,14 +165,14 @@ The kernel side of the verbs interface is implemented by the `ib_uverbs` module.
 
 The uverbs interface supports two mechanisms for user-kernel communication:
 
-1. **ioctl-based interface** (modern): Introduced in Linux 4.20+, this uses `ioctl()` commands on the uverbs file descriptor. It supports extensible command structures and is the preferred path in rdma-core.
+1. **ioctl-based interface** (modern): The kernel-side infrastructure was first merged in Linux 4.14 (by Matan Barak at Mellanox), and rdma-core adopted it as the default path for all commands by late 2018.[^1] It uses `ioctl()` commands on the uverbs file descriptor, supports extensible command structures, and is the preferred path in current rdma-core.
 2. **write-based interface** (legacy): The original interface used `write()` to send command structures and `read()` to receive responses. Still supported for backward compatibility.
 
 The kernel's `ib_core` module provides the RDMA subsystem framework. It defines the `ib_device` abstraction that kernel-level providers (e.g., `mlx5_ib`, `rdma_rxe`) register against. The `ib_uverbs` module bridges between user-space verbs calls and the kernel providers.
 
 ## Provider Loading and Discovery
 
-When rdma-core is installed, provider libraries are placed in a well-known directory, typically `/usr/lib/x86_64-linux-gnu/libibverbs/` or a similar platform-specific path. Each provider is a shared object (e.g., `libmlx5.so`) that registers itself with libibverbs.
+In modern rdma-core, providers are compiled directly into `libibverbs.so` as built-in modules rather than separate shared objects. Older installations placed providers in a well-known directory (e.g., `/usr/lib/x86_64-linux-gnu/libibverbs/`) as individual `.so` files, but this layout is now legacy. Either way, each provider registers itself with libibverbs during initialization.
 
 The provider discovery process works as follows:
 
@@ -277,3 +277,9 @@ The Verbs abstraction layer is the foundation upon which all RDMA programming re
 - **Extensibility**: extended verbs and direct verbs allow access to advanced hardware features without breaking the core API.
 
 With this architectural understanding in place, we can now examine the individual objects that populate the verbs model, starting with the most fundamental: the Queue Pair.
+
+[^1]: The kernel-side ioctl infrastructure for uverbs was authored by Matan Barak (Mellanox) and first merged in Linux 4.14. See [KernelNewbies Linux 4.14 release notes](https://kernelnewbies.org/Linux_4.14) under "Infiniband: New ioctl API for the RDMA ABI." The rdma-core user-space library adopted the ioctl path as default for all commands in late 2018.
+
+[^2]: InfiniBand Architecture Specification, Volume 1, Release 1.0, October 24, 2000. Published by the InfiniBand Trade Association. The current version (as of this writing) is Volume 1, Release 1.6. Available to IBTA members at [infinibandta.org](https://www.infinibandta.org/ibta-specification/).
+
+[^3]: Roland Dreier's original libibverbs was hosted as part of the OpenFabrics (formerly OpenIB) software stack. It was later merged into the unified [rdma-core](https://github.com/linux-rdma/rdma-core) repository, which now contains libibverbs, librdmacm, and all upstream provider libraries.

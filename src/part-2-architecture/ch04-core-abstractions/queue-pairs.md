@@ -89,7 +89,7 @@ UD is essential for RDMA infrastructure -- the Subnet Management Protocol, the C
 XRC (introduced in the IBA specification and supported on Mellanox/NVIDIA hardware) addresses the scalability problem of RC:
 
 - **Reliable**: Same reliability guarantees as RC.
-- **Shared Receive Queue**: XRC allows multiple QPs on a node to share a single Receive Queue (via an SRQ). This means that for N processes on node A communicating with M processes on node B, you need N x M QPs but only M shared Receive Queues, rather than N x M separate Receive Queues.
+- **Shared Receive Queue**: XRC decouples the send and receive sides of a connection. With standard RC, N processes on node A talking to M processes on node B require N x M QP pairs, each with its own Receive Queue. With XRC, each sending process still needs one QP per remote process, but the *receive* side shares SRQs -- all incoming traffic to a given process on node B lands in that process's single SRQ, regardless of which remote process sent it.[^1] The practical result: receive-side memory drops from O(N x M) separate Receive Queues to O(M) SRQs.
 - **Reduced memory footprint**: In large-scale MPI applications with thousands of ranks per node, XRC dramatically reduces the memory consumed by receive buffers.
 
 ### Raw Packet
@@ -103,7 +103,7 @@ The choice of QP type is fundamental and cannot be changed after creation. Most 
 
 ## Queue Pair Numbers
 
-Every QP is assigned a 24-bit QPN (Queue Pair Number) by the hardware, ranging from 0 to 2^24 - 1 (16,777,215). Two QPNs are reserved:
+Every QP is assigned a 24-bit QPN (Queue Pair Number) by the hardware, ranging from 0 to 2^24 - 1 (16,777,215).[^2] Two QPNs are reserved:
 
 - **QP0**: The Subnet Management QP (SMA). Used exclusively for Subnet Management Packets (SMPs) -- the control protocol that configures InfiniBand switches and assigns LIDs. Only the Subnet Manager opens QP0.
 - **QP1**: The General Service QP (GSI). Used for general management datagrams, including the Communication Manager (CM) protocol for RC/UC connection establishment, and other management services. Both QP0 and QP1 are UD-type QPs.
@@ -185,7 +185,7 @@ The doorbell write typically contains:
 - The QPN identifying which QP has new work.
 - The new tail index of the Send Queue, telling the NIC how many new WQEs are available.
 
-On modern NVIDIA ConnectX hardware, the doorbell mechanism has been optimized in several ways:
+On modern NVIDIA ConnectX hardware, the doorbell mechanism has been optimized in several ways:[^3]
 
 1. **Doorbell record (DBR)**: A 64-bit value in DMA-accessible memory that the provider updates. The NIC reads it via DMA rather than relying solely on MMIO.
 2. **BlueFlame (BF)**: An optimization where small WQEs are written directly into a special MMIO region (the BlueFlame register) rather than into main memory. This combines the WQE write and doorbell into a single operation, reducing latency by avoiding the round-trip through main memory.
@@ -322,3 +322,9 @@ At large scale -- tens of thousands of QPs -- memory consumption becomes a real 
 ## Summary
 
 The Queue Pair is where RDMA communication begins. Its dual-queue structure, hardware-backed ring buffers, and zero-copy doorbell mechanism provide the foundation for microsecond-latency networking. Choosing the right QP type (RC for reliability, UD for scalability, XRC for memory efficiency) and sizing the queues appropriately are the first critical decisions in any RDMA application design.
+
+[^1]: XRC was first presented by Mellanox at Supercomputing 2007 (SC07) and standardized as Annex A14 in the Supplement to InfiniBand Architecture Specification Volume 1, Release 1.2.1 (March 2009). The ConnectX HCA was the first hardware to implement XRC. For an analysis of XRC's scalability benefits in MPI, see M. J. Koop, J. Sridhar, and D. K. Panda, "Scalable MPI Design over InfiniBand using eXtended Reliable Connection," *IEEE International Conference on Cluster Computing*, 2008.
+
+[^2]: The 24-bit QPN, reserved QP numbers (QP0 for SMA, QP1 for GSI), and QP type definitions are specified in the InfiniBand Architecture Specification, Volume 1, Chapter 10 (Transport Services) and Chapter 11 (Queue Pair Operations). See [infinibandta.org](https://www.infinibandta.org/ibta-specification/).
+
+[^3]: The BlueFlame doorbell optimization is documented in the NVIDIA ConnectX Programmer's Reference Manual (PRM). BlueFlame writes the WQE directly into a dedicated MMIO region using a single PCIe write combining transaction, eliminating the DMA read that the NIC would otherwise perform to fetch the WQE from host memory.

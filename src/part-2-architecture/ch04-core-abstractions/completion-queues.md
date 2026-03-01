@@ -47,7 +47,7 @@ Key fields:
 
 <div class="admonition warning">
 <div class="admonition-title">Warning</div>
-When <code>status != IBV_WC_SUCCESS</code>, the only reliable fields in the CQE are <code>wr_id</code>, <code>status</code>, <code>vendor_err</code>, and <code>qp_num</code>. All other fields are undefined. Do not read <code>byte_len</code>, <code>opcode</code>, or any other field from a failed completion.
+When <code>status != IBV_WC_SUCCESS</code>, the only reliable fields in the CQE are <code>wr_id</code>, <code>status</code>, <code>vendor_err</code>, and <code>qp_num</code>. All other fields are undefined.[^1] Do not read <code>byte_len</code>, <code>opcode</code>, or any other field from a failed completion.
 </div>
 
 ## The Completion Flow
@@ -106,7 +106,7 @@ printf("Actual CQ size: %d\n", cq->cqe);
 
 <div class="admonition warning">
 <div class="admonition-title">Warning: CQ Overrun</div>
-If the CQ becomes full and the NIC cannot write a new CQE, a <strong>CQ overrun</strong> occurs. This is a fatal error: the NIC generates an asynchronous error event, and all QPs associated with the overflowing CQ are moved to the Error state. Recovery requires destroying and recreating the affected QPs. Always size your CQ generously and poll it frequently enough to prevent this condition.
+If the CQ becomes full and the NIC cannot write a new CQE, a <strong>CQ overrun</strong> occurs. This is a fatal error: the NIC generates an asynchronous error event (<code>IBV_EVENT_CQ_ERR</code>), and all QPs associated with the overflowing CQ are moved to the Error state.[^2] Recovery requires destroying and recreating the affected QPs. Always size your CQ generously and poll it frequently enough to prevent this condition.
 </div>
 
 ## Polling Mode: ibv_poll_cq()
@@ -202,7 +202,7 @@ The second parameter to `ibv_req_notify_cq()` controls which completions trigger
 
 <div class="admonition note">
 <div class="admonition-title">Note</div>
-The event-driven model has inherently higher latency than busy polling because it involves an interrupt from the NIC, a kernel-to-user notification via the file descriptor, and the overhead of the event acknowledgment. Typical added latency is 5-20 microseconds. For this reason, high-performance applications often use a hybrid approach: busy-poll for a period, then fall back to event-driven mode after a timeout to save CPU.
+The event-driven model has inherently higher latency than busy polling because it involves an interrupt from the NIC, a kernel-to-user notification via the file descriptor, and the overhead of the event acknowledgment. The added latency is typically on the order of 5-20 microseconds, depending on hardware, interrupt coalescing settings, and system load.[^3] For this reason, high-performance applications often use a hybrid approach: busy-poll for a period, then fall back to event-driven mode after a timeout to save CPU.
 </div>
 
 ### The Race Condition and Its Resolution
@@ -300,7 +300,7 @@ struct ibv_cq_init_attr_ex cq_attr = {
 struct ibv_cq_ex *cq_ex = ibv_create_cq_ex(ctx, &cq_attr);
 ```
 
-Notable extensions:
+Notable extensions:[^4]
 
 - **Completion timestamps** (`IBV_WC_EX_WITH_COMPLETION_TIMESTAMP`): The NIC records a hardware timestamp when each CQE is generated. This is invaluable for latency measurement and profiling.
 - **Single-threaded flag** (`IBV_CREATE_CQ_ATTR_SINGLE_THREADED`): Tells the provider that only one thread will access this CQ, eliminating internal locking overhead.
@@ -347,3 +347,11 @@ printf("Completion vectors: %d\n", ctx->num_comp_vectors);
 ## Summary
 
 The Completion Queue is the feedback mechanism of the RDMA programming model. Its ring-buffer design enables the NIC to report completed operations directly to user space, without kernel involvement. The choice between busy polling and event-driven notification is a fundamental design decision that trades CPU consumption for latency. Proper CQ sizing prevents overrun, shared CQs reduce overhead for multi-QP designs, and extended CQ features like timestamps and single-threaded optimization unlock additional performance.
+
+[^1]: This behavior is documented in the `ibv_poll_cq(3)` man page in rdma-core: "If a completion is returned with an error status, the remaining fields are not defined, except for wr_id, status, qp_num, and vendor_err." See [rdma-core man pages](https://github.com/linux-rdma/rdma-core/blob/master/libibverbs/man/ibv_poll_cq.3).
+
+[^2]: CQ overrun behavior is defined in the InfiniBand Architecture Specification, Volume 1, Section 10.7.1 (Completion Queue Error). The specification mandates that the HCA generate a CQ Error event and that affected QPs transition to the Error state. The corresponding asynchronous event type in libibverbs is `IBV_EVENT_CQ_ERR`.
+
+[^3]: The hybrid polling-then-sleeping approach is described in detail in the rdma-core `ibv_get_cq_event(3)` man page. Interrupt coalescing on ConnectX hardware is controlled via `ibv_modify_cq()` with `IBV_CQ_ATTR_MODERATE`, documented in the [rdma-core man pages](https://github.com/linux-rdma/rdma-core/blob/master/libibverbs/man/ibv_modify_cq.3.md).
+
+[^4]: The extended CQ API (`ibv_create_cq_ex`, `ibv_start_poll`, `ibv_next_poll`, `ibv_end_poll`) was introduced in rdma-core as part of the extensible verbs framework. See `ibv_create_cq_ex(3)` in the [rdma-core man pages](https://github.com/linux-rdma/rdma-core/blob/master/libibverbs/man/ibv_create_cq_ex.3).

@@ -6,7 +6,7 @@ The Protection Domain is the simplest of the core RDMA abstractions to create --
 
 Consider a multi-tenant environment: two applications, belonging to different users, are running on the same machine and using the same RDMA device. Application A has registered a memory buffer containing sensitive financial data. Application B has created a Queue Pair for its own communication. Without some isolation mechanism, what prevents Application B from constructing a work request that references Application A's memory key and reading its data?
 
-The answer is the Protection Domain. Every MR, every QP, every Address Handle, and every Shared Receive Queue must be associated with a PD at creation time. The NIC hardware enforces the following rule:
+The answer is the Protection Domain. Every MR, every QP, every Address Handle, and every Shared Receive Queue must be associated with a PD at creation time. The NIC hardware enforces the following rule:[^1]
 
 > A work request posted to a QP in PD X can only reference memory keys (lkeys) from MRs in PD X.
 
@@ -140,7 +140,7 @@ This ensures that a buggy or malicious tenant cannot access another tenant's mem
 
 ### RDMA-Based Storage Systems
 
-Storage systems like NVMe-over-Fabrics (NVMeoF) often use separate PDs per namespace or per initiator connection. This prevents one storage client from accessing another client's data buffers, even though all clients share the same RDMA device and physical network.
+Storage systems like NVMe-over-Fabrics (NVMeoF) often use separate PDs per namespace or per initiator connection.[^2] This prevents one storage client from accessing another client's data buffers, even though all clients share the same RDMA device and physical network.
 
 <div class="admonition note">
 <div class="admonition-title">Note</div>
@@ -154,7 +154,7 @@ For scenarios where an application needs finer-grained control over remote acces
 There are two types:
 
 - **Type 1 MW**: Bound via a special verb call. Simpler but requires a control-path operation to bind/unbind.
-- **Type 2 MW**: Bound via a work request on the QP. More flexible because binding can be pipelined with data operations on the data path.
+- **Type 2 MW**: Bound via a work request on the QP (`IBV_WR_BIND_MW`). More flexible because binding can be pipelined with data operations on the data path.[^3]
 
 Memory Windows add a layer of indirection between the rkey presented to remote peers and the underlying MR. By invalidating a Memory Window's binding, the application can instantly revoke remote access without the cost of deregistering and re-registering the underlying MR.
 
@@ -195,3 +195,9 @@ For kernel-space RDMA consumers (such as NVMe-over-Fabrics target implementation
 ## Summary
 
 The Protection Domain is the isolation primitive of the RDMA programming model. It groups QPs, MRs, AHs, and SRQs into security domains and hardware-enforces that objects in different domains cannot interact. While simple to create and lightweight in resource consumption, the PD is foundational to RDMA security -- it prevents unauthorized memory access in multi-tenant environments and provides the basis for more advanced authorization mechanisms like Memory Windows. Every RDMA application creates at least one PD, and understanding its role is essential for building secure, correctly isolated RDMA systems.
+
+[^1]: Protection Domain semantics and the PD-based access check are defined in the InfiniBand Architecture Specification, Volume 1, Section 10.2.3 (Protection Domain). The specification mandates that every QP, MR, MW, AH, and SRQ be associated with a PD, and that the HCA enforce PD matching on every operation.
+
+[^2]: The Linux kernel's NVMe-over-Fabrics RDMA transport (`nvmet-rdma`) allocates a PD per controller instance. See the kernel source at `drivers/nvme/target/rdma.c`. The SPDK NVMe-oF target uses a similar per-controller PD model.
+
+[^3]: Memory Window types are defined in the InfiniBand Architecture Specification, Volume 1, Section 10.6.7. Type 2 Memory Windows were introduced in later revisions of the specification to allow data-path binding via work requests, avoiding the control-path overhead of Type 1 bind operations. See `ibv_alloc_mw(3)` in the [rdma-core man pages](https://github.com/linux-rdma/rdma-core/blob/master/libibverbs/man/ibv_alloc_mw.3).

@@ -67,11 +67,11 @@ struct ibv_global_route {
 };
 ```
 
-Let us examine each field in detail:
+Each field serves a specific purpose:
 
 ### DLID (Destination Local ID)
 
-The LID is the InfiniBand layer-2 address, assigned by the Subnet Manager. It is a 16-bit value that uniquely identifies a port within a subnet. For native InfiniBand fabrics, the DLID is the primary routing identifier -- switches use it to forward packets.
+The LID is the InfiniBand layer-2 address, assigned by the Subnet Manager. It is a 16-bit value (extended to 20 bits in the HDR specification) that uniquely identifies a port within a subnet.[^1] For native InfiniBand fabrics, the DLID is the primary routing identifier -- switches use it to forward packets.
 
 For RoCE (RDMA over Converged Ethernet), LIDs are not used. Instead, all routing is done via GIDs (which map to IPv4 or IPv6 addresses). The DLID field is typically set to zero or ignored.
 
@@ -186,11 +186,11 @@ Note the three UD-specific fields:
 
 - **ah**: The Address Handle object encapsulating the routing information.
 - **remote_qpn**: The QP number on the remote node. Unlike RC, this is specified per work request because UD is connectionless.
-- **remote_qkey**: The Queue Key. UD QPs use Q_Keys as a simple authorization mechanism: the receiver's QP has a Q_Key, and the sender must specify a matching Q_Key for the message to be accepted. Q_Key values with the high bit set (0x80000000 and above) are privileged and can only be set by trusted processes.
+- **remote_qkey**: The Queue Key. UD QPs use Q_Keys as a simple authorization mechanism: the receiver's QP has a Q_Key, and the sender must specify a matching Q_Key for the message to be accepted. Q_Key values with the high bit set (0x80000000 and above) are privileged and can only be set by trusted (kernel-level) consumers.[^2]
 
 ## UD Receive Side: The GRH Prefix
 
-When a UD QP receives a message, the NIC prepends a 40-byte **Global Route Header (GRH)** to the received data, regardless of whether the original packet contained a GRH. This is a crucial detail that frequently causes bugs in UD receive processing:
+When a UD QP receives a message, the NIC prepends a 40-byte **Global Route Header (GRH)** to the received data, regardless of whether the original packet contained a GRH.[^3] This is a crucial detail that frequently causes bugs in UD receive processing:
 
 ```c
 /* UD receive buffers must account for the 40-byte GRH prefix */
@@ -357,3 +357,9 @@ If your application uses both RC and UD QPs (a common pattern where UD is used f
 ## Summary
 
 The Address Handle encapsulates destination routing information for connectionless (UD) communication. It contains the destination LID (for InfiniBand), GID (for RoCE and cross-subnet routing), Service Level, and other path parameters. AHs are created once and reused across multiple send operations, amortizing the creation cost. For RoCE, the GRH (and thus `is_global = 1`) is always required. On the receive side, UD messages always carry a 40-byte GRH prefix that must be accounted for in buffer sizing. The `ibv_create_ah_from_wc()` convenience function simplifies reply-path creation. Together with Queue Pairs, Completion Queues, Memory Regions, and Protection Domains, Address Handles complete the set of core RDMA abstractions that form the foundation of the programming model explored throughout the rest of this book.
+
+[^1]: LID assignment and format are defined in the InfiniBand Architecture Specification, Volume 1, Section 4.1.3. The original specification defines LIDs as 16-bit values (0x0001-0xBFFF for unicast, 0xC000-0xFFFE for multicast). Starting with HDR (200 Gbps) InfiniBand, the specification was extended to support 20-bit LIDs to accommodate larger subnets.
+
+[^2]: Q_Key semantics are defined in the InfiniBand Architecture Specification, Volume 1, Section 10.2.4. The high bit (bit 31) of the Q_Key is the "controlled" bit: Q_Keys with this bit set can only be placed in a QP's Q_Key field by a privileged (kernel) consumer. This prevents user-space applications from spoofing management traffic that uses well-known Q_Keys such as `IB_QP1_QKEY` (0x80010000).
+
+[^3]: The 40-byte GRH prepended to UD receive data is mandated by the IBA specification, Volume 1, Section 10.2.5. Even when the incoming packet has no GRH (intra-subnet communication with `is_global = 0`), the HCA still prepends a 40-byte header with the source port's GID information. This ensures that UD receive processing has a uniform buffer layout. See `ibv_create_ah_from_wc(3)` for the convenience function that parses this header.
