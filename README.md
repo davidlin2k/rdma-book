@@ -1,3 +1,5 @@
+# Disclaimer: The content is fully AI generated and have not been reviewed. I find it helpful as a compiled reference but please use at your own discretion.
+
 # Mastering RDMA: From Fundamentals to Production Systems
 
 A comprehensive, publishable-quality textbook covering Remote Direct Memory Access (RDMA) from absolute fundamentals to advanced production topics. Built with [mdBook](https://rust-lang.github.io/mdBook/).
