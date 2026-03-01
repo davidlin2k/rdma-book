@@ -1,10 +1,10 @@
 # 1.3 The RDMA Concept
 
-We have now seen where time and CPU cycles are wasted in traditional networking (Section 1.1) and how DMA already removes the CPU from bulk data movement within a single machine (Section 1.2). RDMA is the synthesis: it extends direct memory access across the network, removes the kernel from the data path, and eliminates data copies between application buffers and the wire. This section introduces the three pillars of RDMA, explains the fundamental architecture, and quantifies the performance difference.
+Section 1.1 showed where time and CPU cycles go in traditional networking. Section 1.2 showed how DMA already removes the CPU from bulk data movement within a single machine. RDMA combines these insights: it extends DMA across the network, removes the kernel from the data path, and eliminates data copies between application buffers and the wire.
 
 ## The Three Pillars
 
-Every discussion of RDMA centers on three capabilities that, taken together, fundamentally change the performance characteristics of network I/O:
+RDMA rests on three capabilities that, combined, change the performance characteristics of network I/O by orders of magnitude:
 
 ### Pillar 1: Kernel Bypass
 
@@ -12,7 +12,9 @@ In the RDMA model, the application communicates directly with the NIC hardware w
 
 This is achieved through memory-mapped I/O: during setup, the kernel maps a region of the NIC's control registers (specifically, the **doorbell** registers) into the application's virtual address space. The application also has direct access to the submission and completion queues in its own memory. When the application wants to send data, it writes a **Work Queue Element (WQE)** into the submission queue and rings the doorbell by writing to the mapped register. No system call. No context switch. No privilege transition.
 
-The cost of posting a work request in RDMA is approximately **50--100 nanoseconds**---compared to 500--1500 nanoseconds for a system call with KPTI on the same hardware.
+The cost of posting a work request in RDMA is approximately **100--300 nanoseconds**, dominated by the PCIe MMIO doorbell write.[^1] Compare this to 200--500 nanoseconds for just the system call transition with KPTI---before any protocol processing even begins.
+
+[^1]: Kalia et al., "Design Guidelines for High Performance RDMA Systems," USENIX ATC 2016, measured MMIO write latency at ~217 ns on their test platform. With BlueFlame (write-combining the WQE into the doorbell write), this can drop to ~100 ns for small messages.
 
 ### Pillar 2: Zero-Copy
 
@@ -109,30 +111,32 @@ The latency difference between traditional networking and RDMA is not marginal--
 
 | Metric | TCP Sockets (25 Gb/s Ethernet) | RDMA (25 Gb/s RoCEv2) | RDMA (InfiniBand HDR 200 Gb/s) |
 |---|---|---|---|
-| **Round-trip latency (small message)** | 15--30 μs | 1.5--3 μs | 0.6--1.0 μs |
+| **Round-trip latency (small message)** | 15--30 μs | 1.5--3 μs | 1.0--2.0 μs |
 | **99th percentile latency** | 30--100 μs | 2--5 μs | 1--2 μs |
 | **99.9th percentile latency** | 50--500 μs | 3--8 μs | 1.5--3 μs |
 
-The consistency of RDMA latency is just as important as the absolute numbers. TCP latency has a long tail driven by interrupt coalescing, kernel scheduling decisions, lock contention in the network stack, and memory allocation. RDMA's tail latency is tight because the kernel is not involved: there is no scheduler jitter, no lock contention, and no softirq deferral.
+Note that NVIDIA's ConnectX-6 HDR datasheet specifies "sub-600 ns" as a *one-way port-to-port* latency; the round-trip numbers above include host-side software overhead on both ends.[^2] The consistency of RDMA latency is just as important as the absolute numbers.
+
+[^2]: NVIDIA ConnectX-6 HDR/HDR100 VPI adapter [product brief](https://network.nvidia.com/files/doc-2020/wp-introducing-200g-hdr-infiniband-solutions.pdf). Kalia et al. (ATC 2016) measured end-to-end RTT including application posting and polling overhead. TCP latency has a long tail driven by interrupt coalescing, kernel scheduling decisions, lock contention in the network stack, and memory allocation. RDMA's tail latency is tight because the kernel is not involved: there is no scheduler jitter, no lock contention, and no softirq deferral.
 
 <div class="admonition note">
 <div class="admonition-title">Note</div>
-Sub-microsecond RDMA latencies require careful system configuration: BIOS tuning (disabling C-states, setting power profile to performance), CPU affinity (pinning the application thread to a core near the NIC's NUMA node), and proper queue pair configuration. Out-of-the-box latencies with default settings are typically 2--5x worse. Chapter 13 covers performance tuning in detail.
+Sub-microsecond RDMA latencies require careful system configuration: BIOS tuning (disabling C-states, setting power profile to performance), CPU affinity (pinning the application thread to a core near the NIC's NUMA node), and proper queue pair configuration. Out-of-the-box latencies with default settings are typically 2--5x worse. Chapter 12 covers performance tuning in detail.
 </div>
 
 ## Throughput and CPU Efficiency
 
 The throughput story is equally compelling. Consider saturating a 100 Gb/s link with 4 KB messages:
 
-- **TCP sockets**: Requires 6--12 CPU cores dedicated to network processing (system calls, protocol stack, copies). Achievable but consumes 10--20% of a typical server's compute capacity.
-- **RDMA**: A single CPU core can saturate the link, using less than 5% of its cycles. The core's job is just to post work requests and poll completions---the NIC does everything else.
+- **TCP sockets**: Requires 6--12 CPU cores dedicated to network processing (system calls, protocol stack, copies) for small-to-medium message workloads. With GSO/GRO and large messages, 2--4 cores suffice, but the CPU cost remains substantial.
+- **RDMA**: A single CPU core can saturate the link for one-sided operations (RDMA Write/Read), using a small fraction of its cycles. The core's job is just to post work requests and poll completions---the NIC does everything else.
 
 The CPU efficiency metric that matters in practice is **cycles per byte**:
 
 | Technology | Approximate CPU cycles per byte | CPU cores to saturate 100 Gb/s |
 |---|---|---|
 | TCP sockets (Linux, tuned) | 2--5 cycles/byte | 6--12 |
-| TCP sockets (with GSO/GRO) | 1--3 cycles/byte | 4--8 |
+| TCP sockets (with GSO/GRO) | 1--3 cycles/byte | 2--4 |
 | RDMA (any transport) | 0.01--0.1 cycles/byte | <1 |
 
 This 50--500x difference in CPU efficiency is why RDMA is dominant in HPC, storage, and large-scale machine learning. In these environments, every CPU cycle consumed by networking is a cycle not available for computation.
@@ -157,12 +161,12 @@ RDMA's performance advantages do not come for free. The costs include:
 
 - **Specialized hardware**: RDMA requires an RNIC (RDMA-capable NIC) on both ends of the connection, and often a supporting network fabric (InfiniBand switches, or a lossless Ethernet configuration for RoCEv2).
 - **Programming complexity**: The Verbs API is significantly more complex than the socket API. Concepts like memory registration, queue pair state machines, completion handling, and flow control are all exposed to the programmer.
-- **Memory registration overhead**: Pinning and registering memory is expensive (hundreds of microseconds to milliseconds for large regions). Applications must amortize this cost, typically by pre-registering buffers at startup.
+- **Memory registration overhead**: Pinning and registering memory is expensive (hundreds of microseconds to milliseconds for large regions). Applications must amortize this cost, typically by pre-registering buffers at startup. Pinned memory also counts against the `RLIMIT_MEMLOCK` ulimit, which defaults to 64 KB on many Linux distributions---a setting that will immediately break any RDMA application. Production deployments must raise this limit, and operators must account for the fact that pinned pages cannot be reclaimed under memory pressure, which can trigger the OOM killer if the system's physical memory is overcommitted.
 - **Operational complexity**: RDMA networks (especially RoCEv2 over Ethernet) require careful network configuration: Priority Flow Control (PFC), ECN (Explicit Congestion Notification), and proper traffic classification. Misconfigurations can cause performance collapse or, worse, head-of-line blocking that affects non-RDMA traffic.
 
 These costs are real and significant. They are the reason RDMA has not replaced sockets for all networking---and likely never will. But for workloads where microsecond latency and CPU efficiency matter, the trade-off is overwhelmingly favorable. Section 1.5 provides a framework for making this decision.
 
 <div class="admonition note">
 <div class="admonition-title">Note</div>
-The latency and throughput numbers in this section are drawn from published benchmarks and the authors' measurements on commodity hardware (Mellanox/NVIDIA ConnectX-5 and ConnectX-6 adapters, Intel Xeon Scalable processors, Linux kernel 5.x with rdma-core user-space libraries). Your specific numbers will depend on hardware, firmware version, kernel version, and configuration. The relative comparisons---RDMA being 5--20x lower latency and 50--500x more CPU-efficient---are consistent across hardware generations.
+The latency and throughput numbers in this section are drawn from published benchmarks on commodity hardware (Mellanox/NVIDIA ConnectX-5 and ConnectX-6 adapters, Intel Xeon Scalable processors, Linux kernel 5.x with rdma-core user-space libraries). Your specific numbers will depend on hardware, firmware version, kernel version, and configuration. The relative comparisons---RDMA being 5--20x lower latency and 50--500x more CPU-efficient---are consistent across hardware generations.
 </div>

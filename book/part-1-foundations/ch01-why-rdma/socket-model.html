@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-a5f470ee.js";
+            window.path_to_searchindex_js = "../../searchindex-a09acba8.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-b911a98a.js"></script>
@@ -190,7 +190,7 @@
 <li>Looking up the system call handler in the syscall table</li>
 <li>Performing security checks (e.g., verifying the file descriptor)</li>
 </ul>
-<p>On modern x86-64 hardware, the raw cost of the <code>SYSCALL</code>/<code>SYSRET</code> pair is roughly <strong>100–150 nanoseconds</strong> when Spectre/Meltdown mitigations are disabled. With Kernel Page Table Isolation (KPTI) enabled—which is the default on virtually all production systems since 2018—this cost rises to <strong>500–1500 nanoseconds</strong> because the kernel must flush TLB entries and switch page tables. This cost is paid on every single <code>send()</code> and <code>recv()</code> call.</p>
+<p>On modern x86-64 hardware, the raw cost of the <code>SYSCALL</code>/<code>SYSRET</code> pair is roughly <strong>100–150 nanoseconds</strong> when Spectre/Meltdown mitigations are disabled. With Kernel Page Table Isolation (KPTI) enabled—which is the default on virtually all production systems since 2018—this cost rises to <strong>200–500 nanoseconds</strong> on CPUs with PCID (Process-Context Identifiers, standard since Haswell), because the kernel must switch page tables on each transition.<sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup> On older CPUs without PCID, the cost is higher due to full TLB flushes. This cost is paid on every single <code>send()</code> and <code>recv()</code> call.</p>
 <h3 id="step-2-socket-layer-processing"><a class="header" href="#step-2-socket-layer-processing">Step 2: Socket Layer Processing</a></h3>
 <p>Once inside the kernel, the socket layer performs:</p>
 <ul>
@@ -212,10 +212,10 @@
 <li><strong>Sequence number assignment</strong>: Each byte in the stream receives a sequence number. The kernel updates the send-side sequence state.</li>
 <li><strong>Window management</strong>: The kernel checks the receiver’s advertised window and the congestion window to determine how much data can be sent.</li>
 <li><strong>Header construction</strong>: A 20-byte (minimum) TCP header is prepended to each segment.</li>
-<li><strong>Checksum computation</strong>: The TCP checksum is computed over the pseudo-header and payload. For 4 KB of data, this requires reading every byte. On modern CPUs with hardware CRC acceleration, this costs approximately <strong>100–300 nanoseconds</strong> for 4 KB.</li>
+<li><strong>Checksum computation</strong>: The TCP checksum must be computed over the pseudo-header and payload. On modern NICs, transmit checksum is offloaded to hardware and costs the CPU nothing.<sup class="footnote-reference" id="fr-2-1"><a href="#footnote-2">2</a></sup> When checksum offload is unavailable or disabled, the kernel computes it in software using SIMD instructions at roughly <strong>50–150 nanoseconds</strong> for 4 KB.</li>
 <li><strong>Timer management</strong>: The retransmission timer is (re)set.</li>
 </ul>
-<p>The total TCP processing overhead is typically <strong>500–2000 nanoseconds</strong> per message, varying with message size and the complexity of the current connection state.</p>
+<p>The total TCP processing overhead is typically <strong>500–2000 nanoseconds</strong> per message, varying with message size and the complexity of the current connection state.<sup class="footnote-reference" id="fr-3-1"><a href="#footnote-3">3</a></sup></p>
 <h3 id="step-5-ip-layer-processing"><a class="header" href="#step-5-ip-layer-processing">Step 5: IP Layer Processing</a></h3>
 <p>The IP layer adds:</p>
 <ul>
@@ -269,7 +269,7 @@
 <p>The following diagram traces the full send-and-receive path, highlighting every layer crossing and data copy:</p>
 <pre class="mermaid">graph TD
     subgraph "Sending Host"
-        A["Application: send(fd, buf, len)"] --&gt;|"① SYSCALL&lt;br/&gt;~0.5–1.5 μs"| B["Socket Layer"]
+        A["Application: send(fd, buf, len)"] --&gt;|"① SYSCALL&lt;br/&gt;~0.2–0.5 μs"| B["Socket Layer"]
         B --&gt;|"② memcpy: user→kernel&lt;br/&gt;~0.2–0.4 μs per 4 KB"| C["TCP Layer"]
         C --&gt;|"③ Segmentation, checksum,&lt;br/&gt;sequence numbers&lt;br/&gt;~0.5–2 μs"| D["IP Layer"]
         D --&gt;|"④ Route lookup,&lt;br/&gt;header construction"| E["Link Layer / qdisc"]
@@ -303,20 +303,20 @@
 <tr><th>Component</th><th>Send Path</th><th>Receive Path</th></tr>
 </thead>
 <tbody>
-<tr><td>System call transition (with KPTI)</td><td>0.5–1.5 μs</td><td>0.5–1.5 μs</td></tr>
+<tr><td>System call transition (with KPTI)</td><td>0.2–0.5 μs</td><td>0.2–0.5 μs</td></tr>
 <tr><td>Socket layer processing</td><td>0.1–0.3 μs</td><td>0.1–0.3 μs</td></tr>
 <tr><td>Data copy (user ↔ kernel)</td><td>0.2–0.4 μs</td><td>0.2–0.4 μs</td></tr>
 <tr><td>TCP processing</td><td>0.5–2.0 μs</td><td>0.5–2.0 μs</td></tr>
 <tr><td>IP processing</td><td>0.1–0.3 μs</td><td>0.1–0.3 μs</td></tr>
 <tr><td>Link layer / qdisc / driver</td><td>0.2–0.5 μs</td><td>0.2–0.5 μs</td></tr>
 <tr><td>Interrupt handling</td><td>—</td><td>1.0–3.0 μs</td></tr>
-<tr><td><strong>Subtotal (software)</strong></td><td><strong>1.6–5.0 μs</strong></td><td><strong>2.6–8.0 μs</strong></td></tr>
+<tr><td><strong>Subtotal (software)</strong></td><td><strong>1.3–3.9 μs</strong></td><td><strong>2.3–6.9 μs</strong></td></tr>
 <tr><td>Wire time (25 Gb/s, 4 KB)</td><td>~1.3 μs</td><td>~1.3 μs</td></tr>
-<tr><td><strong>Total one-way</strong></td><td><strong>~3–6 μs</strong></td><td><strong>~4–9 μs</strong></td></tr>
+<tr><td><strong>Total one-way</strong></td><td><strong>~2.6–5.2 μs</strong></td><td><strong>~3.6–8.2 μs</strong></td></tr>
 </tbody>
 </table>
 </div>
-<p>The wire time for a 4 KB frame at 25 Gb/s is approximately 1.3 microseconds. The software overhead on the send path alone is <em>at least comparable to, and often several times larger than, the wire time</em>. For a round trip (send + receive on both sides), total application-to-application latency is typically <strong>10–30 microseconds</strong>, of which only about 2.6 microseconds is actually spent on the wire.</p>
+<p>The wire time for a 4 KB frame at 25 Gb/s is approximately 1.3 microseconds. The software overhead on the send path alone is <em>comparable to or larger than the wire time</em>. For a round trip (send + receive on both sides), total application-to-application latency is typically <strong>10–25 microseconds</strong> on a tuned system, of which only about 2.6 microseconds is actually spent on the wire.</p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
@@ -327,15 +327,15 @@ These numbers assume a well-tuned Linux system with recent kernel, RSS (Receive 
 <p>Latency is only half the story. The CPU cost per message determines how many messages a core can process per second, and therefore the total throughput of the system.</p>
 <p>On a modern server, a single CPU core running TCP socket I/O can typically handle:</p>
 <ul>
-<li><strong>~1–2 million small messages per second</strong> for request/response workloads (with <code>epoll</code> and careful tuning)</li>
+<li><strong>~100,000–500,000 small messages per second</strong> for request/response workloads with standard <code>epoll</code>. With aggressive tuning—NUMA-aligned interrupt affinity, <code>SO_REUSEPORT</code>, and busy polling—this can approach 1 million messages per second on a single core, but such configurations are the exception, not the norm.<sup class="footnote-reference" id="fr-4-1"><a href="#footnote-4">4</a></sup></li>
 <li><strong>~5–15 Gb/s</strong> of bulk throughput for streaming workloads</li>
 </ul>
 <p>A 100 Gb/s NIC can push approximately 148 million 64-byte packets per second, or around 12 million 1024-byte messages per second. Saturating this link with traditional TCP sockets would require <strong>6–12 CPU cores</strong> dedicated entirely to network processing. On a dual-socket server with 64 cores, that is 10–20% of all CPU resources consumed by the network stack alone, leaving those cycles unavailable for actual application logic.</p>
 <p>At 400 Gb/s—which is the current generation of datacenter networking—the problem becomes untenable. No amount of optimization to the kernel TCP/IP stack can close this gap, because the fundamental architecture requires the CPU to participate in every packet.</p>
 <h2 id="what-cannot-be-fixed"><a class="header" href="#what-cannot-be-fixed">What Cannot Be Fixed</a></h2>
-<p>It is worth noting what improvements have been attempted and where they hit walls:</p>
+<p>The Linux networking community has tried repeatedly to fix this. None of the attempts have succeeded at removing the kernel from the data path:</p>
 <ul>
-<li><strong>TCP Offload Engines (TOE)</strong>: Offload TCP processing to the NIC hardware. These largely failed in the market because they created a “second TCP stack” that was difficult to maintain, debug, and keep consistent with the kernel’s implementation. Linux never accepted TOE into the mainline kernel.</li>
+<li><strong>TCP Offload Engines (TOE)</strong>: Offload TCP processing to the NIC hardware. These largely failed in the market because they created a “second TCP stack” that was difficult to maintain, debug, and keep consistent with the kernel’s implementation. Linux never accepted TOE into the mainline kernel—David Miller, the Linux networking maintainer, publicly opposed it on both technical grounds (TOE breaks netfilter, traffic control, and debugging) and patent concerns (Alacritech held key TOE patents). The lesson is instructive: partial offload that duplicates kernel state creates more problems than it solves. RDMA avoids this trap by taking the kernel out of the data path entirely rather than trying to replicate it in hardware.</li>
 <li><strong>Large Receive Offload (LRO) and Generic Receive Offload (GRO)</strong>: Aggregate multiple received segments into larger buffers before passing them up the stack. This reduces per-packet overhead but does not eliminate the fundamental copies and system calls.</li>
 <li><strong>TCP zero-copy send (<code>MSG_ZEROCOPY</code>)</strong>: Added in Linux 4.14, this avoids the send-side data copy for large messages by pinning user pages. However, it still requires the system call, kernel protocol processing, and comes with significant complexity (the application must track completion notifications to know when it can reuse the buffer). It does nothing for the receive path.</li>
 <li><strong>Busy polling (<code>SO_BUSY_POLL</code>)</strong>: The application polls the NIC directly from the <code>recv()</code> system call path, avoiding the interrupt-to-wakeup latency. This reduces latency by 2–5 μs but burns CPU cycles continuously, and the data still traverses the full kernel stack.</li>
@@ -348,6 +348,21 @@ These numbers assume a well-tuned Linux system with recent kernel, RSS (Receive 
 The numbers in this section are representative of 2020--2025 era server hardware (Intel Xeon Scalable or AMD EPYC processors, Linux 5.x/6.x kernels, 25--100 Gb/s Ethernet or InfiniBand). Specific measurements will vary with hardware generation, kernel version, and system configuration. The relative proportions, however, are remarkably stable: software overhead dominates wire time for small-to-medium messages on high-speed networks.
 </div>
 
+<hr>
+<ol class="footnote-definition">
+<li id="footnote-1">
+<p>Measured using minimal syscalls (<code>getuid</code>) on Intel Xeon Scalable processors. See <a href="https://gms.tf/on-the-costs-of-syscalls.html">gms.tf: On the Costs of Syscalls</a> and Brendan Gregg’s <a href="https://www.brendangregg.com/blog/2018-02-09/kpti-kaiser-meltdown-performance.html">KPTI/KAISER analysis</a>. <a href="#fr-1-1">↩</a></p>
+</li>
+<li id="footnote-2">
+<p>See the Linux kernel’s <a href="https://www.kernel.org/doc/html/latest/networking/checksum-offloads.html">checksum offloads documentation</a>. All modern NICs support TX checksum offload by default. <a href="#fr-2-1">↩</a></p>
+</li>
+<li id="footnote-3">
+<p>Consistent with measurements in Agarwal et al., “Understanding Host Network Stack Overheads,” ACM SIGCOMM 2022. <a href="#fr-3-1">↩</a></p>
+</li>
+<li id="footnote-4">
+<p>Cloudflare, <a href="https://blog.cloudflare.com/how-to-receive-a-million-packets/">“How to receive a million packets per second”</a>, documents the progression from ~50k pps (naive) to ~1.4 Mpps (fully tuned) per core. <a href="#fr-4-1">↩</a></p>
+</li>
+</ol>
 
                     </main>
 
@@ -384,6 +399,22 @@ The numbers in this section are representative of 2020--2025 era server hardware
         <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
         <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
         <script>

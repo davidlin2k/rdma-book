@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-a5f470ee.js";
+            window.path_to_searchindex_js = "../../searchindex-a09acba8.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-b911a98a.js"></script>
@@ -177,7 +177,7 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="15-when-and-when-not-to-use-rdma"><a class="header" href="#15-when-and-when-not-to-use-rdma">1.5 When (and When Not) to Use RDMA</a></h1>
-<p>RDMA delivers transformative performance for the right workloads. It also introduces hardware requirements, operational complexity, and programming difficulty that can outweigh its benefits for the wrong ones. This section provides a practical framework for deciding whether RDMA is appropriate for your application, identifies common misconceptions, and discusses the infrastructure requirements that constrain deployment.</p>
+<p>RDMA delivers order-of-magnitude improvements for the right workloads. It also introduces hardware requirements, operational complexity, and programming difficulty that can dwarf its benefits for the wrong ones. This section provides a practical decision framework and addresses the misconceptions that most commonly lead engineers down the wrong path.</p>
 <h2 id="good-use-cases-for-rdma"><a class="header" href="#good-use-cases-for-rdma">Good Use Cases for RDMA</a></h2>
 <h3 id="high-performance-computing-hpc"><a class="header" href="#high-performance-computing-hpc">High-Performance Computing (HPC)</a></h3>
 <p>HPC was RDMA’s original and remains its most natural home. Scientific simulations (molecular dynamics, computational fluid dynamics, weather modeling) decompose a problem across hundreds or thousands of nodes that must exchange boundary data at every time step. The key characteristics that make RDMA essential:</p>
@@ -188,8 +188,8 @@
 </ul>
 <p>RDMA has been ubiquitous in the top 500 supercomputers for over two decades. InfiniBand is the most common RDMA fabric in HPC, though RoCEv2 is making inroads in cloud HPC environments.</p>
 <h3 id="storage-nvme-over-fabrics-nvme-of"><a class="header" href="#storage-nvme-over-fabrics-nvme-of">Storage: NVMe over Fabrics (NVMe-oF)</a></h3>
-<p>NVMe SSDs can deliver random read latencies of 10–20 μs and sequential throughput of 7+ GB/s. When accessing these devices over a network using traditional TCP, the network stack’s overhead (15–30 μs round trip) can exceed the storage device’s latency itself, negating the speed advantage of NVMe over SATA/SAS.</p>
-<p>NVMe over Fabrics with RDMA transport (NVMe-oF/RDMA) delivers remote storage access with latencies of 5–15 μs—comparable to local NVMe access. This enables:</p>
+<p>Modern NVMe SSDs deliver random read latencies that vary dramatically by media type: Intel Optane (3D XPoint) drives achieve under 10 μs, while mainstream NAND-flash enterprise drives (Samsung PM9A3, Kioxia CM7) range from 70–120 μs at queue depth 1.<sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup> Sequential throughput exceeds 7 GB/s on current-generation drives. When accessing NVMe devices over a network using traditional TCP, the network stack’s overhead (15–30 μs round trip) adds meaningfully to the storage latency—and for the fastest storage media, can exceed the device latency itself.</p>
+<p>NVMe over Fabrics with RDMA transport (NVMe-oF/RDMA) adds only 5–15 μs of fabric overhead on top of the underlying device latency.<sup class="footnote-reference" id="fr-2-1"><a href="#footnote-2">2</a></sup> For Optane targets, this means total remote access latencies under 25 μs; for NAND targets, the fabric overhead is a small fraction of the overall latency. This enables:</p>
 <ul>
 <li><strong>Storage disaggregation</strong>: Decoupling compute and storage, allowing them to scale independently. A compute node accesses remote NVMe drives as if they were local, with minimal performance penalty.</li>
 <li><strong>Shared storage</strong>: Multiple compute nodes can access the same storage pool without a traditional SAN’s overhead.</li>
@@ -200,10 +200,10 @@
 <p>Distributed databases face a fundamental tension: strong consistency requires synchronous replication, but synchronous replication over TCP introduces latencies that destroy transaction throughput. RDMA changes this equation:</p>
 <ul>
 <li><strong>Synchronous replication in &lt;10 μs</strong>: A database can replicate a write-ahead log entry to two or more replicas and receive acknowledgements in under 10 μs total, compared to 50–100 μs with TCP. This makes synchronous replication viable for latency-sensitive workloads.</li>
-<li><strong>RDMA-based consensus</strong>: Research and production systems (FaRM from Microsoft Research, Pilaf, HERD, DrTM) have demonstrated that Paxos, Raft, and other consensus protocols can run 5–10x faster over RDMA.</li>
+<li><strong>RDMA-based consensus</strong>: Research and production systems have demonstrated that distributed protocols run 5–10x faster over RDMA. FaRM (Microsoft Research, NSDI 2014 / SOSP 2015) uses one-sided RDMA reads for data access and achieves millions of distributed transactions per second. HERD (SIGCOMM 2014) demonstrated that RDMA-based key-value stores can achieve 26 million ops/sec on a single server. Pilaf (ATC 2013) and DrTM (SOSP 2015) explored complementary design points using RDMA reads and hardware transactional memory, respectively.</li>
 <li><strong>Remote memory access for index lookups</strong>: An RDMA Read can fetch a remote B-tree node or hash table bucket in 2–3 μs without involving the remote CPU, enabling distributed data structures with near-local performance.</li>
 </ul>
-<p>Oracle RAC, Microsoft SQL Server, and SAP HANA all support RDMA for inter-node communication. Cloud-native databases like CockroachDB and TiDB are exploring RDMA integration.</p>
+<p>Oracle RAC on Exadata uses RDMA (via the RDS protocol over InfiniBand) for Cache Fusion inter-node communication.<sup class="footnote-reference" id="fr-3-1"><a href="#footnote-3">3</a></sup> Microsoft SQL Server benefits from RDMA through SMB Direct (SMB over RDMA) for storage I/O.</p>
 <h3 id="machine-learning-training"><a class="header" href="#machine-learning-training">Machine Learning Training</a></h3>
 <p>Distributed ML training (particularly data-parallel training with gradient synchronization) generates enormous volumes of inter-node traffic with strict latency requirements:</p>
 <ul>
@@ -220,7 +220,7 @@
 <li><strong>Order routing</strong>: Order management systems use RDMA to communicate with matching engines and risk systems.</li>
 <li><strong>Risk computation</strong>: Distributed risk calculations use RDMA for inter-node communication.</li>
 </ul>
-<p>Companies like Solarflare (now Xilinx/AMD) built their business on RDMA-capable NICs for trading. Exchanges themselves (CME, NASDAQ) have deployed RDMA-capable infrastructure.</p>
+<p>Companies like Solarflare (now Xilinx/AMD) built their business on ultra-low-latency kernel-bypass NICs for trading, using their OpenOnload user-space TCP/UDP stack rather than RDMA—achieving similar latency goals through a different mechanism.<sup class="footnote-reference" id="fr-4-1"><a href="#footnote-4">4</a></sup> Mellanox/NVIDIA ConnectX adapters with RoCE are also widely deployed in trading infrastructure. Major exchange colocation facilities support RDMA-capable hardware, and trading firms routinely use RDMA for internal communication between components.</p>
 <h2 id="anti-patterns-when-rdma-is-the-wrong-choice"><a class="header" href="#anti-patterns-when-rdma-is-the-wrong-choice">Anti-Patterns: When RDMA Is the Wrong Choice</a></h2>
 <h3 id="wide-area-networks-wan"><a class="header" href="#wide-area-networks-wan">Wide-Area Networks (WAN)</a></h3>
 <p>RDMA’s latency advantage is irrelevant when the network itself introduces milliseconds of latency. On a WAN link with 10 ms of propagation delay, whether the software stack adds 1 μs (RDMA) or 20 μs (TCP) is a rounding error—0.01% vs. 0.2% of total latency.</p>
@@ -228,7 +228,7 @@
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-There is active research on extending RDMA to multi-datacenter environments. Google's Snap and Microsoft's 1RMA explore WAN-tolerant RDMA-like semantics. These are not standard RDMA and require custom hardware/software stacks. For now, standard RDMA is a datacenter technology.
+There is active research on extending RDMA-like semantics beyond traditional single-cluster deployments. Google's Snap (SOSP 2019) is a userspace networking system deployed on over half of Google's fleet, with its Pony Express component providing RDMA-like memory semantics. Google's 1RMA (SIGCOMM 2020) re-envisions remote memory access for multi-tenant datacenter environments.[^5] These are not standard RDMA and require custom hardware/software stacks. For now, standard RDMA (InfiniBand, RoCE, iWARP) is a single-datacenter technology.
 </div>
 
 <h3 id="multi-tenant-environments-without-isolation"><a class="header" href="#multi-tenant-environments-without-isolation">Multi-Tenant Environments Without Isolation</a></h3>
@@ -248,15 +248,15 @@ There is active research on extending RDMA to multi-datacenter environments. Goo
 </ul>
 <p>For a deployment of 3–5 servers running a web application, the operational overhead of RDMA will far exceed any performance benefit. TCP sockets with tuning (busy polling, <code>MSG_ZEROCOPY</code>, io_uring) can achieve good enough performance for most small-scale workloads.</p>
 <h3 id="workloads-that-are-not-network-bound"><a class="header" href="#workloads-that-are-not-network-bound">Workloads That Are Not Network-Bound</a></h3>
-<p>This may seem obvious, but it is a common mistake: if your application spends 95% of its time doing disk I/O or computation and 5% doing network communication, making the network 10x faster will only speed up the application by ~4.5% (Amdahl’s Law). RDMA is most impactful when networking is a significant fraction of the workload’s critical path.</p>
+<p>If your application spends 95% of its time in disk I/O or computation and 5% in network communication, making the network 10x faster buys you ~4.5% (Amdahl’s Law). Profile first. RDMA pays off when networking is a significant fraction of the critical path, and it pays off enormously when it is the dominant fraction.</p>
 <h2 id="the-lossless-network-requirement-for-roce"><a class="header" href="#the-lossless-network-requirement-for-roce">The Lossless Network Requirement for RoCE</a></h2>
 <p>This topic deserves special attention because it is the single largest source of operational pain in RDMA deployments, and it is unique to RoCEv2 (InfiniBand is inherently lossless by design).</p>
-<p>Standard Ethernet is a best-effort network: switches drop packets when their buffers overflow. TCP handles this gracefully through retransmission. But RDMA’s transport layer, designed for InfiniBand’s lossless fabric, does not handle packet loss well. A single dropped packet can cause a <strong>go-back-N retransmission</strong> of the entire window (on some implementations), devastating throughput. Worse, on RNICs that use hardware-managed connections, a packet loss can force the connection into an error state that requires software recovery.</p>
+<p>Standard Ethernet is a best-effort network: switches drop packets when their buffers overflow. TCP handles this gracefully through selective retransmission. RDMA’s transport layer behaves very differently. On InfiniBand and early RoCE implementations, the hardware transport uses <strong>go-back-N retransmission</strong>: a single dropped packet causes the sender to retransmit that packet <em>and every subsequent packet in the window</em>, even if they were received correctly. With typical windows of 64–128 packets, a single drop can reduce effective throughput by orders of magnitude. The Mittal et al. IRN paper (SIGCOMM 2018) showed that even 0.1% packet loss can reduce RDMA throughput by 50% or more with go-back-N. Newer NVIDIA ConnectX-6 and later adapters support selective repeat retransmission, which significantly improves loss tolerance, but this is not universal across all RDMA hardware.</p>
 <p>To prevent packet loss, RoCEv2 deployments use <strong>Priority Flow Control (PFC)</strong>, an Ethernet mechanism (IEEE 802.1Qbb) that allows a switch to send a PAUSE frame to an upstream sender when its buffers for a specific priority class are approaching full. The upstream sender stops transmitting until the switch signals that buffer space is available.</p>
 <p>PFC prevents packet loss but introduces new problems:</p>
 <ul>
 <li><strong>Head-of-line blocking</strong>: If one flow causes a PFC pause, all flows on the same priority class and physical link are paused, even if they are destined for different, uncongested ports.</li>
-<li><strong>PFC storms</strong>: A feedback loop where PFC pause frames propagate across the fabric, potentially deadlocking the entire network. This is a well-documented operational nightmare.</li>
+<li><strong>PFC storms</strong>: A feedback loop where PFC pause frames propagate across the fabric, potentially deadlocking the entire network. This is a well-documented operational nightmare. Microsoft’s SIGCOMM 2016 paper on RoCE deployment at scale documented PFC storms causing network-wide outages, and their follow-up work (SIGCOMM 2023, “Revisiting Network Support for RDMA”) describes the monitoring and mitigation infrastructure required to operate RoCE reliably—including per-switch PFC watchdog timers that forcibly drop traffic to break deadlocks. The operational cost of this infrastructure is non-trivial.</li>
 <li><strong>Interaction with non-RDMA traffic</strong>: PFC must be configured on specific priority classes and kept separate from best-effort traffic. Misconfiguration can cause non-RDMA traffic to be paused by RDMA congestion, or vice versa.</li>
 </ul>
 <p>To mitigate these issues, production RoCEv2 deployments also use:</p>
@@ -285,7 +285,7 @@ The operational complexity of lossless Ethernet is the primary reason many organ
 <p>While native RDMA programming (using Verbs) does require significant application changes, many applications can benefit from RDMA through transparent middleware:</p>
 <ul>
 <li><strong>rsocket</strong>: A socket-compatible library that uses RDMA under the hood. Drop-in replacement for many applications via <code>LD_PRELOAD</code>.</li>
-<li><strong>SMC-R (Shared Memory Communications over RDMA)</strong>: A Linux kernel protocol that transparently uses RDMA for TCP connections between supported endpoints.</li>
+<li><strong>SMC-R (Shared Memory Communications over RDMA)</strong>: A Linux kernel protocol (RFC 7609, merged in Linux 4.11) that transparently uses RDMA for TCP connections between supported endpoints.</li>
 <li><strong>libfabric/OFI</strong>: An abstraction layer that can use RDMA or other transports, used by MPI implementations and storage systems.</li>
 <li><strong>Application-specific RDMA libraries</strong>: SPDK (for storage), UCX (for HPC/ML), NCCL (for ML training).</li>
 </ul>
@@ -348,33 +348,31 @@ The operational complexity of lossless Ethernet is the primary reason many organ
 </tbody>
 </table>
 </div>
-<p>The decision ultimately comes down to whether the performance improvement translates to sufficient business value to justify the investment. For HPC, ML training, and high-performance storage, the answer is almost always yes. For web applications, microservices, and WAN-connected systems, the answer is almost always no. The interesting decisions are in the middle: databases, financial systems, and medium-scale analytics where the workload characteristics might or might not benefit.</p>
+<p>For HPC, ML training, and high-performance storage, RDMA is table stakes—you cannot compete without it. For web applications, microservices, and anything WAN-connected, RDMA is the wrong tool. The interesting decisions are in the middle: databases, financial systems, and medium-scale analytics where the workload might or might not be network-bound enough to justify the investment.</p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
 If you are unsure whether RDMA will help your specific workload, the best approach is empirical. Set up a two-node test environment (ConnectX-5 or later, back-to-back or through a switch), run the standard benchmarks (<code>ib_write_lat</code>, <code>ib_write_bw</code>, <code>ib_send_lat</code> from the <code>perftest</code> package), and then prototype your application's critical communication path using RDMA. The perftest tools take minutes to set up and immediately show you the latency and throughput your hardware can achieve. Chapter 12 walks through this benchmarking process in detail.
 </div>
 
-<h2 id="chapter-summary"><a class="header" href="#chapter-summary">Chapter Summary</a></h2>
-<p>This chapter has built the case for RDMA from first principles:</p>
-<ol>
-<li>
-<p><strong>Traditional networking is software-bound</strong>: The socket model’s system calls, data copies, and kernel protocol processing consume 2–10 μs per message and multiple CPU cores to saturate modern links. The network hardware is waiting for the software.</p>
+<h2 id="what-comes-next"><a class="header" href="#what-comes-next">What Comes Next</a></h2>
+<p>The short version of this chapter: the socket model’s kernel involvement is the bottleneck on modern networks, DMA already handles data movement but the kernel stays in the loop, and RDMA removes the kernel entirely by letting applications drive the NIC directly. Nothing else—not DPDK, not io_uring, not XDP—does all of this at once. But RDMA demands specialized hardware, lossless networking (for RoCE), and a fundamentally different programming model. Whether that trade-off pays off depends on your workload.</p>
+<p>Chapter 2 traces how RDMA evolved from a niche supercomputing technology into a mainstream datacenter capability, and introduces the three transports—InfiniBand, RoCE, and iWARP—that you will work with throughout this book.</p>
+<hr>
+<ol class="footnote-definition">
+<li id="footnote-1">
+<p>See the NVM Express specification and vendor datasheets. Optane P5800X: ~6 μs average read. Samsung PM9A3: ~70 μs random read at QD1. <a href="#fr-1-1">↩</a></p>
 </li>
-<li>
-<p><strong>DMA removes the CPU from data movement</strong>: Modern NICs already use DMA to transfer data between NIC and kernel memory, but the kernel remains in the control path for every packet.</p>
+<li id="footnote-2">
+<p>The 5–15 μs figure represents the incremental network fabric latency (RDMA transport + NVMe-oF protocol processing), not the total end-to-end I/O latency, which also includes the storage device’s own access time. <a href="#fr-2-1">↩</a></p>
 </li>
-<li>
-<p><strong>RDMA extends DMA across the network</strong>: By giving applications direct access to the NIC (kernel bypass), eliminating intermediate copies (zero-copy), and implementing the transport protocol in hardware (CPU offload), RDMA achieves sub-2 μs latency and near-zero CPU overhead.</p>
+<li id="footnote-3">
+<p>Oracle RAC’s RDMA support is specific to Oracle Exadata engineered systems; standard RAC deployments use UDP or TCP. See Oracle’s <a href="https://www.oracle.com/a/ocom/docs/database/rac-cache-fusion-performance-optimizations-on-exadata.pdf">Cache Fusion on Exadata documentation</a>. <a href="#fr-3-1">↩</a></p>
 </li>
-<li>
-<p><strong>RDMA is unique among high-performance networking options</strong>: DPDK provides kernel bypass but not remote zero-copy or transport offload. io_uring reduces system call overhead but keeps the kernel in the data path. XDP accelerates packet processing but operates in kernel context. Only RDMA provides all three pillars.</p>
-</li>
-<li>
-<p><strong>RDMA is not universally the right choice</strong>: It requires specialized hardware, careful network configuration (especially for RoCEv2), and a steeper programming model. The decision depends on workload characteristics, deployment scale, and organizational readiness.</p>
+<li id="footnote-4">
+<p>Solarflare’s approach (kernel-bypass TCP via OpenOnload) and RDMA both eliminate kernel overhead from the data path. The distinction matters: OpenOnload maintains TCP compatibility while RDMA provides a fundamentally different API with one-sided memory access semantics. <a href="#fr-4-1">↩</a></p>
 </li>
 </ol>
-<p>With this foundation, we are ready to explore the history and ecosystem that brought RDMA from a niche supercomputing technology to a mainstream datacenter capability. Chapter 2 traces this evolution and introduces the three RDMA transports—InfiniBand, RoCE, and iWARP—that you will encounter throughout the rest of this book.</p>
 
                     </main>
 
@@ -411,6 +409,22 @@ If you are unsure whether RDMA will help your specific workload, the best approa
         <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
         <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
         <script>

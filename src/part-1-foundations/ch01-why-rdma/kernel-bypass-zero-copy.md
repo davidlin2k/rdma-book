@@ -40,7 +40,9 @@ The entire data-path round trip involves exactly **two MMIO writes** (doorbell o
 
 <div class="admonition note">
 <div class="admonition-title">Note</div>
-Modern RDMA NICs optimize the doorbell mechanism further with features like <strong>Blue Flame</strong> (on Mellanox/NVIDIA adapters), which combines the doorbell write with the first 64 bytes of the WQE into a single write-combining PCIe write. This eliminates one DMA read (the NIC does not need to fetch the WQE from memory) and saves approximately 100--200 nanoseconds for small messages. The application uses the same posting API; the optimization is transparent.
+Modern RDMA NICs optimize the doorbell mechanism further with features like <strong>Blue Flame</strong> (on Mellanox/NVIDIA adapters), which combines the doorbell write with the first 64 bytes of the WQE into a single write-combining PCIe write. This eliminates one DMA read (the NIC does not need to fetch the WQE from memory) and can save 100+ nanoseconds for small messages. Blue Flame is enabled transparently by the driver when the WQE fits in the write-combining buffer.
+
+One important caveat: doorbell writes are MMIO stores that cross the PCIe bus, and they are the most expensive operation in the RDMA fast path. Posting work requests one at a time (each with its own doorbell) is a common performance mistake. High-performance applications batch multiple WQEs into the send queue before ringing the doorbell once, amortizing the PCIe write cost. The <code>ibv_post_send()</code> API supports this naturally by accepting a linked list of work requests. Kalia et al. (ATC 2016) measured that batching even 2--4 WQEs per doorbell improves throughput by 20--50%.
 </div>
 
 ### The Security Model
@@ -174,7 +176,7 @@ XDP (eXpress Data Path) allows eBPF programs to execute on packets at the earlie
 | **CPU cores for 100 Gb/s** | 6--12 | 2--4 | 4--8 | N/A (filtering use case) | **<1** |
 | **Hardware required** | Any NIC | Any NIC (DPDK-compatible) | Any NIC | XDP-compatible NIC | **RDMA NIC** |
 
-The table reveals RDMA's unique position: it is the only technology that provides kernel bypass, zero-copy on both send and receive paths, zero-copy across the network (remote DMA), and transport protocol offload. Every other technology addresses a subset of these capabilities.
+The table makes RDMA's unique position clear: it is the only technology that combines kernel bypass, bidirectional zero-copy, remote DMA, and transport offload. Everything else solves a subset of the problem.
 
 <div class="admonition note">
 <div class="admonition-title">Note</div>
@@ -183,7 +185,7 @@ These technologies are not mutually exclusive. Some RDMA applications use DPDK f
 
 ## Why Memory Registration Is the Price of Zero-Copy
 
-It is worth dwelling on why zero-copy requires memory registration, because this relationship is fundamental to RDMA programming and is the source of much of RDMA's complexity.
+Zero-copy requires memory registration, and this relationship is fundamental to RDMA programming. Understanding it now will save you from a class of design mistakes later.
 
 In the socket model, the kernel can use any kernel buffer it wants for network I/O. The application provides its data, the kernel copies it to a kernel buffer, and the NIC DMAs from that kernel buffer. The kernel controls the buffer's lifetime, physical location, and pinning. This is simple and safe.
 

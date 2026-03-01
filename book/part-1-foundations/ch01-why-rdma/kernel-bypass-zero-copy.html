@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-a5f470ee.js";
+            window.path_to_searchindex_js = "../../searchindex-a09acba8.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-b911a98a.js"></script>
@@ -219,7 +219,8 @@
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-Modern RDMA NICs optimize the doorbell mechanism further with features like <strong>Blue Flame</strong> (on Mellanox/NVIDIA adapters), which combines the doorbell write with the first 64 bytes of the WQE into a single write-combining PCIe write. This eliminates one DMA read (the NIC does not need to fetch the WQE from memory) and saves approximately 100--200 nanoseconds for small messages. The application uses the same posting API; the optimization is transparent.
+Modern RDMA NICs optimize the doorbell mechanism further with features like <strong>Blue Flame</strong> (on Mellanox/NVIDIA adapters), which combines the doorbell write with the first 64 bytes of the WQE into a single write-combining PCIe write. This eliminates one DMA read (the NIC does not need to fetch the WQE from memory) and can save 100+ nanoseconds for small messages. Blue Flame is enabled transparently by the driver when the WQE fits in the write-combining buffer.
+<p>One important caveat: doorbell writes are MMIO stores that cross the PCIe bus, and they are the most expensive operation in the RDMA fast path. Posting work requests one at a time (each with its own doorbell) is a common performance mistake. High-performance applications batch multiple WQEs into the send queue before ringing the doorbell once, amortizing the PCIe write cost. The <code>ibv_post_send()</code> API supports this naturally by accepting a linked list of work requests. Kalia et al. (ATC 2016) measured that batching even 2–4 WQEs per doorbell improves throughput by 20–50%.</p>
 </div>
 
 <h3 id="the-security-model"><a class="header" href="#the-security-model">The Security Model</a></h3>
@@ -352,7 +353,7 @@ Chapter 6 covers memory registration in comprehensive detail, including advanced
 </tbody>
 </table>
 </div>
-<p>The table reveals RDMA’s unique position: it is the only technology that provides kernel bypass, zero-copy on both send and receive paths, zero-copy across the network (remote DMA), and transport protocol offload. Every other technology addresses a subset of these capabilities.</p>
+<p>The table makes RDMA’s unique position clear: it is the only technology that combines kernel bypass, bidirectional zero-copy, remote DMA, and transport offload. Everything else solves a subset of the problem.</p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
@@ -360,7 +361,7 @@ These technologies are not mutually exclusive. Some RDMA applications use DPDK f
 </div>
 
 <h2 id="why-memory-registration-is-the-price-of-zero-copy"><a class="header" href="#why-memory-registration-is-the-price-of-zero-copy">Why Memory Registration Is the Price of Zero-Copy</a></h2>
-<p>It is worth dwelling on why zero-copy requires memory registration, because this relationship is fundamental to RDMA programming and is the source of much of RDMA’s complexity.</p>
+<p>Zero-copy requires memory registration, and this relationship is fundamental to RDMA programming. Understanding it now will save you from a class of design mistakes later.</p>
 <p>In the socket model, the kernel can use any kernel buffer it wants for network I/O. The application provides its data, the kernel copies it to a kernel buffer, and the NIC DMAs from that kernel buffer. The kernel controls the buffer’s lifetime, physical location, and pinning. This is simple and safe.</p>
 <p>In RDMA, there is no kernel buffer. The NIC DMAs directly to and from the application’s memory. But the NIC operates on physical addresses (it is a PCIe device performing bus transactions), while the application uses virtual addresses. Somehow, the NIC must be able to translate the application’s virtual addresses to physical addresses. And those physical addresses must remain valid for as long as the NIC might access them—the pages cannot be swapped out, migrated, or freed while a DMA operation is in progress.</p>
 <p>Memory registration is the mechanism that solves both problems: it builds the translation table and pins the pages. Without it, zero-copy would be either impossible (if the NIC cannot translate addresses) or unsafe (if the pages can move while the NIC is accessing them).</p>
@@ -406,6 +407,22 @@ These technologies are not mutually exclusive. Some RDMA applications use DPDK f
         <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
         <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
         <script>

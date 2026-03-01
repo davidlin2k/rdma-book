@@ -99,11 +99,13 @@ Key IOMMU concepts relevant to RDMA:
 - **Isolation domains**: Devices can be placed in separate IOMMU domains, preventing one device from accessing memory assigned to another. This is essential for safe device assignment to virtual machines (VFIO/PCI passthrough).
 - **Page granularity**: IOMMU mappings are page-granular (typically 4 KB, with support for large pages). Creating a mapping is not free---it involves modifying IOMMU page tables and may require an IOTLB (I/O TLB) flush.
 
-For RDMA, the IOMMU adds an important wrinkle: when an RDMA NIC (RNIC) needs to DMA directly to a user-space application's buffer, the IOMMU must have a mapping that translates the NIC's DMA address to the correct physical page frames backing that application buffer. Setting up these mappings is part of the **memory registration** process that we will explore in detail in Chapter 6.
+For RDMA, the IOMMU adds an important wrinkle: when an RDMA NIC (RNIC) needs to DMA directly to a user-space application's buffer, the IOMMU must have a mapping that translates the NIC's DMA address to the correct physical page frames backing that application buffer. Setting up these mappings is part of the **memory registration** process that we will explore in detail in Chapter 6.[^1]
+
+[^1]: For a thorough treatment of IOMMU performance in high-speed networking, see Farshin et al., "Reexamining Direct Cache Access to Optimize I/O Intensive Applications for Multi-hundred-gigabit Networks," USENIX ATC 2020, and Amit et al., "Strategies for Mitigating the IOTLB Bottleneck," ISPASS 2011.
 
 <div class="admonition note">
 <div class="admonition-title">Note</div>
-Some RDMA deployments disable the IOMMU for performance reasons, as IOMMU translation adds a small amount of latency to each DMA transaction (typically 50--100 ns for an IOTLB miss). This is a security trade-off: without the IOMMU, a malfunctioning NIC could corrupt arbitrary memory. Modern RNICs and IOMMUs have improved to the point where the overhead is negligible for most workloads, and disabling the IOMMU is increasingly discouraged.
+Some RDMA deployments disable the IOMMU for performance reasons, as IOMMU translation adds latency on IOTLB misses (the exact penalty depends on the page table walk depth and PCIe topology, but can reach hundreds of nanoseconds in the worst case). This is a security trade-off: without the IOMMU, a malfunctioning NIC could corrupt arbitrary memory. Modern RNICs and IOMMUs have improved substantially---Intel's Scalable IOMMU supports large pages (2 MB, 1 GB) that dramatically reduce IOTLB miss rates, and IOTLB sizes have grown. Disabling the IOMMU is increasingly discouraged in production, and is incompatible with SR-IOV-based NIC virtualization, which requires IOMMU isolation between virtual functions.
 </div>
 
 ## Scatter-Gather DMA
@@ -136,7 +138,9 @@ The progression from PIO to bus-mastering DMA to RDMA is a story of systematical
 
 One subtlety of DMA that becomes important for RDMA programming is its interaction with the CPU cache hierarchy. When a NIC DMA-writes data into memory, that data goes to DRAM (or, on modern Intel platforms with DDIO---Data Direct I/O---into the last-level cache). But the CPU core that will process this data may have a stale cache line for that address, or may not have the line cached at all.
 
-On x86 platforms, PCIe transactions are **cache-coherent**: the DMA write will snoop the CPU caches, and if a conflicting line exists, it will be invalidated or updated. This means the CPU will always see the correct data after a DMA write, at the cost of a potential cache miss on first access. On other architectures (notably some ARM implementations), DMA coherence is not guaranteed, and explicit cache maintenance operations may be required.
+On x86 platforms, PCIe transactions are **cache-coherent**:[^2] the DMA write will snoop the CPU caches, and if a conflicting line exists, it will be invalidated or updated.
+
+[^2]: Intel's coherency model for PCIe is specified in the *Intel 64 and IA-32 Architectures Software Developer's Manual*, Volume 3A, Chapter 12 (Memory Ordering). PCIe 3.0+ devices interacting with Intel CPUs observe the Total Store Order (TSO) memory model with respect to host-initiated stores. This means the CPU will always see the correct data after a DMA write, at the cost of a potential cache miss on first access. On other architectures (notably some ARM implementations), DMA coherence is not guaranteed, and explicit cache maintenance operations may be required.
 
 For RDMA, cache coherence matters because:
 
@@ -145,7 +149,7 @@ For RDMA, cache coherence matters because:
 
 <div class="admonition note">
 <div class="admonition-title">Note</div>
-Intel's Data Direct I/O (DDIO) technology routes inbound DMA writes to the Last Level Cache (LLC) rather than DRAM, reducing the latency of CPU access to newly-DMA'd data by avoiding a DRAM round trip (~60--80 ns). This is generally beneficial for networking, but can cause cache pollution under high receive rates. RDMA applications that process large volumes of data may need to account for DDIO's interaction with their cache working set. Some operators disable DDIO on specific PCIe devices or allocate receive buffers from non-cacheable memory regions to control this effect.
+Intel's Data Direct I/O (DDIO) technology routes inbound DMA writes to the Last Level Cache (LLC) rather than DRAM, reducing the latency of CPU access to newly-DMA'd data by avoiding a DRAM round trip (~60--80 ns). This is generally beneficial for networking, but creates a subtle and well-documented problem at high receive rates: inbound DMA traffic can evict the application's working set from the LLC, degrading compute performance. On Intel Xeon Scalable processors, DDIO typically uses only two LLC ways (out of 11 on a typical SKU), which limits the cache available for DMA to roughly 10--20% of the LLC. Farshin et al. (USENIX ATC 2020, "Reexamining Direct Cache Access") showed that this default allocation is suboptimal for high-speed networking---too little cache for DMA causes DDIO misses that fall through to DRAM, while too much cache for DMA pollutes the application's working set. Tuning DDIO's LLC allocation via Intel's Cache Allocation Technology (CAT) is a production best practice for RDMA workloads handling 40+ Gb/s of inbound traffic.
 </div>
 
 ## The Gap That RDMA Fills

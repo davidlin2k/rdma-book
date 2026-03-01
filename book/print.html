@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-a5f470ee.js";
+            window.path_to_searchindex_js = "searchindex-a09acba8.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-b911a98a.js"></script>
@@ -342,7 +342,7 @@ hca_id: mlx5_0
 <li>Looking up the system call handler in the syscall table</li>
 <li>Performing security checks (e.g., verifying the file descriptor)</li>
 </ul>
-<p>On modern x86-64 hardware, the raw cost of the <code>SYSCALL</code>/<code>SYSRET</code> pair is roughly <strong>100–150 nanoseconds</strong> when Spectre/Meltdown mitigations are disabled. With Kernel Page Table Isolation (KPTI) enabled—which is the default on virtually all production systems since 2018—this cost rises to <strong>500–1500 nanoseconds</strong> because the kernel must flush TLB entries and switch page tables. This cost is paid on every single <code>send()</code> and <code>recv()</code> call.</p>
+<p>On modern x86-64 hardware, the raw cost of the <code>SYSCALL</code>/<code>SYSRET</code> pair is roughly <strong>100–150 nanoseconds</strong> when Spectre/Meltdown mitigations are disabled. With Kernel Page Table Isolation (KPTI) enabled—which is the default on virtually all production systems since 2018—this cost rises to <strong>200–500 nanoseconds</strong> on CPUs with PCID (Process-Context Identifiers, standard since Haswell), because the kernel must switch page tables on each transition.<sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup> On older CPUs without PCID, the cost is higher due to full TLB flushes. This cost is paid on every single <code>send()</code> and <code>recv()</code> call.</p>
 <h3 id="step-2-socket-layer-processing"><a class="header" href="#step-2-socket-layer-processing">Step 2: Socket Layer Processing</a></h3>
 <p>Once inside the kernel, the socket layer performs:</p>
 <ul>
@@ -364,10 +364,10 @@ hca_id: mlx5_0
 <li><strong>Sequence number assignment</strong>: Each byte in the stream receives a sequence number. The kernel updates the send-side sequence state.</li>
 <li><strong>Window management</strong>: The kernel checks the receiver’s advertised window and the congestion window to determine how much data can be sent.</li>
 <li><strong>Header construction</strong>: A 20-byte (minimum) TCP header is prepended to each segment.</li>
-<li><strong>Checksum computation</strong>: The TCP checksum is computed over the pseudo-header and payload. For 4 KB of data, this requires reading every byte. On modern CPUs with hardware CRC acceleration, this costs approximately <strong>100–300 nanoseconds</strong> for 4 KB.</li>
+<li><strong>Checksum computation</strong>: The TCP checksum must be computed over the pseudo-header and payload. On modern NICs, transmit checksum is offloaded to hardware and costs the CPU nothing.<sup class="footnote-reference" id="fr-2-1"><a href="#footnote-2">2</a></sup> When checksum offload is unavailable or disabled, the kernel computes it in software using SIMD instructions at roughly <strong>50–150 nanoseconds</strong> for 4 KB.</li>
 <li><strong>Timer management</strong>: The retransmission timer is (re)set.</li>
 </ul>
-<p>The total TCP processing overhead is typically <strong>500–2000 nanoseconds</strong> per message, varying with message size and the complexity of the current connection state.</p>
+<p>The total TCP processing overhead is typically <strong>500–2000 nanoseconds</strong> per message, varying with message size and the complexity of the current connection state.<sup class="footnote-reference" id="fr-3-1"><a href="#footnote-3">3</a></sup></p>
 <h3 id="step-5-ip-layer-processing"><a class="header" href="#step-5-ip-layer-processing">Step 5: IP Layer Processing</a></h3>
 <p>The IP layer adds:</p>
 <ul>
@@ -421,7 +421,7 @@ hca_id: mlx5_0
 <p>The following diagram traces the full send-and-receive path, highlighting every layer crossing and data copy:</p>
 <pre class="mermaid">graph TD
     subgraph "Sending Host"
-        A["Application: send(fd, buf, len)"] --&gt;|"① SYSCALL&lt;br/&gt;~0.5–1.5 μs"| B["Socket Layer"]
+        A["Application: send(fd, buf, len)"] --&gt;|"① SYSCALL&lt;br/&gt;~0.2–0.5 μs"| B["Socket Layer"]
         B --&gt;|"② memcpy: user→kernel&lt;br/&gt;~0.2–0.4 μs per 4 KB"| C["TCP Layer"]
         C --&gt;|"③ Segmentation, checksum,&lt;br/&gt;sequence numbers&lt;br/&gt;~0.5–2 μs"| D["IP Layer"]
         D --&gt;|"④ Route lookup,&lt;br/&gt;header construction"| E["Link Layer / qdisc"]
@@ -455,20 +455,20 @@ hca_id: mlx5_0
 <tr><th>Component</th><th>Send Path</th><th>Receive Path</th></tr>
 </thead>
 <tbody>
-<tr><td>System call transition (with KPTI)</td><td>0.5–1.5 μs</td><td>0.5–1.5 μs</td></tr>
+<tr><td>System call transition (with KPTI)</td><td>0.2–0.5 μs</td><td>0.2–0.5 μs</td></tr>
 <tr><td>Socket layer processing</td><td>0.1–0.3 μs</td><td>0.1–0.3 μs</td></tr>
 <tr><td>Data copy (user ↔ kernel)</td><td>0.2–0.4 μs</td><td>0.2–0.4 μs</td></tr>
 <tr><td>TCP processing</td><td>0.5–2.0 μs</td><td>0.5–2.0 μs</td></tr>
 <tr><td>IP processing</td><td>0.1–0.3 μs</td><td>0.1–0.3 μs</td></tr>
 <tr><td>Link layer / qdisc / driver</td><td>0.2–0.5 μs</td><td>0.2–0.5 μs</td></tr>
 <tr><td>Interrupt handling</td><td>—</td><td>1.0–3.0 μs</td></tr>
-<tr><td><strong>Subtotal (software)</strong></td><td><strong>1.6–5.0 μs</strong></td><td><strong>2.6–8.0 μs</strong></td></tr>
+<tr><td><strong>Subtotal (software)</strong></td><td><strong>1.3–3.9 μs</strong></td><td><strong>2.3–6.9 μs</strong></td></tr>
 <tr><td>Wire time (25 Gb/s, 4 KB)</td><td>~1.3 μs</td><td>~1.3 μs</td></tr>
-<tr><td><strong>Total one-way</strong></td><td><strong>~3–6 μs</strong></td><td><strong>~4–9 μs</strong></td></tr>
+<tr><td><strong>Total one-way</strong></td><td><strong>~2.6–5.2 μs</strong></td><td><strong>~3.6–8.2 μs</strong></td></tr>
 </tbody>
 </table>
 </div>
-<p>The wire time for a 4 KB frame at 25 Gb/s is approximately 1.3 microseconds. The software overhead on the send path alone is <em>at least comparable to, and often several times larger than, the wire time</em>. For a round trip (send + receive on both sides), total application-to-application latency is typically <strong>10–30 microseconds</strong>, of which only about 2.6 microseconds is actually spent on the wire.</p>
+<p>The wire time for a 4 KB frame at 25 Gb/s is approximately 1.3 microseconds. The software overhead on the send path alone is <em>comparable to or larger than the wire time</em>. For a round trip (send + receive on both sides), total application-to-application latency is typically <strong>10–25 microseconds</strong> on a tuned system, of which only about 2.6 microseconds is actually spent on the wire.</p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
@@ -479,15 +479,15 @@ These numbers assume a well-tuned Linux system with recent kernel, RSS (Receive 
 <p>Latency is only half the story. The CPU cost per message determines how many messages a core can process per second, and therefore the total throughput of the system.</p>
 <p>On a modern server, a single CPU core running TCP socket I/O can typically handle:</p>
 <ul>
-<li><strong>~1–2 million small messages per second</strong> for request/response workloads (with <code>epoll</code> and careful tuning)</li>
+<li><strong>~100,000–500,000 small messages per second</strong> for request/response workloads with standard <code>epoll</code>. With aggressive tuning—NUMA-aligned interrupt affinity, <code>SO_REUSEPORT</code>, and busy polling—this can approach 1 million messages per second on a single core, but such configurations are the exception, not the norm.<sup class="footnote-reference" id="fr-4-1"><a href="#footnote-4">4</a></sup></li>
 <li><strong>~5–15 Gb/s</strong> of bulk throughput for streaming workloads</li>
 </ul>
 <p>A 100 Gb/s NIC can push approximately 148 million 64-byte packets per second, or around 12 million 1024-byte messages per second. Saturating this link with traditional TCP sockets would require <strong>6–12 CPU cores</strong> dedicated entirely to network processing. On a dual-socket server with 64 cores, that is 10–20% of all CPU resources consumed by the network stack alone, leaving those cycles unavailable for actual application logic.</p>
 <p>At 400 Gb/s—which is the current generation of datacenter networking—the problem becomes untenable. No amount of optimization to the kernel TCP/IP stack can close this gap, because the fundamental architecture requires the CPU to participate in every packet.</p>
 <h2 id="what-cannot-be-fixed"><a class="header" href="#what-cannot-be-fixed">What Cannot Be Fixed</a></h2>
-<p>It is worth noting what improvements have been attempted and where they hit walls:</p>
+<p>The Linux networking community has tried repeatedly to fix this. None of the attempts have succeeded at removing the kernel from the data path:</p>
 <ul>
-<li><strong>TCP Offload Engines (TOE)</strong>: Offload TCP processing to the NIC hardware. These largely failed in the market because they created a “second TCP stack” that was difficult to maintain, debug, and keep consistent with the kernel’s implementation. Linux never accepted TOE into the mainline kernel.</li>
+<li><strong>TCP Offload Engines (TOE)</strong>: Offload TCP processing to the NIC hardware. These largely failed in the market because they created a “second TCP stack” that was difficult to maintain, debug, and keep consistent with the kernel’s implementation. Linux never accepted TOE into the mainline kernel—David Miller, the Linux networking maintainer, publicly opposed it on both technical grounds (TOE breaks netfilter, traffic control, and debugging) and patent concerns (Alacritech held key TOE patents). The lesson is instructive: partial offload that duplicates kernel state creates more problems than it solves. RDMA avoids this trap by taking the kernel out of the data path entirely rather than trying to replicate it in hardware.</li>
 <li><strong>Large Receive Offload (LRO) and Generic Receive Offload (GRO)</strong>: Aggregate multiple received segments into larger buffers before passing them up the stack. This reduces per-packet overhead but does not eliminate the fundamental copies and system calls.</li>
 <li><strong>TCP zero-copy send (<code>MSG_ZEROCOPY</code>)</strong>: Added in Linux 4.14, this avoids the send-side data copy for large messages by pinning user pages. However, it still requires the system call, kernel protocol processing, and comes with significant complexity (the application must track completion notifications to know when it can reuse the buffer). It does nothing for the receive path.</li>
 <li><strong>Busy polling (<code>SO_BUSY_POLL</code>)</strong>: The application polls the NIC directly from the <code>recv()</code> system call path, avoiding the interrupt-to-wakeup latency. This reduces latency by 2–5 μs but burns CPU cycles continuously, and the data still traverses the full kernel stack.</li>
@@ -500,6 +500,21 @@ These numbers assume a well-tuned Linux system with recent kernel, RSS (Receive 
 The numbers in this section are representative of 2020--2025 era server hardware (Intel Xeon Scalable or AMD EPYC processors, Linux 5.x/6.x kernels, 25--100 Gb/s Ethernet or InfiniBand). Specific measurements will vary with hardware generation, kernel version, and system configuration. The relative proportions, however, are remarkably stable: software overhead dominates wire time for small-to-medium messages on high-speed networks.
 </div>
 
+<hr>
+<ol class="footnote-definition">
+<li id="footnote-1">
+<p>Measured using minimal syscalls (<code>getuid</code>) on Intel Xeon Scalable processors. See <a href="https://gms.tf/on-the-costs-of-syscalls.html">gms.tf: On the Costs of Syscalls</a> and Brendan Gregg’s <a href="https://www.brendangregg.com/blog/2018-02-09/kpti-kaiser-meltdown-performance.html">KPTI/KAISER analysis</a>. <a href="#fr-1-1">↩</a></p>
+</li>
+<li id="footnote-2">
+<p>See the Linux kernel’s <a href="https://www.kernel.org/doc/html/latest/networking/checksum-offloads.html">checksum offloads documentation</a>. All modern NICs support TX checksum offload by default. <a href="#fr-2-1">↩</a></p>
+</li>
+<li id="footnote-3">
+<p>Consistent with measurements in Agarwal et al., “Understanding Host Network Stack Overheads,” ACM SIGCOMM 2022. <a href="#fr-3-1">↩</a></p>
+</li>
+<li id="footnote-4">
+<p>Cloudflare, <a href="https://blog.cloudflare.com/how-to-receive-a-million-packets/">“How to receive a million packets per second”</a>, documents the progression from ~50k pps (naive) to ~1.4 Mpps (fully tuned) per core. <a href="#fr-4-1">↩</a></p>
+</li>
+</ol>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="12-dma-fundamentals"><a class="header" href="#12-dma-fundamentals">1.2 DMA Fundamentals</a></h1>
 <p>Before we can understand Remote Direct Memory Access, we need to understand plain Direct Memory Access. DMA is the hardware mechanism that allows peripheral devices—network adapters, storage controllers, GPUs—to read from and write to system memory without involving the CPU for each byte transferred. It is one of the most important performance features in modern computer architecture, and it is the foundation upon which RDMA is built.</p>
@@ -593,11 +608,11 @@ The numbers in this section are representative of 2020--2025 era server hardware
 <li><strong>Isolation domains</strong>: Devices can be placed in separate IOMMU domains, preventing one device from accessing memory assigned to another. This is essential for safe device assignment to virtual machines (VFIO/PCI passthrough).</li>
 <li><strong>Page granularity</strong>: IOMMU mappings are page-granular (typically 4 KB, with support for large pages). Creating a mapping is not free—it involves modifying IOMMU page tables and may require an IOTLB (I/O TLB) flush.</li>
 </ul>
-<p>For RDMA, the IOMMU adds an important wrinkle: when an RDMA NIC (RNIC) needs to DMA directly to a user-space application’s buffer, the IOMMU must have a mapping that translates the NIC’s DMA address to the correct physical page frames backing that application buffer. Setting up these mappings is part of the <strong>memory registration</strong> process that we will explore in detail in Chapter 6.</p>
+<p>For RDMA, the IOMMU adds an important wrinkle: when an RDMA NIC (RNIC) needs to DMA directly to a user-space application’s buffer, the IOMMU must have a mapping that translates the NIC’s DMA address to the correct physical page frames backing that application buffer. Setting up these mappings is part of the <strong>memory registration</strong> process that we will explore in detail in Chapter 6.<sup class="footnote-reference" id="fr-1-1-1"><a href="#footnote-1-1">1</a></sup></p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-Some RDMA deployments disable the IOMMU for performance reasons, as IOMMU translation adds a small amount of latency to each DMA transaction (typically 50--100 ns for an IOTLB miss). This is a security trade-off: without the IOMMU, a malfunctioning NIC could corrupt arbitrary memory. Modern RNICs and IOMMUs have improved to the point where the overhead is negligible for most workloads, and disabling the IOMMU is increasingly discouraged.
+Some RDMA deployments disable the IOMMU for performance reasons, as IOMMU translation adds latency on IOTLB misses (the exact penalty depends on the page table walk depth and PCIe topology, but can reach hundreds of nanoseconds in the worst case). This is a security trade-off: without the IOMMU, a malfunctioning NIC could corrupt arbitrary memory. Modern RNICs and IOMMUs have improved substantially---Intel's Scalable IOMMU supports large pages (2 MB, 1 GB) that dramatically reduce IOTLB miss rates, and IOTLB sizes have grown. Disabling the IOMMU is increasingly discouraged in production, and is incompatible with SR-IOV-based NIC virtualization, which requires IOMMU isolation between virtual functions.
 </div>
 
 <h2 id="scatter-gather-dma"><a class="header" href="#scatter-gather-dma">Scatter-Gather DMA</a></h2>
@@ -627,7 +642,7 @@ Some RDMA deployments disable the IOMMU for performance reasons, as IOMMU transl
 <p>The progression from PIO to bus-mastering DMA to RDMA is a story of systematically removing the CPU from the data path. With conventional DMA, the CPU is out of the data-movement loop but still orchestrates every transfer from within the kernel. RDMA removes the kernel from the orchestration, letting the application issue DMA commands directly to the NIC hardware.</p>
 <h2 id="dma-and-cache-coherence"><a class="header" href="#dma-and-cache-coherence">DMA and Cache Coherence</a></h2>
 <p>One subtlety of DMA that becomes important for RDMA programming is its interaction with the CPU cache hierarchy. When a NIC DMA-writes data into memory, that data goes to DRAM (or, on modern Intel platforms with DDIO—Data Direct I/O—into the last-level cache). But the CPU core that will process this data may have a stale cache line for that address, or may not have the line cached at all.</p>
-<p>On x86 platforms, PCIe transactions are <strong>cache-coherent</strong>: the DMA write will snoop the CPU caches, and if a conflicting line exists, it will be invalidated or updated. This means the CPU will always see the correct data after a DMA write, at the cost of a potential cache miss on first access. On other architectures (notably some ARM implementations), DMA coherence is not guaranteed, and explicit cache maintenance operations may be required.</p>
+<p>On x86 platforms, PCIe transactions are <strong>cache-coherent</strong>:<sup class="footnote-reference" id="fr-2-1-1"><a href="#footnote-2-1">2</a></sup> the DMA write will snoop the CPU caches, and if a conflicting line exists, it will be invalidated or updated.</p>
 <p>For RDMA, cache coherence matters because:</p>
 <ul>
 <li><strong>Receive completions</strong>: When the NIC writes data into an application’s receive buffer via RDMA, the application must be able to read the correct data immediately upon being notified of the completion. Cache coherence ensures this on x86, but the first read will likely be a cache miss if the buffer was not recently accessed.</li>
@@ -636,7 +651,7 @@ Some RDMA deployments disable the IOMMU for performance reasons, as IOMMU transl
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-Intel's Data Direct I/O (DDIO) technology routes inbound DMA writes to the Last Level Cache (LLC) rather than DRAM, reducing the latency of CPU access to newly-DMA'd data by avoiding a DRAM round trip (~60--80 ns). This is generally beneficial for networking, but can cause cache pollution under high receive rates. RDMA applications that process large volumes of data may need to account for DDIO's interaction with their cache working set. Some operators disable DDIO on specific PCIe devices or allocate receive buffers from non-cacheable memory regions to control this effect.
+Intel's Data Direct I/O (DDIO) technology routes inbound DMA writes to the Last Level Cache (LLC) rather than DRAM, reducing the latency of CPU access to newly-DMA'd data by avoiding a DRAM round trip (~60--80 ns). This is generally beneficial for networking, but creates a subtle and well-documented problem at high receive rates: inbound DMA traffic can evict the application's working set from the LLC, degrading compute performance. On Intel Xeon Scalable processors, DDIO typically uses only two LLC ways (out of 11 on a typical SKU), which limits the cache available for DMA to roughly 10--20% of the LLC. Farshin et al. (USENIX ATC 2020, "Reexamining Direct Cache Access") showed that this default allocation is suboptimal for high-speed networking---too little cache for DMA causes DDIO misses that fall through to DRAM, while too much cache for DMA pollutes the application's working set. Tuning DDIO's LLC allocation via Intel's Cache Allocation Technology (CAT) is a production best practice for RDMA workloads handling 40+ Gb/s of inbound traffic.
 </div>
 
 <h2 id="the-gap-that-rdma-fills"><a class="header" href="#the-gap-that-rdma-fills">The Gap That RDMA Fills</a></h2>
@@ -651,15 +666,24 @@ Intel's Data Direct I/O (DDIO) technology routes inbound DMA writes to the Last 
 </ol>
 <p>RDMA eliminates both of these by extending DMA’s reach. Instead of the NIC performing DMA to and from kernel buffers under kernel control, an RDMA NIC performs DMA to and from application buffers under application control. The kernel is involved only during setup—establishing what memory the NIC is allowed to access and what operations are permitted—and then steps out of the data path entirely.</p>
 <p>This is what the “Remote” in “Remote Direct Memory Access” means: the DMA is not just between a local NIC and local memory, but between a remote NIC and local memory, or between a local NIC and remote memory—all without kernel involvement on either end during the actual data transfer. The next section explains exactly how this works.</p>
+<hr>
+<ol class="footnote-definition">
+<li id="footnote-1-1">
+<p>For a thorough treatment of IOMMU performance in high-speed networking, see Farshin et al., “Reexamining Direct Cache Access to Optimize I/O Intensive Applications for Multi-hundred-gigabit Networks,” USENIX ATC 2020, and Amit et al., “Strategies for Mitigating the IOTLB Bottleneck,” ISPASS 2011. <a href="#fr-1-1-1">↩</a></p>
+</li>
+<li id="footnote-2-1">
+<p>Intel’s coherency model for PCIe is specified in the <em>Intel 64 and IA-32 Architectures Software Developer’s Manual</em>, Volume 3A, Chapter 12 (Memory Ordering). PCIe 3.0+ devices interacting with Intel CPUs observe the Total Store Order (TSO) memory model with respect to host-initiated stores. This means the CPU will always see the correct data after a DMA write, at the cost of a potential cache miss on first access. On other architectures (notably some ARM implementations), DMA coherence is not guaranteed, and explicit cache maintenance operations may be required. <a href="#fr-2-1-1">↩</a></p>
+</li>
+</ol>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="13-the-rdma-concept"><a class="header" href="#13-the-rdma-concept">1.3 The RDMA Concept</a></h1>
-<p>We have now seen where time and CPU cycles are wasted in traditional networking (Section 1.1) and how DMA already removes the CPU from bulk data movement within a single machine (Section 1.2). RDMA is the synthesis: it extends direct memory access across the network, removes the kernel from the data path, and eliminates data copies between application buffers and the wire. This section introduces the three pillars of RDMA, explains the fundamental architecture, and quantifies the performance difference.</p>
+<p>Section 1.1 showed where time and CPU cycles go in traditional networking. Section 1.2 showed how DMA already removes the CPU from bulk data movement within a single machine. RDMA combines these insights: it extends DMA across the network, removes the kernel from the data path, and eliminates data copies between application buffers and the wire.</p>
 <h2 id="the-three-pillars"><a class="header" href="#the-three-pillars">The Three Pillars</a></h2>
-<p>Every discussion of RDMA centers on three capabilities that, taken together, fundamentally change the performance characteristics of network I/O:</p>
+<p>RDMA rests on three capabilities that, combined, change the performance characteristics of network I/O by orders of magnitude:</p>
 <h3 id="pillar-1-kernel-bypass"><a class="header" href="#pillar-1-kernel-bypass">Pillar 1: Kernel Bypass</a></h3>
 <p>In the RDMA model, the application communicates directly with the NIC hardware without making system calls. The kernel is involved during <strong>setup</strong>—creating communication endpoints, registering memory regions, establishing connections—but once the data path is active, every send, receive, and memory access operation goes from user space directly to the NIC, bypassing the kernel entirely.</p>
 <p>This is achieved through memory-mapped I/O: during setup, the kernel maps a region of the NIC’s control registers (specifically, the <strong>doorbell</strong> registers) into the application’s virtual address space. The application also has direct access to the submission and completion queues in its own memory. When the application wants to send data, it writes a <strong>Work Queue Element (WQE)</strong> into the submission queue and rings the doorbell by writing to the mapped register. No system call. No context switch. No privilege transition.</p>
-<p>The cost of posting a work request in RDMA is approximately <strong>50–100 nanoseconds</strong>—compared to 500–1500 nanoseconds for a system call with KPTI on the same hardware.</p>
+<p>The cost of posting a work request in RDMA is approximately <strong>100–300 nanoseconds</strong>, dominated by the PCIe MMIO doorbell write.<sup class="footnote-reference" id="fr-1-1-2"><a href="#footnote-1-2">1</a></sup> Compare this to 200–500 nanoseconds for just the system call transition with KPTI—before any protocol processing even begins.</p>
 <h3 id="pillar-2-zero-copy"><a class="header" href="#pillar-2-zero-copy">Pillar 2: Zero-Copy</a></h3>
 <p>In RDMA, data moves from the application’s buffer directly to the wire on the send side, and from the wire directly into the application’s buffer on the receive side. There is no intermediate kernel buffer. The NIC’s DMA engine reads from (or writes to) the exact virtual addresses where the application stores its data.</p>
 <p>This requires a preparatory step called <strong>memory registration</strong>, in which the application tells the NIC (through the kernel) which regions of its virtual address space the NIC is allowed to access via DMA. Memory registration pins the physical pages backing the virtual address range (preventing them from being swapped out), creates IOMMU mappings so the NIC can reach them, and produces a pair of keys (<strong>lkey</strong> and <strong>rkey</strong>) that authorize access. After registration, the NIC can DMA directly to and from those pages.</p>
@@ -746,24 +770,24 @@ Intel's Data Direct I/O (DDIO) technology routes inbound DMA writes to the Last 
 <tr><th>Metric</th><th>TCP Sockets (25 Gb/s Ethernet)</th><th>RDMA (25 Gb/s RoCEv2)</th><th>RDMA (InfiniBand HDR 200 Gb/s)</th></tr>
 </thead>
 <tbody>
-<tr><td><strong>Round-trip latency (small message)</strong></td><td>15–30 μs</td><td>1.5–3 μs</td><td>0.6–1.0 μs</td></tr>
+<tr><td><strong>Round-trip latency (small message)</strong></td><td>15–30 μs</td><td>1.5–3 μs</td><td>1.0–2.0 μs</td></tr>
 <tr><td><strong>99th percentile latency</strong></td><td>30–100 μs</td><td>2–5 μs</td><td>1–2 μs</td></tr>
 <tr><td><strong>99.9th percentile latency</strong></td><td>50–500 μs</td><td>3–8 μs</td><td>1.5–3 μs</td></tr>
 </tbody>
 </table>
 </div>
-<p>The consistency of RDMA latency is just as important as the absolute numbers. TCP latency has a long tail driven by interrupt coalescing, kernel scheduling decisions, lock contention in the network stack, and memory allocation. RDMA’s tail latency is tight because the kernel is not involved: there is no scheduler jitter, no lock contention, and no softirq deferral.</p>
+<p>Note that NVIDIA’s ConnectX-6 HDR datasheet specifies “sub-600 ns” as a <em>one-way port-to-port</em> latency; the round-trip numbers above include host-side software overhead on both ends.<sup class="footnote-reference" id="fr-2-1-2"><a href="#footnote-2-2">2</a></sup> The consistency of RDMA latency is just as important as the absolute numbers.</p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-Sub-microsecond RDMA latencies require careful system configuration: BIOS tuning (disabling C-states, setting power profile to performance), CPU affinity (pinning the application thread to a core near the NIC's NUMA node), and proper queue pair configuration. Out-of-the-box latencies with default settings are typically 2--5x worse. Chapter 13 covers performance tuning in detail.
+Sub-microsecond RDMA latencies require careful system configuration: BIOS tuning (disabling C-states, setting power profile to performance), CPU affinity (pinning the application thread to a core near the NIC's NUMA node), and proper queue pair configuration. Out-of-the-box latencies with default settings are typically 2--5x worse. Chapter 12 covers performance tuning in detail.
 </div>
 
 <h2 id="throughput-and-cpu-efficiency"><a class="header" href="#throughput-and-cpu-efficiency">Throughput and CPU Efficiency</a></h2>
 <p>The throughput story is equally compelling. Consider saturating a 100 Gb/s link with 4 KB messages:</p>
 <ul>
-<li><strong>TCP sockets</strong>: Requires 6–12 CPU cores dedicated to network processing (system calls, protocol stack, copies). Achievable but consumes 10–20% of a typical server’s compute capacity.</li>
-<li><strong>RDMA</strong>: A single CPU core can saturate the link, using less than 5% of its cycles. The core’s job is just to post work requests and poll completions—the NIC does everything else.</li>
+<li><strong>TCP sockets</strong>: Requires 6–12 CPU cores dedicated to network processing (system calls, protocol stack, copies) for small-to-medium message workloads. With GSO/GRO and large messages, 2–4 cores suffice, but the CPU cost remains substantial.</li>
+<li><strong>RDMA</strong>: A single CPU core can saturate the link for one-sided operations (RDMA Write/Read), using a small fraction of its cycles. The core’s job is just to post work requests and poll completions—the NIC does everything else.</li>
 </ul>
 <p>The CPU efficiency metric that matters in practice is <strong>cycles per byte</strong>:</p>
 <div class="table-wrapper">
@@ -773,7 +797,7 @@ Sub-microsecond RDMA latencies require careful system configuration: BIOS tuning
 </thead>
 <tbody>
 <tr><td>TCP sockets (Linux, tuned)</td><td>2–5 cycles/byte</td><td>6–12</td></tr>
-<tr><td>TCP sockets (with GSO/GRO)</td><td>1–3 cycles/byte</td><td>4–8</td></tr>
+<tr><td>TCP sockets (with GSO/GRO)</td><td>1–3 cycles/byte</td><td>2–4</td></tr>
 <tr><td>RDMA (any transport)</td><td>0.01–0.1 cycles/byte</td><td>&lt;1</td></tr>
 </tbody>
 </table>
@@ -801,16 +825,25 @@ Sub-microsecond RDMA latencies require careful system configuration: BIOS tuning
 <ul>
 <li><strong>Specialized hardware</strong>: RDMA requires an RNIC (RDMA-capable NIC) on both ends of the connection, and often a supporting network fabric (InfiniBand switches, or a lossless Ethernet configuration for RoCEv2).</li>
 <li><strong>Programming complexity</strong>: The Verbs API is significantly more complex than the socket API. Concepts like memory registration, queue pair state machines, completion handling, and flow control are all exposed to the programmer.</li>
-<li><strong>Memory registration overhead</strong>: Pinning and registering memory is expensive (hundreds of microseconds to milliseconds for large regions). Applications must amortize this cost, typically by pre-registering buffers at startup.</li>
+<li><strong>Memory registration overhead</strong>: Pinning and registering memory is expensive (hundreds of microseconds to milliseconds for large regions). Applications must amortize this cost, typically by pre-registering buffers at startup. Pinned memory also counts against the <code>RLIMIT_MEMLOCK</code> ulimit, which defaults to 64 KB on many Linux distributions—a setting that will immediately break any RDMA application. Production deployments must raise this limit, and operators must account for the fact that pinned pages cannot be reclaimed under memory pressure, which can trigger the OOM killer if the system’s physical memory is overcommitted.</li>
 <li><strong>Operational complexity</strong>: RDMA networks (especially RoCEv2 over Ethernet) require careful network configuration: Priority Flow Control (PFC), ECN (Explicit Congestion Notification), and proper traffic classification. Misconfigurations can cause performance collapse or, worse, head-of-line blocking that affects non-RDMA traffic.</li>
 </ul>
 <p>These costs are real and significant. They are the reason RDMA has not replaced sockets for all networking—and likely never will. But for workloads where microsecond latency and CPU efficiency matter, the trade-off is overwhelmingly favorable. Section 1.5 provides a framework for making this decision.</p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-The latency and throughput numbers in this section are drawn from published benchmarks and the authors' measurements on commodity hardware (Mellanox/NVIDIA ConnectX-5 and ConnectX-6 adapters, Intel Xeon Scalable processors, Linux kernel 5.x with rdma-core user-space libraries). Your specific numbers will depend on hardware, firmware version, kernel version, and configuration. The relative comparisons---RDMA being 5--20x lower latency and 50--500x more CPU-efficient---are consistent across hardware generations.
+The latency and throughput numbers in this section are drawn from published benchmarks on commodity hardware (Mellanox/NVIDIA ConnectX-5 and ConnectX-6 adapters, Intel Xeon Scalable processors, Linux kernel 5.x with rdma-core user-space libraries). Your specific numbers will depend on hardware, firmware version, kernel version, and configuration. The relative comparisons---RDMA being 5--20x lower latency and 50--500x more CPU-efficient---are consistent across hardware generations.
 </div>
 
+<hr>
+<ol class="footnote-definition">
+<li id="footnote-1-2">
+<p>Kalia et al., “Design Guidelines for High Performance RDMA Systems,” USENIX ATC 2016, measured MMIO write latency at ~217 ns on their test platform. With BlueFlame (write-combining the WQE into the doorbell write), this can drop to ~100 ns for small messages. <a href="#fr-1-1-2">↩</a></p>
+</li>
+<li id="footnote-2-2">
+<p>NVIDIA ConnectX-6 HDR/HDR100 VPI adapter <a href="https://network.nvidia.com/files/doc-2020/wp-introducing-200g-hdr-infiniband-solutions.pdf">product brief</a>. Kalia et al. (ATC 2016) measured end-to-end RTT including application posting and polling overhead. TCP latency has a long tail driven by interrupt coalescing, kernel scheduling decisions, lock contention in the network stack, and memory allocation. RDMA’s tail latency is tight because the kernel is not involved: there is no scheduler jitter, no lock contention, and no softirq deferral. <a href="#fr-2-1-2">↩</a></p>
+</li>
+</ol>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="14-kernel-bypass-and-zero-copy-in-depth"><a class="header" href="#14-kernel-bypass-and-zero-copy-in-depth">1.4 Kernel Bypass and Zero-Copy in Depth</a></h1>
 <p>The previous section introduced kernel bypass, zero-copy, and CPU offload as the three pillars of RDMA. This section examines the first two pillars in detail, explores the specific mechanisms that make them possible, and compares RDMA to other high-performance networking technologies that address overlapping parts of the problem.</p>
@@ -855,7 +888,8 @@ The latency and throughput numbers in this section are drawn from published benc
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-Modern RDMA NICs optimize the doorbell mechanism further with features like <strong>Blue Flame</strong> (on Mellanox/NVIDIA adapters), which combines the doorbell write with the first 64 bytes of the WQE into a single write-combining PCIe write. This eliminates one DMA read (the NIC does not need to fetch the WQE from memory) and saves approximately 100--200 nanoseconds for small messages. The application uses the same posting API; the optimization is transparent.
+Modern RDMA NICs optimize the doorbell mechanism further with features like <strong>Blue Flame</strong> (on Mellanox/NVIDIA adapters), which combines the doorbell write with the first 64 bytes of the WQE into a single write-combining PCIe write. This eliminates one DMA read (the NIC does not need to fetch the WQE from memory) and can save 100+ nanoseconds for small messages. Blue Flame is enabled transparently by the driver when the WQE fits in the write-combining buffer.
+<p>One important caveat: doorbell writes are MMIO stores that cross the PCIe bus, and they are the most expensive operation in the RDMA fast path. Posting work requests one at a time (each with its own doorbell) is a common performance mistake. High-performance applications batch multiple WQEs into the send queue before ringing the doorbell once, amortizing the PCIe write cost. The <code>ibv_post_send()</code> API supports this naturally by accepting a linked list of work requests. Kalia et al. (ATC 2016) measured that batching even 2–4 WQEs per doorbell improves throughput by 20–50%.</p>
 </div>
 
 <h3 id="the-security-model"><a class="header" href="#the-security-model">The Security Model</a></h3>
@@ -988,7 +1022,7 @@ Chapter 6 covers memory registration in comprehensive detail, including advanced
 </tbody>
 </table>
 </div>
-<p>The table reveals RDMA’s unique position: it is the only technology that provides kernel bypass, zero-copy on both send and receive paths, zero-copy across the network (remote DMA), and transport protocol offload. Every other technology addresses a subset of these capabilities.</p>
+<p>The table makes RDMA’s unique position clear: it is the only technology that combines kernel bypass, bidirectional zero-copy, remote DMA, and transport offload. Everything else solves a subset of the problem.</p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
@@ -996,7 +1030,7 @@ These technologies are not mutually exclusive. Some RDMA applications use DPDK f
 </div>
 
 <h2 id="why-memory-registration-is-the-price-of-zero-copy"><a class="header" href="#why-memory-registration-is-the-price-of-zero-copy">Why Memory Registration Is the Price of Zero-Copy</a></h2>
-<p>It is worth dwelling on why zero-copy requires memory registration, because this relationship is fundamental to RDMA programming and is the source of much of RDMA’s complexity.</p>
+<p>Zero-copy requires memory registration, and this relationship is fundamental to RDMA programming. Understanding it now will save you from a class of design mistakes later.</p>
 <p>In the socket model, the kernel can use any kernel buffer it wants for network I/O. The application provides its data, the kernel copies it to a kernel buffer, and the NIC DMAs from that kernel buffer. The kernel controls the buffer’s lifetime, physical location, and pinning. This is simple and safe.</p>
 <p>In RDMA, there is no kernel buffer. The NIC DMAs directly to and from the application’s memory. But the NIC operates on physical addresses (it is a PCIe device performing bus transactions), while the application uses virtual addresses. Somehow, the NIC must be able to translate the application’s virtual addresses to physical addresses. And those physical addresses must remain valid for as long as the NIC might access them—the pages cannot be swapped out, migrated, or freed while a DMA operation is in progress.</p>
 <p>Memory registration is the mechanism that solves both problems: it builds the translation table and pins the pages. Without it, zero-copy would be either impossible (if the NIC cannot translate addresses) or unsafe (if the pages can move while the NIC is accessing them).</p>
@@ -1008,7 +1042,7 @@ These technologies are not mutually exclusive. Some RDMA applications use DPDK f
 <p>This trade-off shapes every RDMA application’s architecture. Successful RDMA applications embrace it by designing their memory management around pre-registered buffer pools, as we will explore in detail throughout Part II of this book.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="15-when-and-when-not-to-use-rdma"><a class="header" href="#15-when-and-when-not-to-use-rdma">1.5 When (and When Not) to Use RDMA</a></h1>
-<p>RDMA delivers transformative performance for the right workloads. It also introduces hardware requirements, operational complexity, and programming difficulty that can outweigh its benefits for the wrong ones. This section provides a practical framework for deciding whether RDMA is appropriate for your application, identifies common misconceptions, and discusses the infrastructure requirements that constrain deployment.</p>
+<p>RDMA delivers order-of-magnitude improvements for the right workloads. It also introduces hardware requirements, operational complexity, and programming difficulty that can dwarf its benefits for the wrong ones. This section provides a practical decision framework and addresses the misconceptions that most commonly lead engineers down the wrong path.</p>
 <h2 id="good-use-cases-for-rdma"><a class="header" href="#good-use-cases-for-rdma">Good Use Cases for RDMA</a></h2>
 <h3 id="high-performance-computing-hpc"><a class="header" href="#high-performance-computing-hpc">High-Performance Computing (HPC)</a></h3>
 <p>HPC was RDMA’s original and remains its most natural home. Scientific simulations (molecular dynamics, computational fluid dynamics, weather modeling) decompose a problem across hundreds or thousands of nodes that must exchange boundary data at every time step. The key characteristics that make RDMA essential:</p>
@@ -1019,8 +1053,8 @@ These technologies are not mutually exclusive. Some RDMA applications use DPDK f
 </ul>
 <p>RDMA has been ubiquitous in the top 500 supercomputers for over two decades. InfiniBand is the most common RDMA fabric in HPC, though RoCEv2 is making inroads in cloud HPC environments.</p>
 <h3 id="storage-nvme-over-fabrics-nvme-of"><a class="header" href="#storage-nvme-over-fabrics-nvme-of">Storage: NVMe over Fabrics (NVMe-oF)</a></h3>
-<p>NVMe SSDs can deliver random read latencies of 10–20 μs and sequential throughput of 7+ GB/s. When accessing these devices over a network using traditional TCP, the network stack’s overhead (15–30 μs round trip) can exceed the storage device’s latency itself, negating the speed advantage of NVMe over SATA/SAS.</p>
-<p>NVMe over Fabrics with RDMA transport (NVMe-oF/RDMA) delivers remote storage access with latencies of 5–15 μs—comparable to local NVMe access. This enables:</p>
+<p>Modern NVMe SSDs deliver random read latencies that vary dramatically by media type: Intel Optane (3D XPoint) drives achieve under 10 μs, while mainstream NAND-flash enterprise drives (Samsung PM9A3, Kioxia CM7) range from 70–120 μs at queue depth 1.<sup class="footnote-reference" id="fr-1-1-3"><a href="#footnote-1-3">1</a></sup> Sequential throughput exceeds 7 GB/s on current-generation drives. When accessing NVMe devices over a network using traditional TCP, the network stack’s overhead (15–30 μs round trip) adds meaningfully to the storage latency—and for the fastest storage media, can exceed the device latency itself.</p>
+<p>NVMe over Fabrics with RDMA transport (NVMe-oF/RDMA) adds only 5–15 μs of fabric overhead on top of the underlying device latency.<sup class="footnote-reference" id="fr-2-1-3"><a href="#footnote-2-3">2</a></sup> For Optane targets, this means total remote access latencies under 25 μs; for NAND targets, the fabric overhead is a small fraction of the overall latency. This enables:</p>
 <ul>
 <li><strong>Storage disaggregation</strong>: Decoupling compute and storage, allowing them to scale independently. A compute node accesses remote NVMe drives as if they were local, with minimal performance penalty.</li>
 <li><strong>Shared storage</strong>: Multiple compute nodes can access the same storage pool without a traditional SAN’s overhead.</li>
@@ -1031,10 +1065,10 @@ These technologies are not mutually exclusive. Some RDMA applications use DPDK f
 <p>Distributed databases face a fundamental tension: strong consistency requires synchronous replication, but synchronous replication over TCP introduces latencies that destroy transaction throughput. RDMA changes this equation:</p>
 <ul>
 <li><strong>Synchronous replication in &lt;10 μs</strong>: A database can replicate a write-ahead log entry to two or more replicas and receive acknowledgements in under 10 μs total, compared to 50–100 μs with TCP. This makes synchronous replication viable for latency-sensitive workloads.</li>
-<li><strong>RDMA-based consensus</strong>: Research and production systems (FaRM from Microsoft Research, Pilaf, HERD, DrTM) have demonstrated that Paxos, Raft, and other consensus protocols can run 5–10x faster over RDMA.</li>
+<li><strong>RDMA-based consensus</strong>: Research and production systems have demonstrated that distributed protocols run 5–10x faster over RDMA. FaRM (Microsoft Research, NSDI 2014 / SOSP 2015) uses one-sided RDMA reads for data access and achieves millions of distributed transactions per second. HERD (SIGCOMM 2014) demonstrated that RDMA-based key-value stores can achieve 26 million ops/sec on a single server. Pilaf (ATC 2013) and DrTM (SOSP 2015) explored complementary design points using RDMA reads and hardware transactional memory, respectively.</li>
 <li><strong>Remote memory access for index lookups</strong>: An RDMA Read can fetch a remote B-tree node or hash table bucket in 2–3 μs without involving the remote CPU, enabling distributed data structures with near-local performance.</li>
 </ul>
-<p>Oracle RAC, Microsoft SQL Server, and SAP HANA all support RDMA for inter-node communication. Cloud-native databases like CockroachDB and TiDB are exploring RDMA integration.</p>
+<p>Oracle RAC on Exadata uses RDMA (via the RDS protocol over InfiniBand) for Cache Fusion inter-node communication.<sup class="footnote-reference" id="fr-3-1-1"><a href="#footnote-3-1">3</a></sup> Microsoft SQL Server benefits from RDMA through SMB Direct (SMB over RDMA) for storage I/O.</p>
 <h3 id="machine-learning-training"><a class="header" href="#machine-learning-training">Machine Learning Training</a></h3>
 <p>Distributed ML training (particularly data-parallel training with gradient synchronization) generates enormous volumes of inter-node traffic with strict latency requirements:</p>
 <ul>
@@ -1051,7 +1085,7 @@ These technologies are not mutually exclusive. Some RDMA applications use DPDK f
 <li><strong>Order routing</strong>: Order management systems use RDMA to communicate with matching engines and risk systems.</li>
 <li><strong>Risk computation</strong>: Distributed risk calculations use RDMA for inter-node communication.</li>
 </ul>
-<p>Companies like Solarflare (now Xilinx/AMD) built their business on RDMA-capable NICs for trading. Exchanges themselves (CME, NASDAQ) have deployed RDMA-capable infrastructure.</p>
+<p>Companies like Solarflare (now Xilinx/AMD) built their business on ultra-low-latency kernel-bypass NICs for trading, using their OpenOnload user-space TCP/UDP stack rather than RDMA—achieving similar latency goals through a different mechanism.<sup class="footnote-reference" id="fr-4-1-1"><a href="#footnote-4-1">4</a></sup> Mellanox/NVIDIA ConnectX adapters with RoCE are also widely deployed in trading infrastructure. Major exchange colocation facilities support RDMA-capable hardware, and trading firms routinely use RDMA for internal communication between components.</p>
 <h2 id="anti-patterns-when-rdma-is-the-wrong-choice"><a class="header" href="#anti-patterns-when-rdma-is-the-wrong-choice">Anti-Patterns: When RDMA Is the Wrong Choice</a></h2>
 <h3 id="wide-area-networks-wan"><a class="header" href="#wide-area-networks-wan">Wide-Area Networks (WAN)</a></h3>
 <p>RDMA’s latency advantage is irrelevant when the network itself introduces milliseconds of latency. On a WAN link with 10 ms of propagation delay, whether the software stack adds 1 μs (RDMA) or 20 μs (TCP) is a rounding error—0.01% vs. 0.2% of total latency.</p>
@@ -1059,7 +1093,7 @@ These technologies are not mutually exclusive. Some RDMA applications use DPDK f
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-There is active research on extending RDMA to multi-datacenter environments. Google's Snap and Microsoft's 1RMA explore WAN-tolerant RDMA-like semantics. These are not standard RDMA and require custom hardware/software stacks. For now, standard RDMA is a datacenter technology.
+There is active research on extending RDMA-like semantics beyond traditional single-cluster deployments. Google's Snap (SOSP 2019) is a userspace networking system deployed on over half of Google's fleet, with its Pony Express component providing RDMA-like memory semantics. Google's 1RMA (SIGCOMM 2020) re-envisions remote memory access for multi-tenant datacenter environments.[^5] These are not standard RDMA and require custom hardware/software stacks. For now, standard RDMA (InfiniBand, RoCE, iWARP) is a single-datacenter technology.
 </div>
 
 <h3 id="multi-tenant-environments-without-isolation"><a class="header" href="#multi-tenant-environments-without-isolation">Multi-Tenant Environments Without Isolation</a></h3>
@@ -1079,15 +1113,15 @@ There is active research on extending RDMA to multi-datacenter environments. Goo
 </ul>
 <p>For a deployment of 3–5 servers running a web application, the operational overhead of RDMA will far exceed any performance benefit. TCP sockets with tuning (busy polling, <code>MSG_ZEROCOPY</code>, io_uring) can achieve good enough performance for most small-scale workloads.</p>
 <h3 id="workloads-that-are-not-network-bound"><a class="header" href="#workloads-that-are-not-network-bound">Workloads That Are Not Network-Bound</a></h3>
-<p>This may seem obvious, but it is a common mistake: if your application spends 95% of its time doing disk I/O or computation and 5% doing network communication, making the network 10x faster will only speed up the application by ~4.5% (Amdahl’s Law). RDMA is most impactful when networking is a significant fraction of the workload’s critical path.</p>
+<p>If your application spends 95% of its time in disk I/O or computation and 5% in network communication, making the network 10x faster buys you ~4.5% (Amdahl’s Law). Profile first. RDMA pays off when networking is a significant fraction of the critical path, and it pays off enormously when it is the dominant fraction.</p>
 <h2 id="the-lossless-network-requirement-for-roce"><a class="header" href="#the-lossless-network-requirement-for-roce">The Lossless Network Requirement for RoCE</a></h2>
 <p>This topic deserves special attention because it is the single largest source of operational pain in RDMA deployments, and it is unique to RoCEv2 (InfiniBand is inherently lossless by design).</p>
-<p>Standard Ethernet is a best-effort network: switches drop packets when their buffers overflow. TCP handles this gracefully through retransmission. But RDMA’s transport layer, designed for InfiniBand’s lossless fabric, does not handle packet loss well. A single dropped packet can cause a <strong>go-back-N retransmission</strong> of the entire window (on some implementations), devastating throughput. Worse, on RNICs that use hardware-managed connections, a packet loss can force the connection into an error state that requires software recovery.</p>
+<p>Standard Ethernet is a best-effort network: switches drop packets when their buffers overflow. TCP handles this gracefully through selective retransmission. RDMA’s transport layer behaves very differently. On InfiniBand and early RoCE implementations, the hardware transport uses <strong>go-back-N retransmission</strong>: a single dropped packet causes the sender to retransmit that packet <em>and every subsequent packet in the window</em>, even if they were received correctly. With typical windows of 64–128 packets, a single drop can reduce effective throughput by orders of magnitude. The Mittal et al. IRN paper (SIGCOMM 2018) showed that even 0.1% packet loss can reduce RDMA throughput by 50% or more with go-back-N. Newer NVIDIA ConnectX-6 and later adapters support selective repeat retransmission, which significantly improves loss tolerance, but this is not universal across all RDMA hardware.</p>
 <p>To prevent packet loss, RoCEv2 deployments use <strong>Priority Flow Control (PFC)</strong>, an Ethernet mechanism (IEEE 802.1Qbb) that allows a switch to send a PAUSE frame to an upstream sender when its buffers for a specific priority class are approaching full. The upstream sender stops transmitting until the switch signals that buffer space is available.</p>
 <p>PFC prevents packet loss but introduces new problems:</p>
 <ul>
 <li><strong>Head-of-line blocking</strong>: If one flow causes a PFC pause, all flows on the same priority class and physical link are paused, even if they are destined for different, uncongested ports.</li>
-<li><strong>PFC storms</strong>: A feedback loop where PFC pause frames propagate across the fabric, potentially deadlocking the entire network. This is a well-documented operational nightmare.</li>
+<li><strong>PFC storms</strong>: A feedback loop where PFC pause frames propagate across the fabric, potentially deadlocking the entire network. This is a well-documented operational nightmare. Microsoft’s SIGCOMM 2016 paper on RoCE deployment at scale documented PFC storms causing network-wide outages, and their follow-up work (SIGCOMM 2023, “Revisiting Network Support for RDMA”) describes the monitoring and mitigation infrastructure required to operate RoCE reliably—including per-switch PFC watchdog timers that forcibly drop traffic to break deadlocks. The operational cost of this infrastructure is non-trivial.</li>
 <li><strong>Interaction with non-RDMA traffic</strong>: PFC must be configured on specific priority classes and kept separate from best-effort traffic. Misconfiguration can cause non-RDMA traffic to be paused by RDMA congestion, or vice versa.</li>
 </ul>
 <p>To mitigate these issues, production RoCEv2 deployments also use:</p>
@@ -1116,7 +1150,7 @@ The operational complexity of lossless Ethernet is the primary reason many organ
 <p>While native RDMA programming (using Verbs) does require significant application changes, many applications can benefit from RDMA through transparent middleware:</p>
 <ul>
 <li><strong>rsocket</strong>: A socket-compatible library that uses RDMA under the hood. Drop-in replacement for many applications via <code>LD_PRELOAD</code>.</li>
-<li><strong>SMC-R (Shared Memory Communications over RDMA)</strong>: A Linux kernel protocol that transparently uses RDMA for TCP connections between supported endpoints.</li>
+<li><strong>SMC-R (Shared Memory Communications over RDMA)</strong>: A Linux kernel protocol (RFC 7609, merged in Linux 4.11) that transparently uses RDMA for TCP connections between supported endpoints.</li>
 <li><strong>libfabric/OFI</strong>: An abstraction layer that can use RDMA or other transports, used by MPI implementations and storage systems.</li>
 <li><strong>Application-specific RDMA libraries</strong>: SPDK (for storage), UCX (for HPC/ML), NCCL (for ML training).</li>
 </ul>
@@ -1179,33 +1213,31 @@ The operational complexity of lossless Ethernet is the primary reason many organ
 </tbody>
 </table>
 </div>
-<p>The decision ultimately comes down to whether the performance improvement translates to sufficient business value to justify the investment. For HPC, ML training, and high-performance storage, the answer is almost always yes. For web applications, microservices, and WAN-connected systems, the answer is almost always no. The interesting decisions are in the middle: databases, financial systems, and medium-scale analytics where the workload characteristics might or might not benefit.</p>
+<p>For HPC, ML training, and high-performance storage, RDMA is table stakes—you cannot compete without it. For web applications, microservices, and anything WAN-connected, RDMA is the wrong tool. The interesting decisions are in the middle: databases, financial systems, and medium-scale analytics where the workload might or might not be network-bound enough to justify the investment.</p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
 If you are unsure whether RDMA will help your specific workload, the best approach is empirical. Set up a two-node test environment (ConnectX-5 or later, back-to-back or through a switch), run the standard benchmarks (<code>ib_write_lat</code>, <code>ib_write_bw</code>, <code>ib_send_lat</code> from the <code>perftest</code> package), and then prototype your application's critical communication path using RDMA. The perftest tools take minutes to set up and immediately show you the latency and throughput your hardware can achieve. Chapter 12 walks through this benchmarking process in detail.
 </div>
 
-<h2 id="chapter-summary"><a class="header" href="#chapter-summary">Chapter Summary</a></h2>
-<p>This chapter has built the case for RDMA from first principles:</p>
-<ol>
-<li>
-<p><strong>Traditional networking is software-bound</strong>: The socket model’s system calls, data copies, and kernel protocol processing consume 2–10 μs per message and multiple CPU cores to saturate modern links. The network hardware is waiting for the software.</p>
+<h2 id="what-comes-next"><a class="header" href="#what-comes-next">What Comes Next</a></h2>
+<p>The short version of this chapter: the socket model’s kernel involvement is the bottleneck on modern networks, DMA already handles data movement but the kernel stays in the loop, and RDMA removes the kernel entirely by letting applications drive the NIC directly. Nothing else—not DPDK, not io_uring, not XDP—does all of this at once. But RDMA demands specialized hardware, lossless networking (for RoCE), and a fundamentally different programming model. Whether that trade-off pays off depends on your workload.</p>
+<p>Chapter 2 traces how RDMA evolved from a niche supercomputing technology into a mainstream datacenter capability, and introduces the three transports—InfiniBand, RoCE, and iWARP—that you will work with throughout this book.</p>
+<hr>
+<ol class="footnote-definition">
+<li id="footnote-1-3">
+<p>See the NVM Express specification and vendor datasheets. Optane P5800X: ~6 μs average read. Samsung PM9A3: ~70 μs random read at QD1. <a href="#fr-1-1-3">↩</a></p>
 </li>
-<li>
-<p><strong>DMA removes the CPU from data movement</strong>: Modern NICs already use DMA to transfer data between NIC and kernel memory, but the kernel remains in the control path for every packet.</p>
+<li id="footnote-2-3">
+<p>The 5–15 μs figure represents the incremental network fabric latency (RDMA transport + NVMe-oF protocol processing), not the total end-to-end I/O latency, which also includes the storage device’s own access time. <a href="#fr-2-1-3">↩</a></p>
 </li>
-<li>
-<p><strong>RDMA extends DMA across the network</strong>: By giving applications direct access to the NIC (kernel bypass), eliminating intermediate copies (zero-copy), and implementing the transport protocol in hardware (CPU offload), RDMA achieves sub-2 μs latency and near-zero CPU overhead.</p>
+<li id="footnote-3-1">
+<p>Oracle RAC’s RDMA support is specific to Oracle Exadata engineered systems; standard RAC deployments use UDP or TCP. See Oracle’s <a href="https://www.oracle.com/a/ocom/docs/database/rac-cache-fusion-performance-optimizations-on-exadata.pdf">Cache Fusion on Exadata documentation</a>. <a href="#fr-3-1-1">↩</a></p>
 </li>
-<li>
-<p><strong>RDMA is unique among high-performance networking options</strong>: DPDK provides kernel bypass but not remote zero-copy or transport offload. io_uring reduces system call overhead but keeps the kernel in the data path. XDP accelerates packet processing but operates in kernel context. Only RDMA provides all three pillars.</p>
-</li>
-<li>
-<p><strong>RDMA is not universally the right choice</strong>: It requires specialized hardware, careful network configuration (especially for RoCEv2), and a steeper programming model. The decision depends on workload characteristics, deployment scale, and organizational readiness.</p>
+<li id="footnote-4-1">
+<p>Solarflare’s approach (kernel-bypass TCP via OpenOnload) and RDMA both eliminate kernel overhead from the data path. The distinction matters: OpenOnload maintains TCP compatibility while RDMA provides a fundamentally different API with one-sided memory access semantics. <a href="#fr-4-1-1">↩</a></p>
 </li>
 </ol>
-<p>With this foundation, we are ready to explore the history and ecosystem that brought RDMA from a niche supercomputing technology to a mainstream datacenter capability. Chapter 2 traces this evolution and introduces the three RDMA transports—InfiniBand, RoCE, and iWARP—that you will encounter throughout the rest of this book.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="chapter-2-history-and-ecosystem"><a class="header" href="#chapter-2-history-and-ecosystem">Chapter 2: History and Ecosystem</a></h1>
 <p>RDMA did not emerge fully formed from a single standards body or a single company. It evolved through two decades of competing visions, corporate mergers, standards battles, and hard-won engineering compromises. Understanding this history is not merely academic—it explains <em>why</em> today’s RDMA landscape looks the way it does, why three distinct transport technologies coexist, and why the software stack carries the architectural fingerprints of decisions made in the late 1990s.</p>
@@ -23267,6 +23299,22 @@ sudo ip netns delete ns2
         <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
         <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
         <script>

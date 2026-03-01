@@ -18,7 +18,9 @@ The `send()` call is a wrapper around the `sendto()` system call. Entering the k
 - Looking up the system call handler in the syscall table
 - Performing security checks (e.g., verifying the file descriptor)
 
-On modern x86-64 hardware, the raw cost of the `SYSCALL`/`SYSRET` pair is roughly **100--150 nanoseconds** when Spectre/Meltdown mitigations are disabled. With Kernel Page Table Isolation (KPTI) enabled---which is the default on virtually all production systems since 2018---this cost rises to **500--1500 nanoseconds** because the kernel must flush TLB entries and switch page tables. This cost is paid on every single `send()` and `recv()` call.
+On modern x86-64 hardware, the raw cost of the `SYSCALL`/`SYSRET` pair is roughly **100--150 nanoseconds** when Spectre/Meltdown mitigations are disabled. With Kernel Page Table Isolation (KPTI) enabled---which is the default on virtually all production systems since 2018---this cost rises to **200--500 nanoseconds** on CPUs with PCID (Process-Context Identifiers, standard since Haswell), because the kernel must switch page tables on each transition.[^1] On older CPUs without PCID, the cost is higher due to full TLB flushes. This cost is paid on every single `send()` and `recv()` call.
+
+[^1]: Measured using minimal syscalls (`getuid`) on Intel Xeon Scalable processors. See [gms.tf: On the Costs of Syscalls](https://gms.tf/on-the-costs-of-syscalls.html) and Brendan Gregg's [KPTI/KAISER analysis](https://www.brendangregg.com/blog/2018-02-09/kpti-kaiser-meltdown-performance.html).
 
 ### Step 2: Socket Layer Processing
 
@@ -45,10 +47,13 @@ The TCP layer performs substantial work:
 - **Sequence number assignment**: Each byte in the stream receives a sequence number. The kernel updates the send-side sequence state.
 - **Window management**: The kernel checks the receiver's advertised window and the congestion window to determine how much data can be sent.
 - **Header construction**: A 20-byte (minimum) TCP header is prepended to each segment.
-- **Checksum computation**: The TCP checksum is computed over the pseudo-header and payload. For 4 KB of data, this requires reading every byte. On modern CPUs with hardware CRC acceleration, this costs approximately **100--300 nanoseconds** for 4 KB.
+- **Checksum computation**: The TCP checksum must be computed over the pseudo-header and payload. On modern NICs, transmit checksum is offloaded to hardware and costs the CPU nothing.[^2] When checksum offload is unavailable or disabled, the kernel computes it in software using SIMD instructions at roughly **50--150 nanoseconds** for 4 KB.
 - **Timer management**: The retransmission timer is (re)set.
 
-The total TCP processing overhead is typically **500--2000 nanoseconds** per message, varying with message size and the complexity of the current connection state.
+The total TCP processing overhead is typically **500--2000 nanoseconds** per message, varying with message size and the complexity of the current connection state.[^3]
+
+[^2]: See the Linux kernel's [checksum offloads documentation](https://www.kernel.org/doc/html/latest/networking/checksum-offloads.html). All modern NICs support TX checksum offload by default.
+[^3]: Consistent with measurements in Agarwal et al., "Understanding Host Network Stack Overheads," ACM SIGCOMM 2022.
 
 ### Step 5: IP Layer Processing
 
@@ -104,7 +109,7 @@ The following diagram traces the full send-and-receive path, highlighting every 
 ```mermaid
 graph TD
     subgraph "Sending Host"
-        A["Application: send(fd, buf, len)"] -->|"① SYSCALL<br/>~0.5–1.5 μs"| B["Socket Layer"]
+        A["Application: send(fd, buf, len)"] -->|"① SYSCALL<br/>~0.2–0.5 μs"| B["Socket Layer"]
         B -->|"② memcpy: user→kernel<br/>~0.2–0.4 μs per 4 KB"| C["TCP Layer"]
         C -->|"③ Segmentation, checksum,<br/>sequence numbers<br/>~0.5–2 μs"| D["IP Layer"]
         D -->|"④ Route lookup,<br/>header construction"| E["Link Layer / qdisc"]
@@ -136,18 +141,18 @@ Let us compile a realistic overhead budget for a single small (4 KB) message rou
 
 | Component | Send Path | Receive Path |
 |---|---|---|
-| System call transition (with KPTI) | 0.5--1.5 μs | 0.5--1.5 μs |
+| System call transition (with KPTI) | 0.2--0.5 μs | 0.2--0.5 μs |
 | Socket layer processing | 0.1--0.3 μs | 0.1--0.3 μs |
 | Data copy (user ↔ kernel) | 0.2--0.4 μs | 0.2--0.4 μs |
 | TCP processing | 0.5--2.0 μs | 0.5--2.0 μs |
 | IP processing | 0.1--0.3 μs | 0.1--0.3 μs |
 | Link layer / qdisc / driver | 0.2--0.5 μs | 0.2--0.5 μs |
 | Interrupt handling | --- | 1.0--3.0 μs |
-| **Subtotal (software)** | **1.6--5.0 μs** | **2.6--8.0 μs** |
+| **Subtotal (software)** | **1.3--3.9 μs** | **2.3--6.9 μs** |
 | Wire time (25 Gb/s, 4 KB) | ~1.3 μs | ~1.3 μs |
-| **Total one-way** | **~3--6 μs** | **~4--9 μs** |
+| **Total one-way** | **~2.6--5.2 μs** | **~3.6--8.2 μs** |
 
-The wire time for a 4 KB frame at 25 Gb/s is approximately 1.3 microseconds. The software overhead on the send path alone is *at least comparable to, and often several times larger than, the wire time*. For a round trip (send + receive on both sides), total application-to-application latency is typically **10--30 microseconds**, of which only about 2.6 microseconds is actually spent on the wire.
+The wire time for a 4 KB frame at 25 Gb/s is approximately 1.3 microseconds. The software overhead on the send path alone is *comparable to or larger than the wire time*. For a round trip (send + receive on both sides), total application-to-application latency is typically **10--25 microseconds** on a tuned system, of which only about 2.6 microseconds is actually spent on the wire.
 
 <div class="admonition note">
 <div class="admonition-title">Note</div>
@@ -160,8 +165,10 @@ Latency is only half the story. The CPU cost per message determines how many mes
 
 On a modern server, a single CPU core running TCP socket I/O can typically handle:
 
-- **~1--2 million small messages per second** for request/response workloads (with `epoll` and careful tuning)
+- **~100,000--500,000 small messages per second** for request/response workloads with standard `epoll`. With aggressive tuning---NUMA-aligned interrupt affinity, `SO_REUSEPORT`, and busy polling---this can approach 1 million messages per second on a single core, but such configurations are the exception, not the norm.[^4]
 - **~5--15 Gb/s** of bulk throughput for streaming workloads
+
+[^4]: Cloudflare, ["How to receive a million packets per second"](https://blog.cloudflare.com/how-to-receive-a-million-packets/), documents the progression from ~50k pps (naive) to ~1.4 Mpps (fully tuned) per core.
 
 A 100 Gb/s NIC can push approximately 148 million 64-byte packets per second, or around 12 million 1024-byte messages per second. Saturating this link with traditional TCP sockets would require **6--12 CPU cores** dedicated entirely to network processing. On a dual-socket server with 64 cores, that is 10--20% of all CPU resources consumed by the network stack alone, leaving those cycles unavailable for actual application logic.
 
@@ -169,9 +176,9 @@ At 400 Gb/s---which is the current generation of datacenter networking---the pro
 
 ## What Cannot Be Fixed
 
-It is worth noting what improvements have been attempted and where they hit walls:
+The Linux networking community has tried repeatedly to fix this. None of the attempts have succeeded at removing the kernel from the data path:
 
-- **TCP Offload Engines (TOE)**: Offload TCP processing to the NIC hardware. These largely failed in the market because they created a "second TCP stack" that was difficult to maintain, debug, and keep consistent with the kernel's implementation. Linux never accepted TOE into the mainline kernel.
+- **TCP Offload Engines (TOE)**: Offload TCP processing to the NIC hardware. These largely failed in the market because they created a "second TCP stack" that was difficult to maintain, debug, and keep consistent with the kernel's implementation. Linux never accepted TOE into the mainline kernel---David Miller, the Linux networking maintainer, publicly opposed it on both technical grounds (TOE breaks netfilter, traffic control, and debugging) and patent concerns (Alacritech held key TOE patents). The lesson is instructive: partial offload that duplicates kernel state creates more problems than it solves. RDMA avoids this trap by taking the kernel out of the data path entirely rather than trying to replicate it in hardware.
 - **Large Receive Offload (LRO) and Generic Receive Offload (GRO)**: Aggregate multiple received segments into larger buffers before passing them up the stack. This reduces per-packet overhead but does not eliminate the fundamental copies and system calls.
 - **TCP zero-copy send (`MSG_ZEROCOPY`)**: Added in Linux 4.14, this avoids the send-side data copy for large messages by pinning user pages. However, it still requires the system call, kernel protocol processing, and comes with significant complexity (the application must track completion notifications to know when it can reuse the buffer). It does nothing for the receive path.
 - **Busy polling (`SO_BUSY_POLL`)**: The application polls the NIC directly from the `recv()` system call path, avoiding the interrupt-to-wakeup latency. This reduces latency by 2--5 μs but burns CPU cycles continuously, and the data still traverses the full kernel stack.

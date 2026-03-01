@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-a5f470ee.js";
+            window.path_to_searchindex_js = "../../searchindex-a09acba8.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-b911a98a.js"></script>
@@ -268,11 +268,11 @@
 <li><strong>Isolation domains</strong>: Devices can be placed in separate IOMMU domains, preventing one device from accessing memory assigned to another. This is essential for safe device assignment to virtual machines (VFIO/PCI passthrough).</li>
 <li><strong>Page granularity</strong>: IOMMU mappings are page-granular (typically 4 KB, with support for large pages). Creating a mapping is not free—it involves modifying IOMMU page tables and may require an IOTLB (I/O TLB) flush.</li>
 </ul>
-<p>For RDMA, the IOMMU adds an important wrinkle: when an RDMA NIC (RNIC) needs to DMA directly to a user-space application’s buffer, the IOMMU must have a mapping that translates the NIC’s DMA address to the correct physical page frames backing that application buffer. Setting up these mappings is part of the <strong>memory registration</strong> process that we will explore in detail in Chapter 6.</p>
+<p>For RDMA, the IOMMU adds an important wrinkle: when an RDMA NIC (RNIC) needs to DMA directly to a user-space application’s buffer, the IOMMU must have a mapping that translates the NIC’s DMA address to the correct physical page frames backing that application buffer. Setting up these mappings is part of the <strong>memory registration</strong> process that we will explore in detail in Chapter 6.<sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup></p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-Some RDMA deployments disable the IOMMU for performance reasons, as IOMMU translation adds a small amount of latency to each DMA transaction (typically 50--100 ns for an IOTLB miss). This is a security trade-off: without the IOMMU, a malfunctioning NIC could corrupt arbitrary memory. Modern RNICs and IOMMUs have improved to the point where the overhead is negligible for most workloads, and disabling the IOMMU is increasingly discouraged.
+Some RDMA deployments disable the IOMMU for performance reasons, as IOMMU translation adds latency on IOTLB misses (the exact penalty depends on the page table walk depth and PCIe topology, but can reach hundreds of nanoseconds in the worst case). This is a security trade-off: without the IOMMU, a malfunctioning NIC could corrupt arbitrary memory. Modern RNICs and IOMMUs have improved substantially---Intel's Scalable IOMMU supports large pages (2 MB, 1 GB) that dramatically reduce IOTLB miss rates, and IOTLB sizes have grown. Disabling the IOMMU is increasingly discouraged in production, and is incompatible with SR-IOV-based NIC virtualization, which requires IOMMU isolation between virtual functions.
 </div>
 
 <h2 id="scatter-gather-dma"><a class="header" href="#scatter-gather-dma">Scatter-Gather DMA</a></h2>
@@ -302,7 +302,7 @@ Some RDMA deployments disable the IOMMU for performance reasons, as IOMMU transl
 <p>The progression from PIO to bus-mastering DMA to RDMA is a story of systematically removing the CPU from the data path. With conventional DMA, the CPU is out of the data-movement loop but still orchestrates every transfer from within the kernel. RDMA removes the kernel from the orchestration, letting the application issue DMA commands directly to the NIC hardware.</p>
 <h2 id="dma-and-cache-coherence"><a class="header" href="#dma-and-cache-coherence">DMA and Cache Coherence</a></h2>
 <p>One subtlety of DMA that becomes important for RDMA programming is its interaction with the CPU cache hierarchy. When a NIC DMA-writes data into memory, that data goes to DRAM (or, on modern Intel platforms with DDIO—Data Direct I/O—into the last-level cache). But the CPU core that will process this data may have a stale cache line for that address, or may not have the line cached at all.</p>
-<p>On x86 platforms, PCIe transactions are <strong>cache-coherent</strong>: the DMA write will snoop the CPU caches, and if a conflicting line exists, it will be invalidated or updated. This means the CPU will always see the correct data after a DMA write, at the cost of a potential cache miss on first access. On other architectures (notably some ARM implementations), DMA coherence is not guaranteed, and explicit cache maintenance operations may be required.</p>
+<p>On x86 platforms, PCIe transactions are <strong>cache-coherent</strong>:<sup class="footnote-reference" id="fr-2-1"><a href="#footnote-2">2</a></sup> the DMA write will snoop the CPU caches, and if a conflicting line exists, it will be invalidated or updated.</p>
 <p>For RDMA, cache coherence matters because:</p>
 <ul>
 <li><strong>Receive completions</strong>: When the NIC writes data into an application’s receive buffer via RDMA, the application must be able to read the correct data immediately upon being notified of the completion. Cache coherence ensures this on x86, but the first read will likely be a cache miss if the buffer was not recently accessed.</li>
@@ -311,7 +311,7 @@ Some RDMA deployments disable the IOMMU for performance reasons, as IOMMU transl
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-Intel's Data Direct I/O (DDIO) technology routes inbound DMA writes to the Last Level Cache (LLC) rather than DRAM, reducing the latency of CPU access to newly-DMA'd data by avoiding a DRAM round trip (~60--80 ns). This is generally beneficial for networking, but can cause cache pollution under high receive rates. RDMA applications that process large volumes of data may need to account for DDIO's interaction with their cache working set. Some operators disable DDIO on specific PCIe devices or allocate receive buffers from non-cacheable memory regions to control this effect.
+Intel's Data Direct I/O (DDIO) technology routes inbound DMA writes to the Last Level Cache (LLC) rather than DRAM, reducing the latency of CPU access to newly-DMA'd data by avoiding a DRAM round trip (~60--80 ns). This is generally beneficial for networking, but creates a subtle and well-documented problem at high receive rates: inbound DMA traffic can evict the application's working set from the LLC, degrading compute performance. On Intel Xeon Scalable processors, DDIO typically uses only two LLC ways (out of 11 on a typical SKU), which limits the cache available for DMA to roughly 10--20% of the LLC. Farshin et al. (USENIX ATC 2020, "Reexamining Direct Cache Access") showed that this default allocation is suboptimal for high-speed networking---too little cache for DMA causes DDIO misses that fall through to DRAM, while too much cache for DMA pollutes the application's working set. Tuning DDIO's LLC allocation via Intel's Cache Allocation Technology (CAT) is a production best practice for RDMA workloads handling 40+ Gb/s of inbound traffic.
 </div>
 
 <h2 id="the-gap-that-rdma-fills"><a class="header" href="#the-gap-that-rdma-fills">The Gap That RDMA Fills</a></h2>
@@ -326,6 +326,15 @@ Intel's Data Direct I/O (DDIO) technology routes inbound DMA writes to the Last 
 </ol>
 <p>RDMA eliminates both of these by extending DMA’s reach. Instead of the NIC performing DMA to and from kernel buffers under kernel control, an RDMA NIC performs DMA to and from application buffers under application control. The kernel is involved only during setup—establishing what memory the NIC is allowed to access and what operations are permitted—and then steps out of the data path entirely.</p>
 <p>This is what the “Remote” in “Remote Direct Memory Access” means: the DMA is not just between a local NIC and local memory, but between a remote NIC and local memory, or between a local NIC and remote memory—all without kernel involvement on either end during the actual data transfer. The next section explains exactly how this works.</p>
+<hr>
+<ol class="footnote-definition">
+<li id="footnote-1">
+<p>For a thorough treatment of IOMMU performance in high-speed networking, see Farshin et al., “Reexamining Direct Cache Access to Optimize I/O Intensive Applications for Multi-hundred-gigabit Networks,” USENIX ATC 2020, and Amit et al., “Strategies for Mitigating the IOTLB Bottleneck,” ISPASS 2011. <a href="#fr-1-1">↩</a></p>
+</li>
+<li id="footnote-2">
+<p>Intel’s coherency model for PCIe is specified in the <em>Intel 64 and IA-32 Architectures Software Developer’s Manual</em>, Volume 3A, Chapter 12 (Memory Ordering). PCIe 3.0+ devices interacting with Intel CPUs observe the Total Store Order (TSO) memory model with respect to host-initiated stores. This means the CPU will always see the correct data after a DMA write, at the cost of a potential cache miss on first access. On other architectures (notably some ARM implementations), DMA coherence is not guaranteed, and explicit cache maintenance operations may be required. <a href="#fr-2-1">↩</a></p>
+</li>
+</ol>
 
                     </main>
 
@@ -362,6 +371,22 @@ Intel's Data Direct I/O (DDIO) technology routes inbound DMA writes to the Last 
         <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
         <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
         <script>

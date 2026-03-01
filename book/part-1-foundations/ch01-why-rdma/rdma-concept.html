@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-a5f470ee.js";
+            window.path_to_searchindex_js = "../../searchindex-a09acba8.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-b911a98a.js"></script>
@@ -177,13 +177,13 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="13-the-rdma-concept"><a class="header" href="#13-the-rdma-concept">1.3 The RDMA Concept</a></h1>
-<p>We have now seen where time and CPU cycles are wasted in traditional networking (Section 1.1) and how DMA already removes the CPU from bulk data movement within a single machine (Section 1.2). RDMA is the synthesis: it extends direct memory access across the network, removes the kernel from the data path, and eliminates data copies between application buffers and the wire. This section introduces the three pillars of RDMA, explains the fundamental architecture, and quantifies the performance difference.</p>
+<p>Section 1.1 showed where time and CPU cycles go in traditional networking. Section 1.2 showed how DMA already removes the CPU from bulk data movement within a single machine. RDMA combines these insights: it extends DMA across the network, removes the kernel from the data path, and eliminates data copies between application buffers and the wire.</p>
 <h2 id="the-three-pillars"><a class="header" href="#the-three-pillars">The Three Pillars</a></h2>
-<p>Every discussion of RDMA centers on three capabilities that, taken together, fundamentally change the performance characteristics of network I/O:</p>
+<p>RDMA rests on three capabilities that, combined, change the performance characteristics of network I/O by orders of magnitude:</p>
 <h3 id="pillar-1-kernel-bypass"><a class="header" href="#pillar-1-kernel-bypass">Pillar 1: Kernel Bypass</a></h3>
 <p>In the RDMA model, the application communicates directly with the NIC hardware without making system calls. The kernel is involved during <strong>setup</strong>—creating communication endpoints, registering memory regions, establishing connections—but once the data path is active, every send, receive, and memory access operation goes from user space directly to the NIC, bypassing the kernel entirely.</p>
 <p>This is achieved through memory-mapped I/O: during setup, the kernel maps a region of the NIC’s control registers (specifically, the <strong>doorbell</strong> registers) into the application’s virtual address space. The application also has direct access to the submission and completion queues in its own memory. When the application wants to send data, it writes a <strong>Work Queue Element (WQE)</strong> into the submission queue and rings the doorbell by writing to the mapped register. No system call. No context switch. No privilege transition.</p>
-<p>The cost of posting a work request in RDMA is approximately <strong>50–100 nanoseconds</strong>—compared to 500–1500 nanoseconds for a system call with KPTI on the same hardware.</p>
+<p>The cost of posting a work request in RDMA is approximately <strong>100–300 nanoseconds</strong>, dominated by the PCIe MMIO doorbell write.<sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup> Compare this to 200–500 nanoseconds for just the system call transition with KPTI—before any protocol processing even begins.</p>
 <h3 id="pillar-2-zero-copy"><a class="header" href="#pillar-2-zero-copy">Pillar 2: Zero-Copy</a></h3>
 <p>In RDMA, data moves from the application’s buffer directly to the wire on the send side, and from the wire directly into the application’s buffer on the receive side. There is no intermediate kernel buffer. The NIC’s DMA engine reads from (or writes to) the exact virtual addresses where the application stores its data.</p>
 <p>This requires a preparatory step called <strong>memory registration</strong>, in which the application tells the NIC (through the kernel) which regions of its virtual address space the NIC is allowed to access via DMA. Memory registration pins the physical pages backing the virtual address range (preventing them from being swapped out), creates IOMMU mappings so the NIC can reach them, and produces a pair of keys (<strong>lkey</strong> and <strong>rkey</strong>) that authorize access. After registration, the NIC can DMA directly to and from those pages.</p>
@@ -270,24 +270,24 @@
 <tr><th>Metric</th><th>TCP Sockets (25 Gb/s Ethernet)</th><th>RDMA (25 Gb/s RoCEv2)</th><th>RDMA (InfiniBand HDR 200 Gb/s)</th></tr>
 </thead>
 <tbody>
-<tr><td><strong>Round-trip latency (small message)</strong></td><td>15–30 μs</td><td>1.5–3 μs</td><td>0.6–1.0 μs</td></tr>
+<tr><td><strong>Round-trip latency (small message)</strong></td><td>15–30 μs</td><td>1.5–3 μs</td><td>1.0–2.0 μs</td></tr>
 <tr><td><strong>99th percentile latency</strong></td><td>30–100 μs</td><td>2–5 μs</td><td>1–2 μs</td></tr>
 <tr><td><strong>99.9th percentile latency</strong></td><td>50–500 μs</td><td>3–8 μs</td><td>1.5–3 μs</td></tr>
 </tbody>
 </table>
 </div>
-<p>The consistency of RDMA latency is just as important as the absolute numbers. TCP latency has a long tail driven by interrupt coalescing, kernel scheduling decisions, lock contention in the network stack, and memory allocation. RDMA’s tail latency is tight because the kernel is not involved: there is no scheduler jitter, no lock contention, and no softirq deferral.</p>
+<p>Note that NVIDIA’s ConnectX-6 HDR datasheet specifies “sub-600 ns” as a <em>one-way port-to-port</em> latency; the round-trip numbers above include host-side software overhead on both ends.<sup class="footnote-reference" id="fr-2-1"><a href="#footnote-2">2</a></sup> The consistency of RDMA latency is just as important as the absolute numbers.</p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-Sub-microsecond RDMA latencies require careful system configuration: BIOS tuning (disabling C-states, setting power profile to performance), CPU affinity (pinning the application thread to a core near the NIC's NUMA node), and proper queue pair configuration. Out-of-the-box latencies with default settings are typically 2--5x worse. Chapter 13 covers performance tuning in detail.
+Sub-microsecond RDMA latencies require careful system configuration: BIOS tuning (disabling C-states, setting power profile to performance), CPU affinity (pinning the application thread to a core near the NIC's NUMA node), and proper queue pair configuration. Out-of-the-box latencies with default settings are typically 2--5x worse. Chapter 12 covers performance tuning in detail.
 </div>
 
 <h2 id="throughput-and-cpu-efficiency"><a class="header" href="#throughput-and-cpu-efficiency">Throughput and CPU Efficiency</a></h2>
 <p>The throughput story is equally compelling. Consider saturating a 100 Gb/s link with 4 KB messages:</p>
 <ul>
-<li><strong>TCP sockets</strong>: Requires 6–12 CPU cores dedicated to network processing (system calls, protocol stack, copies). Achievable but consumes 10–20% of a typical server’s compute capacity.</li>
-<li><strong>RDMA</strong>: A single CPU core can saturate the link, using less than 5% of its cycles. The core’s job is just to post work requests and poll completions—the NIC does everything else.</li>
+<li><strong>TCP sockets</strong>: Requires 6–12 CPU cores dedicated to network processing (system calls, protocol stack, copies) for small-to-medium message workloads. With GSO/GRO and large messages, 2–4 cores suffice, but the CPU cost remains substantial.</li>
+<li><strong>RDMA</strong>: A single CPU core can saturate the link for one-sided operations (RDMA Write/Read), using a small fraction of its cycles. The core’s job is just to post work requests and poll completions—the NIC does everything else.</li>
 </ul>
 <p>The CPU efficiency metric that matters in practice is <strong>cycles per byte</strong>:</p>
 <div class="table-wrapper">
@@ -297,7 +297,7 @@ Sub-microsecond RDMA latencies require careful system configuration: BIOS tuning
 </thead>
 <tbody>
 <tr><td>TCP sockets (Linux, tuned)</td><td>2–5 cycles/byte</td><td>6–12</td></tr>
-<tr><td>TCP sockets (with GSO/GRO)</td><td>1–3 cycles/byte</td><td>4–8</td></tr>
+<tr><td>TCP sockets (with GSO/GRO)</td><td>1–3 cycles/byte</td><td>2–4</td></tr>
 <tr><td>RDMA (any transport)</td><td>0.01–0.1 cycles/byte</td><td>&lt;1</td></tr>
 </tbody>
 </table>
@@ -325,16 +325,25 @@ Sub-microsecond RDMA latencies require careful system configuration: BIOS tuning
 <ul>
 <li><strong>Specialized hardware</strong>: RDMA requires an RNIC (RDMA-capable NIC) on both ends of the connection, and often a supporting network fabric (InfiniBand switches, or a lossless Ethernet configuration for RoCEv2).</li>
 <li><strong>Programming complexity</strong>: The Verbs API is significantly more complex than the socket API. Concepts like memory registration, queue pair state machines, completion handling, and flow control are all exposed to the programmer.</li>
-<li><strong>Memory registration overhead</strong>: Pinning and registering memory is expensive (hundreds of microseconds to milliseconds for large regions). Applications must amortize this cost, typically by pre-registering buffers at startup.</li>
+<li><strong>Memory registration overhead</strong>: Pinning and registering memory is expensive (hundreds of microseconds to milliseconds for large regions). Applications must amortize this cost, typically by pre-registering buffers at startup. Pinned memory also counts against the <code>RLIMIT_MEMLOCK</code> ulimit, which defaults to 64 KB on many Linux distributions—a setting that will immediately break any RDMA application. Production deployments must raise this limit, and operators must account for the fact that pinned pages cannot be reclaimed under memory pressure, which can trigger the OOM killer if the system’s physical memory is overcommitted.</li>
 <li><strong>Operational complexity</strong>: RDMA networks (especially RoCEv2 over Ethernet) require careful network configuration: Priority Flow Control (PFC), ECN (Explicit Congestion Notification), and proper traffic classification. Misconfigurations can cause performance collapse or, worse, head-of-line blocking that affects non-RDMA traffic.</li>
 </ul>
 <p>These costs are real and significant. They are the reason RDMA has not replaced sockets for all networking—and likely never will. But for workloads where microsecond latency and CPU efficiency matter, the trade-off is overwhelmingly favorable. Section 1.5 provides a framework for making this decision.</p>
 <div class="admonition note">
 <div class="admonition-title">Note</div>
 
-The latency and throughput numbers in this section are drawn from published benchmarks and the authors' measurements on commodity hardware (Mellanox/NVIDIA ConnectX-5 and ConnectX-6 adapters, Intel Xeon Scalable processors, Linux kernel 5.x with rdma-core user-space libraries). Your specific numbers will depend on hardware, firmware version, kernel version, and configuration. The relative comparisons---RDMA being 5--20x lower latency and 50--500x more CPU-efficient---are consistent across hardware generations.
+The latency and throughput numbers in this section are drawn from published benchmarks on commodity hardware (Mellanox/NVIDIA ConnectX-5 and ConnectX-6 adapters, Intel Xeon Scalable processors, Linux kernel 5.x with rdma-core user-space libraries). Your specific numbers will depend on hardware, firmware version, kernel version, and configuration. The relative comparisons---RDMA being 5--20x lower latency and 50--500x more CPU-efficient---are consistent across hardware generations.
 </div>
 
+<hr>
+<ol class="footnote-definition">
+<li id="footnote-1">
+<p>Kalia et al., “Design Guidelines for High Performance RDMA Systems,” USENIX ATC 2016, measured MMIO write latency at ~217 ns on their test platform. With BlueFlame (write-combining the WQE into the doorbell write), this can drop to ~100 ns for small messages. <a href="#fr-1-1">↩</a></p>
+</li>
+<li id="footnote-2">
+<p>NVIDIA ConnectX-6 HDR/HDR100 VPI adapter <a href="https://network.nvidia.com/files/doc-2020/wp-introducing-200g-hdr-infiniband-solutions.pdf">product brief</a>. Kalia et al. (ATC 2016) measured end-to-end RTT including application posting and polling overhead. TCP latency has a long tail driven by interrupt coalescing, kernel scheduling decisions, lock contention in the network stack, and memory allocation. RDMA’s tail latency is tight because the kernel is not involved: there is no scheduler jitter, no lock contention, and no softirq deferral. <a href="#fr-2-1">↩</a></p>
+</li>
+</ol>
 
                     </main>
 
@@ -371,6 +380,22 @@ The latency and throughput numbers in this section are drawn from published benc
         <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
         <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
         <script>
