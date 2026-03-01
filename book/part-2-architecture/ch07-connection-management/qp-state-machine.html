@@ -1,0 +1,453 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>QP State Machine - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h2 id="71-qp-state-machine"><a class="header" href="#71-qp-state-machine">7.1 QP State Machine</a></h2>
+<p>Every Queue Pair in RDMA has a lifecycle governed by a finite state machine. Before a QP can send or receive data, it must be transitioned through a precise sequence of states, with specific attributes configured at each step. This state machine is not a software abstraction – it is implemented in the NIC hardware. When you call <code>ibv_modify_qp()</code>, you are programming registers in the network adapter, telling it what this QP is allowed to do and what parameters to use when processing work requests. A QP in the wrong state will silently refuse to process posted work requests, or worse, transition to an error state that requires teardown and recreation.</p>
+<p>Understanding the QP state machine is the single most important prerequisite for writing correct RDMA connection code. Every connection management abstraction – the Communication Manager, RDMA_CM, even higher-level libraries like <code>libfabric</code> – ultimately reduces to a sequence of <code>ibv_modify_qp()</code> calls that walk the QP through these states. When those abstractions fail or behave unexpectedly, diagnosing the problem requires understanding what is happening at the state machine level.</p>
+<h3 id="the-states"><a class="header" href="#the-states">The States</a></h3>
+<p>The QP state machine defines seven states. Not all states are reachable from all QP types, and the transitions available depend on the transport type (RC, UC, UD, XRC). The complete set of states is:</p>
+<pre class="mermaid">stateDiagram-v2
+    [*] --&gt; RESET : ibv_create_qp()
+    RESET --&gt; INIT : ibv_modify_qp()&lt;br/&gt;PKEY, PORT, ACCESS_FLAGS
+    INIT --&gt; RTR : ibv_modify_qp()&lt;br/&gt;AV, PATH_MTU, DEST_QPN,&lt;br/&gt;RQ_PSN, MAX_DEST_RD_ATOMIC,&lt;br/&gt;MIN_RNR_TIMER
+    RTR --&gt; RTS : ibv_modify_qp()&lt;br/&gt;SQ_PSN, TIMEOUT,&lt;br/&gt;RETRY_CNT, RNR_RETRY,&lt;br/&gt;MAX_QP_RD_ATOMIC
+    RTS --&gt; RTS : Normal operation
+    RTS --&gt; SQD : ibv_modify_qp()&lt;br/&gt;drain send queue
+    SQD --&gt; RTS : ibv_modify_qp()&lt;br/&gt;resume
+    SQD --&gt; SQD : Draining...
+    RTS --&gt; ERROR : Transport error
+    RTR --&gt; ERROR : Transport error
+    SQD --&gt; ERROR : Transport error
+    RTS --&gt; SQE : Send completion error&lt;br/&gt;(RC only auto-recoverable)
+    SQE --&gt; RTS : ibv_modify_qp()
+    ERROR --&gt; RESET : ibv_modify_qp()
+    RESET --&gt; [*] : ibv_destroy_qp()
+    INIT --&gt; INIT : Modify attributes
+    SQE --&gt; ERROR : Additional errors
+</pre>
+
+<p><strong>RESET</strong> is the initial state of every QP immediately after <code>ibv_create_qp()</code> returns. In this state, the QP is allocated but completely inert. No work requests can be posted to either the send queue or the receive queue. The QP has no associated port, no partition key, and no access permissions. It is a blank slate waiting to be configured.</p>
+<p><strong>INIT (Initialized)</strong> is the first configured state. The QP now knows which physical port it will use, which partition key it belongs to, and what remote access permissions it grants (RDMA Read, RDMA Write, Atomic). In the INIT state, receive work requests <em>can</em> be posted to the receive queue – this is important because you typically want receive buffers posted before the connection is fully established, so that incoming messages have somewhere to land. However, no send operations are permitted, and no incoming packets will be processed yet.</p>
+<p><strong>RTR (Ready to Receive)</strong> means the QP is fully configured to receive packets from the remote peer. At this point, the QP knows the remote QP number, the path to the remote node (address vector, path MTU), and the receive-side PSN (Packet Sequence Number). Incoming packets matching this QP will be processed and delivered to posted receive buffers. However, the send queue is still inactive – you cannot post send operations.</p>
+<p><strong>RTS (Ready to Send)</strong> is the fully operational state. Both the send queue and receive queue are active. The QP can send and receive data. The send-side PSN, timeout parameters, and retry counts have been configured. This is the steady-state for an active connection.</p>
+<p><strong>SQD (Send Queue Drained)</strong> is a transitional state entered when the application wants to modify certain QP attributes (such as the alternate path for APM) without disrupting in-flight operations. The transition to SQD causes the hardware to stop initiating new send operations while allowing outstanding operations to complete. Once the send queue is fully drained, an asynchronous event <code>IBV_EVENT_SQ_DRAINED</code> is generated. The application can then safely modify attributes and transition back to RTS.</p>
+<p><strong>SQE (Send Queue Error)</strong> is entered when a send operation completes with an error on an RC QP, but the error is recoverable. The receive queue continues to function normally. The application can handle the error and transition the QP back to RTS. Note that SQE is specific to certain transport types and error conditions; many errors go directly to the ERROR state instead.</p>
+<p><strong>ERROR</strong> is the terminal error state. All outstanding work requests on both the send and receive queues are flushed with error completions. No new work requests can be posted. The QP can be transitioned back to RESET to start over, or destroyed. Common causes include: retry count exhaustion (the remote side stopped responding), protection domain violations, and access permission errors.</p>
+<h3 id="reset-to-init-basic-configuration"><a class="header" href="#reset-to-init-basic-configuration">RESET to INIT: Basic Configuration</a></h3>
+<p>The first transition configures the QP’s fundamental identity and permissions. The call requires exactly three mandatory attributes for RC and UC QPs:</p>
+<pre><code class="language-c">struct ibv_qp_attr attr = {
+    .qp_state        = IBV_QPS_INIT,
+    .pkey_index      = 0,        /* Default partition key */
+    .port_num        = 1,        /* Physical port number (1-based) */
+    .qp_access_flags = IBV_ACCESS_REMOTE_WRITE |
+                       IBV_ACCESS_REMOTE_READ  |
+                       IBV_ACCESS_REMOTE_ATOMIC,
+};
+
+int flags = IBV_QP_STATE      |
+            IBV_QP_PKEY_INDEX |
+            IBV_QP_PORT       |
+            IBV_QP_ACCESS_FLAGS;
+
+int ret = ibv_modify_qp(qp, &amp;attr, flags);
+if (ret) {
+    fprintf(stderr, "RESET-&gt;INIT failed: %s\n", strerror(ret));
+}
+</code></pre>
+<p>The <code>pkey_index</code> selects the partition key from the port’s partition key table. Partition keys in InfiniBand serve a role similar to VLANs – they isolate traffic between groups of nodes. Index 0 is the default full-membership partition key (<code>0xFFFF</code>), which is appropriate for most single-tenant environments.</p>
+<p>The <code>port_num</code> identifies the physical port on the HCA. Multi-port adapters have port numbers starting at 1. This is a common source of off-by-one errors – port numbering is 1-based, not 0-based.</p>
+<p>The <code>qp_access_flags</code> determine what the <em>remote</em> side is allowed to do to local memory through this QP. Setting <code>IBV_ACCESS_REMOTE_WRITE</code> allows the remote peer to issue RDMA Write operations targeting memory regions registered on this QP’s protection domain. Omitting this flag means RDMA Write attempts from the remote side will fail with an access violation, transitioning the QP to ERROR.</p>
+<div class="warning">
+<p><strong>Common Mistake:</strong> Forgetting to set <code>qp_access_flags</code> is one of the most frequent RDMA programming errors. If you intend to use RDMA Read or Atomic operations, you must enable <code>IBV_ACCESS_REMOTE_READ</code> or <code>IBV_ACCESS_REMOTE_ATOMIC</code> on the <em>target</em> QP during the RESET-to-INIT transition. These flags cannot be changed later without transitioning back through RESET.</p>
+</div>
+
+<p>After this transition, you should post receive work requests to the receive queue. The QP in INIT state accepts receive WRs, and posting them now ensures that buffers are available when the first packets arrive after the QP reaches RTR.</p>
+<h3 id="init-to-rtr-connecting-to-the-remote-peer"><a class="header" href="#init-to-rtr-connecting-to-the-remote-peer">INIT to RTR: Connecting to the Remote Peer</a></h3>
+<p>The INIT-to-RTR transition is where the QP learns about its remote peer. This is the step that requires out-of-band exchange of endpoint information – you need to know the remote side’s QP number, LID (Local Identifier), and optionally GID (Global Identifier) before you can make this call.</p>
+<pre><code class="language-c">struct ibv_qp_attr attr = {
+    .qp_state              = IBV_QPS_RTR,
+    .path_mtu              = IBV_MTU_4096,
+    .dest_qp_num           = remote_qpn,      /* Remote QP number */
+    .rq_psn                = remote_psn,       /* Expected starting PSN */
+    .max_dest_rd_atomic    = 16,               /* Max incoming RDMA Read/Atomic */
+    .min_rnr_timer         = 12,               /* RNR NAK timer (~0.61ms) */
+    .ah_attr               = {
+        .is_global         = 0,                /* 1 if using GRH/RoCE */
+        .dlid              = remote_lid,       /* Remote LID */
+        .sl                = 0,                /* Service Level */
+        .src_path_bits     = 0,                /* LMC path bits */
+        .port_num          = 1,                /* Local port */
+    },
+};
+
+/* For RoCE or cross-subnet IB, set GRH fields: */
+if (use_grh) {
+    attr.ah_attr.is_global = 1;
+    attr.ah_attr.grh.dgid = remote_gid;       /* Remote GID */
+    attr.ah_attr.grh.sgid_index = gid_index;   /* Local GID table index */
+    attr.ah_attr.grh.flow_label = 0;
+    attr.ah_attr.grh.hop_limit = 64;
+    attr.ah_attr.grh.traffic_class = 0;
+}
+
+int flags = IBV_QP_STATE              |
+            IBV_QP_AV                 |
+            IBV_QP_PATH_MTU           |
+            IBV_QP_DEST_QPN           |
+            IBV_QP_RQ_PSN             |
+            IBV_QP_MAX_DEST_RD_ATOMIC |
+            IBV_QP_MIN_RNR_TIMER;
+
+int ret = ibv_modify_qp(qp, &amp;attr, flags);
+</code></pre>
+<p>The <code>path_mtu</code> sets the maximum payload size per packet. This must not exceed the MTU supported by every link and switch along the path between the two endpoints. Common values are <code>IBV_MTU_1024</code> (safe default for InfiniBand), <code>IBV_MTU_4096</code> (standard for modern InfiniBand), and <code>IBV_MTU_256</code> (common for RoCE over standard Ethernet). Setting this too high causes silent packet drops at switches that cannot handle the size.</p>
+<p>The <code>dest_qp_num</code> is the QP number of the remote peer’s Queue Pair. This value must be obtained from the remote side through whatever out-of-band mechanism you use (TCP socket, shared file, CM REQ/REP exchange).</p>
+<p>The <code>rq_psn</code> is the Packet Sequence Number that the receive side expects the remote sender to start with. This must match the <code>sq_psn</code> that the remote QP will be configured with in its RTR-to-RTS transition. If they do not match, the first packet will be detected as out-of-sequence, and the hardware will enter error recovery (or drop the packet, depending on transport type). In practice, both sides often use 0 or a random starting PSN – as long as sender and receiver agree.</p>
+<p>The <code>max_dest_rd_atomic</code> limits the number of outstanding incoming RDMA Read and Atomic operations that this QP will handle simultaneously. The NIC must allocate hardware resources (read response buffers) for each concurrent outstanding Read. Setting this too high wastes NIC resources; setting it to 0 disables incoming RDMA Read and Atomic entirely. This value must not exceed <code>max_qp_rd_atom</code> reported by <code>ibv_query_device()</code>.</p>
+<p>The <code>min_rnr_timer</code> specifies how long the remote sender should wait before retrying when this QP responds with a Receiver Not Ready (RNR) NAK. An RNR NAK is sent when a Send or RDMA Write with Immediate arrives but no receive buffer is posted. The timer value is an encoded duration, where value 0 means 655.36 ms and value 31 means 0.01 ms. Value 12 corresponds to approximately 0.61 ms. Setting this too low causes the remote side to retry aggressively; too high adds unnecessary latency to RNR recovery.</p>
+<div class="tip">
+<p><strong>Tip:</strong> After the INIT-to-RTR transition completes, the QP can already receive packets. If the remote side sends data before you transition to RTS, the incoming packets will be processed and matched against posted receive buffers. This asymmetry is by design and is exploited by the CM handshake: the passive side (server) reaches RTR first and can receive the RTU message before transitioning to RTS.</p>
+</div>
+
+<h3 id="rtr-to-rts-enabling-the-send-queue"><a class="header" href="#rtr-to-rts-enabling-the-send-queue">RTR to RTS: Enabling the Send Queue</a></h3>
+<p>The final transition to reach the operational state configures the send-side parameters:</p>
+<pre><code class="language-c">struct ibv_qp_attr attr = {
+    .qp_state          = IBV_QPS_RTS,
+    .sq_psn            = local_psn,    /* Starting send PSN */
+    .timeout           = 14,           /* ~68 ms local ACK timeout */
+    .retry_cnt         = 7,            /* Retry count (0-7) */
+    .rnr_retry         = 7,            /* RNR retry count (7 = infinite) */
+    .max_rd_atomic     = 16,           /* Max outgoing RDMA Read/Atomic */
+};
+
+int flags = IBV_QP_STATE          |
+            IBV_QP_SQ_PSN         |
+            IBV_QP_TIMEOUT        |
+            IBV_QP_RETRY_CNT      |
+            IBV_QP_RNR_RETRY      |
+            IBV_QP_MAX_QP_RD_ATOMIC;
+
+int ret = ibv_modify_qp(qp, &amp;attr, flags);
+</code></pre>
+<p>The <code>sq_psn</code> is the Packet Sequence Number that the local send queue will use for its first packet. This must match the <code>rq_psn</code> configured on the remote QP during its INIT-to-RTR transition.</p>
+<p>The <code>timeout</code> is the local ACK timeout, encoded as a power of 2 multiplied by 4.096 microseconds. Value 0 means infinite (no timeout – generally only appropriate for debugging). Value 14 means approximately 68 ms (<code>4.096 * 2^14</code> microseconds). If an ACK is not received within this interval, the packet is retransmitted. This value should account for the round-trip time plus processing delays. For a local datacenter, values between 12-17 are typical.</p>
+<p>The <code>retry_cnt</code> sets the maximum number of retransmission attempts before the QP gives up and transitions to ERROR. The maximum value is 7. After <code>retry_cnt</code> consecutive retransmission timeouts, the QP transitions to ERROR and all outstanding work requests are flushed. A value of 7 means 7 retries (8 total attempts). For production systems, 7 is typical; lower values cause faster failure detection but increase susceptibility to transient issues.</p>
+<p>The <code>rnr_retry</code> controls how many times the sender will retry after receiving an RNR NAK. The special value 7 means infinite retries – the sender will never give up due to RNR alone. This is the recommended setting for most applications, because RNR conditions are typically transient (the receiver just hasn’t posted a receive buffer yet).</p>
+<p>The <code>max_rd_atomic</code> limits the number of outstanding outgoing RDMA Read and Atomic operations. This must not exceed the <code>max_dest_rd_atomic</code> configured on the remote QP. Exceeding this causes operations to be silently queued by the hardware, which can lead to ordering surprises.</p>
+<h3 id="sqd-sqe-and-error-non-operational-states"><a class="header" href="#sqd-sqe-and-error-non-operational-states">SQD, SQE, and ERROR: Non-Operational States</a></h3>
+<p><strong>RTS to SQD:</strong> This transition is used when you need to modify QP attributes that cannot be changed while the send queue is active – most commonly the alternate path for Automatic Path Migration (APM). When you transition to SQD, the hardware stops issuing new packets from the send queue but allows in-flight operations to complete. An asynchronous event <code>IBV_EVENT_SQ_DRAINED</code> signals when the drain is complete. You can then modify the desired attributes and transition back to RTS.</p>
+<pre><code class="language-c">/* Transition to SQD */
+struct ibv_qp_attr attr = { .qp_state = IBV_QPS_SQD };
+ibv_modify_qp(qp, &amp;attr, IBV_QP_STATE);
+
+/* Wait for IBV_EVENT_SQ_DRAINED async event... */
+
+/* Modify attributes (e.g., alternate path) and return to RTS */
+attr.qp_state = IBV_QPS_RTS;
+/* ... set new attributes ... */
+ibv_modify_qp(qp, &amp;attr, flags);
+</code></pre>
+<p><strong>SQE (Send Queue Error):</strong> On RC QPs, certain send completion errors (such as a remote access violation) transition the QP to SQE rather than ERROR. In SQE, the receive queue continues to function – the QP can still receive packets, but the send queue is frozen. This allows the application to examine the error, potentially correct the problem, and transition back to RTS. However, many errors bypass SQE and go directly to ERROR.</p>
+<p><strong>ERROR State and Recovery:</strong> When a QP enters ERROR, all outstanding work requests on both queues are flushed. You must poll all remaining completions (which will have error status) from the CQ before you can safely proceed. The QP can be transitioned back to RESET with <code>ibv_modify_qp()</code>, effectively reinitializing it for reuse. Alternatively, you can destroy the QP with <code>ibv_destroy_qp()</code> and create a new one.</p>
+<div class="warning">
+<p><strong>Warning:</strong> When a QP transitions to ERROR, flushed completions appear on the CQ with status <code>IBV_WC_WR_FLUSH_ERR</code>. You <strong>must</strong> poll these completions and process them. Failing to do so can cause CQ overruns if you continue posting work requests on other QPs that share the same CQ.</p>
+</div>
+
+<h3 id="ud-qp-state-transitions"><a class="header" href="#ud-qp-state-transitions">UD QP State Transitions</a></h3>
+<p>Unreliable Datagram (UD) QPs follow a simplified state machine because they are connectionless – a single UD QP can send to and receive from any number of remote QPs. The transitions are the same (RESET -&gt; INIT -&gt; RTR -&gt; RTS), but the required attributes differ significantly:</p>
+<p><strong>RESET to INIT</strong> for UD:</p>
+<pre><code class="language-c">struct ibv_qp_attr attr = {
+    .qp_state   = IBV_QPS_INIT,
+    .pkey_index = 0,
+    .port_num   = 1,
+    .qkey       = 0x11111111,   /* Q-Key instead of access flags */
+};
+int flags = IBV_QP_STATE | IBV_QP_PKEY_INDEX |
+            IBV_QP_PORT  | IBV_QP_QKEY;
+</code></pre>
+<p><strong>INIT to RTR</strong> for UD requires <em>no additional attributes</em> beyond the state change:</p>
+<pre><code class="language-c">struct ibv_qp_attr attr = { .qp_state = IBV_QPS_RTR };
+ibv_modify_qp(qp, &amp;attr, IBV_QP_STATE);
+</code></pre>
+<p><strong>RTR to RTS</strong> for UD only requires the send PSN:</p>
+<pre><code class="language-c">struct ibv_qp_attr attr = {
+    .qp_state = IBV_QPS_RTS,
+    .sq_psn   = 0,
+};
+ibv_modify_qp(qp, &amp;attr, IBV_QP_STATE | IBV_QP_SQ_PSN);
+</code></pre>
+<p>Notice the critical difference: UD QPs do not specify a destination QP number, address vector, or retry parameters during state transitions. The destination is specified per-send via an Address Handle attached to each work request. This is what makes UD connectionless and avoids the N-squared connection problem discussed in Section 7.4.</p>
+<h3 id="attribute-requirements-summary"><a class="header" href="#attribute-requirements-summary">Attribute Requirements Summary</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Transition</th><th>RC/UC Required</th><th>UD Required</th></tr>
+</thead>
+<tbody>
+<tr><td>RESET -&gt; INIT</td><td>STATE, PKEY_INDEX, PORT, ACCESS_FLAGS</td><td>STATE, PKEY_INDEX, PORT, QKEY</td></tr>
+<tr><td>INIT -&gt; RTR</td><td>STATE, AV, PATH_MTU, DEST_QPN, RQ_PSN, MAX_DEST_RD_ATOMIC, MIN_RNR_TIMER</td><td>STATE only</td></tr>
+<tr><td>RTR -&gt; RTS</td><td>STATE, SQ_PSN, TIMEOUT, RETRY_CNT, RNR_RETRY, MAX_QP_RD_ATOMIC</td><td>STATE, SQ_PSN</td></tr>
+<tr><td>RTS -&gt; SQD</td><td>STATE</td><td>STATE</td></tr>
+<tr><td>SQD -&gt; RTS</td><td>STATE</td><td>STATE</td></tr>
+<tr><td>* -&gt; ERROR</td><td>(automatic on error)</td><td>(automatic on error)</td></tr>
+<tr><td>ERROR -&gt; RESET</td><td>STATE</td><td>STATE</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="common-mistakes-and-debugging"><a class="header" href="#common-mistakes-and-debugging">Common Mistakes and Debugging</a></h3>
+<p><strong>Wrong attribute mask.</strong> The <code>flags</code> parameter to <code>ibv_modify_qp()</code> must exactly match the set of required attributes for the transition. Including extra flags for attributes you haven’t set, or omitting required flags, causes the call to fail with <code>EINVAL</code>. The error message provides no indication of <em>which</em> flag is wrong. When debugging, compare your flags against the table above.</p>
+<p><strong>Mismatched PSNs.</strong> If the local <code>sq_psn</code> does not match the remote <code>rq_psn</code>, the first packet sent will be treated as out-of-sequence. For RC QPs, this triggers retransmission. If the mismatch is not corrected, the retry count will be exhausted and the QP will transition to ERROR. Always ensure both sides agree on PSN values.</p>
+<p><strong>MTU mismatch.</strong> Setting <code>path_mtu</code> higher than what the network path supports causes packets to be silently dropped by switches. Query the port attributes with <code>ibv_query_port()</code> to determine the maximum supported MTU, and use the minimum of the two endpoints’ capabilities.</p>
+<p><strong>Posting sends before RTS.</strong> A QP in RTR state can receive but not send. Posting a send work request to a QP that has not reached RTS will not produce an immediate error from <code>ibv_post_send()</code> – the WR is simply queued. But it will not be processed, and depending on the implementation, may eventually produce a completion error or simply hang.</p>
+<p><strong>Not posting receives before RTR.</strong> While technically legal, transitioning to RTR without any posted receive buffers means that the first incoming Send (or RDMA Write with Immediate) will trigger an RNR NAK. If the sender has limited RNR retries, this can cause the connection to fail during establishment. Best practice is to post receive WRs immediately after the RESET-to-INIT transition.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-2-architecture/ch07-connection-management/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-2-architecture/ch07-connection-management/communication-manager.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-2-architecture/ch07-connection-management/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-2-architecture/ch07-connection-management/communication-manager.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

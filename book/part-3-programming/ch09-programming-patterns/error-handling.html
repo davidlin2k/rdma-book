@@ -1,0 +1,702 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Error Handling - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="96-error-handling"><a class="header" href="#96-error-handling">9.6 Error Handling</a></h1>
+<p>RDMA error handling is more complex than traditional socket error handling because errors can surface through multiple independent channels: synchronous return codes from verb calls, asynchronous completion queue errors, and asynchronous events from the RNIC. A robust RDMA application must monitor all three channels and respond appropriately to each type of failure.</p>
+<p>This section catalogs the error codes, explains their root causes, and develops patterns for error recovery, async event handling, and systematic debugging.</p>
+<h2 id="error-surfaces-in-rdma"><a class="header" href="#error-surfaces-in-rdma">Error Surfaces in RDMA</a></h2>
+<p>RDMA errors appear through three mechanisms:</p>
+<ol>
+<li>
+<p><strong>Synchronous verb errors</strong>: Functions like <code>ibv_post_send()</code>, <code>ibv_modify_qp()</code>, and <code>ibv_reg_mr()</code> return non-zero on failure. These are programming errors or resource exhaustion, detected immediately.</p>
+</li>
+<li>
+<p><strong>Completion queue errors (CQE errors)</strong>: A work request is accepted by <code>ibv_post_send()</code> or <code>ibv_post_recv()</code> but fails during execution. The failure is reported through the completion queue with a non-success status code. These are the most common runtime errors.</p>
+</li>
+<li>
+<p><strong>Async events</strong>: The RNIC reports significant state changes, such as a port going down, a QP entering an error state, or a catastrophic hardware failure. These are delivered through the async event channel.</p>
+</li>
+</ol>
+<h2 id="cqe-error-codes"><a class="header" href="#cqe-error-codes">CQE Error Codes</a></h2>
+<p>When <code>ibv_poll_cq()</code> returns a completion with <code>wc.status != IBV_WC_SUCCESS</code>, the status code indicates what went wrong. Here is a comprehensive catalog of error codes, their meanings, and common causes.</p>
+<h3 id="ibv_wc_loc_len_err-local-length-error"><a class="header" href="#ibv_wc_loc_len_err-local-length-error">IBV_WC_LOC_LEN_ERR (Local Length Error)</a></h3>
+<p><strong>What it means</strong>: The receive buffer was too small for the incoming message, or a send specified a length that exceeds the QP’s maximum message size.</p>
+<p><strong>Common causes</strong>:</p>
+<ul>
+<li>UD receive buffer does not include space for the 40-byte GRH.</li>
+<li>Receive SGE length is smaller than the sent message.</li>
+<li>Send length exceeds the path MTU for UD.</li>
+</ul>
+<p><strong>Fix</strong>: Ensure receive buffers are large enough. For UD, add 40 bytes for the GRH. Check the path MTU before sending.</p>
+<pre><code class="language-c">if (wc.status == IBV_WC_LOC_LEN_ERR) {
+    fprintf(stderr, "Local length error on wr_id %lu. "
+            "Check buffer sizes and MTU.\n", wc.wr_id);
+}
+</code></pre>
+<h3 id="ibv_wc_loc_qp_op_err-local-qp-operation-error"><a class="header" href="#ibv_wc_loc_qp_op_err-local-qp-operation-error">IBV_WC_LOC_QP_OP_ERR (Local QP Operation Error)</a></h3>
+<p><strong>What it means</strong>: An internal QP error occurred. The operation violated a constraint that the QP cannot handle.</p>
+<p><strong>Common causes</strong>:</p>
+<ul>
+<li>Posting an RDMA Read when <code>max_rd_atomic</code> is set to 0.</li>
+<li>Posting a work request with too many SGEs (exceeding <code>max_send_sge</code> or <code>max_recv_sge</code>).</li>
+<li>Posting to a QP that is in an error state.</li>
+<li>Using an invalid opcode for the QP type (e.g., RDMA Write on a UD QP).</li>
+</ul>
+<p><strong>Fix</strong>: Review the QP configuration and ensure the work request parameters are compatible. Check that the QP is in the RTS state.</p>
+<h3 id="ibv_wc_loc_prot_err-local-protection-error"><a class="header" href="#ibv_wc_loc_prot_err-local-protection-error">IBV_WC_LOC_PROT_ERR (Local Protection Error)</a></h3>
+<p><strong>What it means</strong>: The local memory region does not have the required access permissions, or the L_Key in the SGE does not match a valid registered MR.</p>
+<p><strong>Common causes</strong>:</p>
+<ul>
+<li>Using an L_Key from a deregistered MR.</li>
+<li>The SGE address range falls outside the registered MR boundaries.</li>
+<li>The MR does not have <code>IBV_ACCESS_LOCAL_WRITE</code> set for a receive operation.</li>
+<li>Using the wrong PD (the MR’s PD does not match the QP’s PD).</li>
+</ul>
+<p><strong>Fix</strong>: Verify that the L_Key is valid, the address range is within the MR, and the MR has appropriate access flags.</p>
+<h3 id="ibv_wc_mw_bind_err-memory-window-bind-error"><a class="header" href="#ibv_wc_mw_bind_err-memory-window-bind-error">IBV_WC_MW_BIND_ERR (Memory Window Bind Error)</a></h3>
+<p><strong>What it means</strong>: A Memory Window bind operation failed.</p>
+<p><strong>Common causes</strong>:</p>
+<ul>
+<li>Binding to an MR that does not allow MW binding.</li>
+<li>The MW type does not match the bind operation.</li>
+</ul>
+<p><strong>Fix</strong>: This error is relatively rare; it applies only to applications using Memory Windows.</p>
+<h3 id="ibv_wc_rem_access_err-remote-access-error"><a class="header" href="#ibv_wc_rem_access_err-remote-access-error">IBV_WC_REM_ACCESS_ERR (Remote Access Error)</a></h3>
+<p><strong>What it means</strong>: The remote RNIC rejected the RDMA Read or Write because the R_Key is invalid, the remote address is out of range, or the MR does not have the required access permissions.</p>
+<p><strong>Common causes</strong>:</p>
+<ul>
+<li>Using a stale R_Key (the remote MR was deregistered or re-registered).</li>
+<li>The remote address + length exceeds the remote MR boundaries.</li>
+<li>The remote MR does not have <code>IBV_ACCESS_REMOTE_READ</code> or <code>IBV_ACCESS_REMOTE_WRITE</code> as needed.</li>
+<li>The remote QP does not have the corresponding access flag set.</li>
+</ul>
+<p><strong>Fix</strong>: Verify R_Key validity, check address arithmetic, and ensure access flags are set on both the remote QP and MR.</p>
+<pre><code class="language-c">if (wc.status == IBV_WC_REM_ACCESS_ERR) {
+    fprintf(stderr, "Remote access error: check R_Key (0x%x) "
+            "and remote address (0x%lx)\n", rkey, remote_addr);
+}
+</code></pre>
+<h3 id="ibv_wc_rem_inv_req_err-remote-invalid-request-error"><a class="header" href="#ibv_wc_rem_inv_req_err-remote-invalid-request-error">IBV_WC_REM_INV_REQ_ERR (Remote Invalid Request Error)</a></h3>
+<p><strong>What it means</strong>: The remote RNIC received a request it could not process.</p>
+<p><strong>Common causes</strong>:</p>
+<ul>
+<li>The remote QP is not in the RTS state.</li>
+<li>The request type is not supported by the remote QP.</li>
+<li>A protocol violation occurred.</li>
+</ul>
+<p><strong>Fix</strong>: Ensure both sides complete QP state transitions before sending messages. Check QP type compatibility.</p>
+<h3 id="ibv_wc_rem_op_err-remote-operation-error"><a class="header" href="#ibv_wc_rem_op_err-remote-operation-error">IBV_WC_REM_OP_ERR (Remote Operation Error)</a></h3>
+<p><strong>What it means</strong>: The remote side encountered an internal error while processing the request.</p>
+<p><strong>Common causes</strong>:</p>
+<ul>
+<li>The remote QP encountered a local error (e.g., local protection error) while responding.</li>
+<li>Hardware error on the remote RNIC.</li>
+</ul>
+<p><strong>Fix</strong>: Check the remote side’s logs and error counters. This often indicates a problem on the remote machine rather than the local machine.</p>
+<h3 id="ibv_wc_retry_exc_err-transport-retry-counter-exceeded"><a class="header" href="#ibv_wc_retry_exc_err-transport-retry-counter-exceeded">IBV_WC_RETRY_EXC_ERR (Transport Retry Counter Exceeded)</a></h3>
+<p><strong>What it means</strong>: The local RNIC retransmitted a packet the maximum number of times (<code>retry_cnt</code>) without receiving an acknowledgment.</p>
+<p><strong>Common causes</strong>:</p>
+<ul>
+<li>The remote machine is down or unreachable.</li>
+<li>Network connectivity lost (cable unplugged, switch failure).</li>
+<li>The remote QP is not in the RTS state.</li>
+<li>Incorrect routing information (wrong LID, GID, or path).</li>
+<li>Firewall blocking RDMA traffic (common with RoCE).</li>
+</ul>
+<p><strong>Fix</strong>: This is one of the most common RDMA errors. Verify network connectivity, check that the remote side has completed QP setup, and verify routing information.</p>
+<pre><code class="language-c">if (wc.status == IBV_WC_RETRY_EXC_ERR) {
+    fprintf(stderr, "Retry exceeded: remote side may be down "
+            "or unreachable. Check:\n"
+            "  - Remote QP is in RTS state\n"
+            "  - Network connectivity\n"
+            "  - LID/GID/routing info\n");
+}
+</code></pre>
+<div class="warning">
+<p><code>IBV_WC_RETRY_EXC_ERR</code> is the most common error encountered during RDMA development. When you see this error, do not immediately suspect a bug in your code. First, verify basic network connectivity and confirm that the remote side has completed its QP setup before the local side starts sending.</p>
+</div>
+
+<h3 id="ibv_wc_rnr_retry_exc_err-rnr-retry-counter-exceeded"><a class="header" href="#ibv_wc_rnr_retry_exc_err-rnr-retry-counter-exceeded">IBV_WC_RNR_RETRY_EXC_ERR (RNR Retry Counter Exceeded)</a></h3>
+<p><strong>What it means</strong>: The remote side did not have a receive buffer posted, and the sender exhausted its RNR retry limit (<code>rnr_retry</code>).</p>
+<p><strong>Common causes</strong>:</p>
+<ul>
+<li>The receiver did not pre-post receive buffers before the sender started sending.</li>
+<li>The receiver is processing received messages too slowly, and its receive queue drained.</li>
+<li>The <code>rnr_retry</code> count is set too low (set to 7 for infinite retries during development).</li>
+</ul>
+<p><strong>Fix</strong>: Ensure receive buffers are posted before sending begins. Increase the receive queue depth. Set <code>rnr_retry = 7</code> during development.</p>
+<h3 id="ibv_wc_wr_flush_err-work-request-flushed"><a class="header" href="#ibv_wc_wr_flush_err-work-request-flushed">IBV_WC_WR_FLUSH_ERR (Work Request Flushed)</a></h3>
+<p><strong>What it means</strong>: The work request was flushed because the QP transitioned to an error state. This is not an independent error; it is a consequence of a prior error that caused the QP to enter the error state.</p>
+<p><strong>Common causes</strong>:</p>
+<ul>
+<li>A previous work request on this QP failed, causing the QP to enter the SQE (Send Queue Error) or ERR state.</li>
+<li>The application explicitly transitioned the QP to the error state.</li>
+<li>All subsequent work requests in the queue are flushed with this status.</li>
+</ul>
+<p><strong>Fix</strong>: Identify and fix the root cause error that caused the QP state transition. The flush errors are secondary symptoms.</p>
+<div class="note">
+<p>When a QP enters the error state, <strong>all</strong> outstanding work requests on both the send queue and receive queue are flushed with <code>IBV_WC_WR_FLUSH_ERR</code>. This means you will see a burst of flush errors after any single error. Do not be alarmed by the quantity; focus on the first non-flush error to find the root cause.</p>
+</div>
+
+<h3 id="ibv_wc_general_err-general-error"><a class="header" href="#ibv_wc_general_err-general-error">IBV_WC_GENERAL_ERR (General Error)</a></h3>
+<p><strong>What it means</strong>: A catch-all for errors not covered by other codes.</p>
+<p><strong>Common causes</strong>: Hardware-specific errors, driver bugs, or unusual failure modes. Check <code>wc.vendor_err</code> for additional information.</p>
+<h2 id="qp-error-state-and-recovery"><a class="header" href="#qp-error-state-and-recovery">QP Error State and Recovery</a></h2>
+<p>When a CQE error occurs on an RC QP, the QP transitions to one of two error states:</p>
+<ul>
+<li><strong>SQE (Send Queue Error)</strong>: A send operation failed. The QP can be recovered by transitioning back to RTS via <code>ibv_modify_qp()</code> (RESET → INIT → RTR → RTS sequence).</li>
+<li><strong>ERR (Error)</strong>: A more severe error. The QP must be transitioned through RESET → INIT → RTR → RTS to recover.</li>
+</ul>
+<h3 id="recovering-a-qp"><a class="header" href="#recovering-a-qp">Recovering a QP</a></h3>
+<pre><code class="language-c">int recover_qp(struct ibv_qp *qp, int ib_port,
+               struct qp_info *remote_info, int gid_index)
+{
+    /* Step 1: Transition to RESET */
+    struct ibv_qp_attr attr = { .qp_state = IBV_QPS_RESET };
+    int ret = ibv_modify_qp(qp, &amp;attr, IBV_QP_STATE);
+    if (ret) {
+        fprintf(stderr, "Failed to reset QP: %s\n", strerror(ret));
+        return -1;
+    }
+
+    /* Step 2: RESET -&gt; INIT */
+    ret = modify_qp_to_init(qp, ib_port);
+    if (ret) return -1;
+
+    /* Step 3: INIT -&gt; RTR (need remote info again) */
+    ret = modify_qp_to_rtr(qp, ib_port, remote_info, gid_index);
+    if (ret) return -1;
+
+    /* Step 4: RTR -&gt; RTS */
+    ret = modify_qp_to_rts(qp);
+    if (ret) return -1;
+
+    printf("QP recovered successfully\n");
+    return 0;
+}
+</code></pre>
+<div class="warning">
+<p>QP recovery resets the packet sequence numbers. The remote side must also be aware of the recovery and reset its QP, or the two QPs will be out of sync. In practice, QP recovery is rarely done in production; it is usually simpler to destroy the failed QP and create a new one, re-establishing the connection from scratch.</p>
+</div>
+
+<h3 id="draining-flush-errors"><a class="header" href="#draining-flush-errors">Draining Flush Errors</a></h3>
+<p>When a QP enters the error state, you must drain all flush completions before the QP can be destroyed:</p>
+<pre><code class="language-c">void drain_cq(struct ibv_cq *cq)
+{
+    struct ibv_wc wc;
+    int ne;
+    do {
+        ne = ibv_poll_cq(cq, 1, &amp;wc);
+        if (ne &gt; 0 &amp;&amp; wc.status == IBV_WC_WR_FLUSH_ERR) {
+            /* Expected: flush error from QP in error state */
+            continue;
+        }
+    } while (ne &gt; 0);
+}
+</code></pre>
+<h2 id="async-events"><a class="header" href="#async-events">Async Events</a></h2>
+<p>Asynchronous events report significant state changes that are not tied to a specific work request. They are delivered through the device’s async event file descriptor and must be retrieved with <code>ibv_get_async_event()</code>.</p>
+<h3 id="event-types"><a class="header" href="#event-types">Event Types</a></h3>
+<p><strong>QP Events</strong>:</p>
+<ul>
+<li><code>IBV_EVENT_QP_FATAL</code>: QP entered an unrecoverable error state. The QP must be destroyed.</li>
+<li><code>IBV_EVENT_QP_REQ_ERR</code>: A request error occurred on the QP (protocol violation).</li>
+<li><code>IBV_EVENT_QP_ACCESS_ERR</code>: An access violation occurred on the QP.</li>
+<li><code>IBV_EVENT_QP_LAST_WQE_REACHED</code>: The last WQE on an SRQ-attached QP was consumed.</li>
+<li><code>IBV_EVENT_COMM_EST</code>: Communication established. The QP received a message and transitioned from RTR to a state where it can process messages. Informational only.</li>
+<li><code>IBV_EVENT_SQ_DRAINED</code>: The send queue has been drained (all outstanding sends completed). Generated after requesting SQ drain via QP modify.</li>
+<li><code>IBV_EVENT_PATH_MIG</code>: A path migration occurred (used with automatic path migration).</li>
+<li><code>IBV_EVENT_PATH_MIG_ERR</code>: Path migration failed.</li>
+</ul>
+<p><strong>CQ Events</strong>:</p>
+<ul>
+<li><code>IBV_EVENT_CQ_ERR</code>: CQ overrun. The CQ is full and a completion was lost. This is fatal; the CQ and all associated QPs must be destroyed.</li>
+</ul>
+<p><strong>Port Events</strong>:</p>
+<ul>
+<li><code>IBV_EVENT_PORT_ACTIVE</code>: A port became active (link up).</li>
+<li><code>IBV_EVENT_PORT_ERR</code>: A port encountered an error (link down).</li>
+<li><code>IBV_EVENT_LID_CHANGE</code>: The port’s LID changed (IB subnet reconfiguration).</li>
+<li><code>IBV_EVENT_PKEY_CHANGE</code>: The port’s P_Key table changed.</li>
+<li><code>IBV_EVENT_GID_CHANGE</code>: The port’s GID table changed (RoCE address change).</li>
+<li><code>IBV_EVENT_SM_CHANGE</code>: The subnet manager changed (IB).</li>
+<li><code>IBV_EVENT_CLIENT_REREGISTER</code>: SM requests clients to re-register (IB).</li>
+</ul>
+<p><strong>Device Events</strong>:</p>
+<ul>
+<li><code>IBV_EVENT_DEVICE_FATAL</code>: Catastrophic device error. All resources are invalid. The application must close the device and restart.</li>
+</ul>
+<h3 id="async-event-handling-thread"><a class="header" href="#async-event-handling-thread">Async Event Handling Thread</a></h3>
+<p>A dedicated thread should monitor async events throughout the application’s lifetime:</p>
+<pre><code class="language-c">#include &lt;pthread.h&gt;
+
+struct async_event_ctx {
+    struct ibv_context *ctx;
+    volatile int       running;
+};
+
+void *async_event_thread(void *arg)
+{
+    struct async_event_ctx *aectx = (struct async_event_ctx *)arg;
+    struct ibv_async_event event;
+
+    while (aectx-&gt;running) {
+        /* ibv_get_async_event() blocks until an event is available */
+        if (ibv_get_async_event(aectx-&gt;ctx, &amp;event)) {
+            if (!aectx-&gt;running)
+                break;  /* Shutdown requested */
+            fprintf(stderr, "Failed to get async event\n");
+            continue;
+        }
+
+        switch (event.event_type) {
+        /* QP events */
+        case IBV_EVENT_QP_FATAL:
+            fprintf(stderr, "FATAL: QP %u entered error state\n",
+                    event.element.qp-&gt;qp_num);
+            /* Trigger QP recovery or shutdown */
+            break;
+
+        case IBV_EVENT_QP_REQ_ERR:
+            fprintf(stderr, "QP %u request error\n",
+                    event.element.qp-&gt;qp_num);
+            break;
+
+        case IBV_EVENT_QP_ACCESS_ERR:
+            fprintf(stderr, "QP %u access error\n",
+                    event.element.qp-&gt;qp_num);
+            break;
+
+        case IBV_EVENT_COMM_EST:
+            fprintf(stderr, "QP %u communication established\n",
+                    event.element.qp-&gt;qp_num);
+            break;
+
+        /* CQ events */
+        case IBV_EVENT_CQ_ERR:
+            fprintf(stderr, "FATAL: CQ overrun\n");
+            /* CQ and associated QPs must be destroyed */
+            break;
+
+        /* Port events */
+        case IBV_EVENT_PORT_ACTIVE:
+            fprintf(stderr, "Port %d is active\n",
+                    event.element.port_num);
+            break;
+
+        case IBV_EVENT_PORT_ERR:
+            fprintf(stderr, "Port %d error (link down)\n",
+                    event.element.port_num);
+            /* Pause operations, wait for port recovery */
+            break;
+
+        case IBV_EVENT_GID_CHANGE:
+            fprintf(stderr, "Port %d GID table changed\n",
+                    event.element.port_num);
+            /* May need to re-resolve paths */
+            break;
+
+        /* Device events */
+        case IBV_EVENT_DEVICE_FATAL:
+            fprintf(stderr, "FATAL: Device error. Must restart.\n");
+            aectx-&gt;running = 0;
+            break;
+
+        default:
+            fprintf(stderr, "Async event: %d\n", event.event_type);
+        }
+
+        /* MUST acknowledge every event */
+        ibv_ack_async_event(&amp;event);
+    }
+
+    return NULL;
+}
+</code></pre>
+<div class="warning">
+<p>Every async event retrieved with <code>ibv_get_async_event()</code> <strong>must</strong> be acknowledged with <code>ibv_ack_async_event()</code>. Failing to acknowledge events will cause <code>ibv_close_device()</code> to hang, because the close operation waits for all events to be acknowledged.</p>
+</div>
+
+<h3 id="using-epoll-with-async-events"><a class="header" href="#using-epoll-with-async-events">Using epoll with Async Events</a></h3>
+<p>The async event file descriptor can be integrated with <code>epoll</code> for event-driven architectures:</p>
+<pre><code class="language-c">int setup_async_epoll(struct ibv_context *ctx, int epfd)
+{
+    /* Make the async FD non-blocking */
+    int flags = fcntl(ctx-&gt;async_fd, F_GETFL);
+    fcntl(ctx-&gt;async_fd, F_SETFL, flags | O_NONBLOCK);
+
+    struct epoll_event ev = {
+        .events  = EPOLLIN,
+        .data.fd = ctx-&gt;async_fd,
+    };
+    return epoll_ctl(epfd, EPOLL_CTL_ADD, ctx-&gt;async_fd, &amp;ev);
+}
+</code></pre>
+<h2 id="debugging-strategies"><a class="header" href="#debugging-strategies">Debugging Strategies</a></h2>
+<h3 id="1-enable-verbose-debug-output"><a class="header" href="#1-enable-verbose-debug-output">1. Enable Verbose Debug Output</a></h3>
+<p>Set environment variables to enable driver-level debugging:</p>
+<pre><code class="language-bash"># Enable verbs debug output
+export IBV_FORK_SAFE=1
+export MLX5_DEBUG_MASK=0xFFFF    # Mellanox/NVIDIA driver debug
+export RDMAV_HUGEPAGES_SAFE=1
+
+# For rdma-core debug
+export RDMAV_DEBUG=1
+</code></pre>
+<h3 id="2-check-hardware-counters"><a class="header" href="#2-check-hardware-counters">2. Check Hardware Counters</a></h3>
+<p>RDMA hardware maintains detailed error counters accessible through sysfs:</p>
+<pre><code class="language-bash"># Port-level counters
+cat /sys/class/infiniband/mlx5_0/ports/1/counters/port_rcv_errors
+cat /sys/class/infiniband/mlx5_0/ports/1/counters/port_xmit_discards
+cat /sys/class/infiniband/mlx5_0/ports/1/counters/local_link_integrity_errors
+
+# Extended counters (if supported)
+perfquery -x mlx5_0 1
+</code></pre>
+<p>The <code>rdma</code> tool provides a convenient interface:</p>
+<pre><code class="language-bash">rdma statistic show
+rdma res show qp
+rdma res show cq
+rdma res show mr
+</code></pre>
+<h3 id="3-use-ibv_devinfo-and-ibv_devices"><a class="header" href="#3-use-ibv_devinfo-and-ibv_devices">3. Use ibv_devinfo and ibv_devices</a></h3>
+<pre><code class="language-bash"># List all RDMA devices
+ibv_devices
+
+# Show detailed device info
+ibv_devinfo -d mlx5_0
+
+# Check port state
+ibv_devinfo -d mlx5_0 -i 1
+</code></pre>
+<h3 id="4-packet-capture"><a class="header" href="#4-packet-capture">4. Packet Capture</a></h3>
+<p>For RoCE, standard packet capture tools work:</p>
+<pre><code class="language-bash"># Capture RDMA traffic (RoCE uses UDP port 4791)
+tcpdump -i eth0 udp port 4791 -w rdma_capture.pcap
+</code></pre>
+<p>For InfiniBand, use <code>ibdump</code> (NVIDIA/Mellanox tool):</p>
+<pre><code class="language-bash">ibdump -d mlx5_0 -i 1 -o ib_capture.pcap
+</code></pre>
+<h3 id="5-systematic-error-checking-macro"><a class="header" href="#5-systematic-error-checking-macro">5. Systematic Error Checking Macro</a></h3>
+<p>Wrap every verb call with error checking:</p>
+<pre><code class="language-c">#define CHECK_ERRNO(call, msg) do {           \
+    if ((call)) {                              \
+        fprintf(stderr, "%s:%d: %s: %s\n",    \
+                __FILE__, __LINE__, msg,       \
+                strerror(errno));              \
+        exit(EXIT_FAILURE);                    \
+    }                                          \
+} while (0)
+
+#define CHECK_NULL(ptr, msg) do {              \
+    if (!(ptr)) {                              \
+        fprintf(stderr, "%s:%d: %s: %s\n",    \
+                __FILE__, __LINE__, msg,       \
+                strerror(errno));              \
+        exit(EXIT_FAILURE);                    \
+    }                                          \
+} while (0)
+
+/* Usage */
+CHECK_NULL(pd = ibv_alloc_pd(ctx), "ibv_alloc_pd failed");
+CHECK_ERRNO(ibv_modify_qp(qp, &amp;attr, flags), "modify QP to INIT");
+</code></pre>
+<h2 id="common-mistakes-and-their-symptoms"><a class="header" href="#common-mistakes-and-their-symptoms">Common Mistakes and Their Symptoms</a></h2>
+<h3 id="mistake-1-not-pre-posting-receive-buffers"><a class="header" href="#mistake-1-not-pre-posting-receive-buffers">Mistake 1: Not Pre-Posting Receive Buffers</a></h3>
+<p><strong>Symptom</strong>: <code>IBV_WC_RNR_RETRY_EXC_ERR</code> on the sender. The receiver’s QP may also enter an error state.</p>
+<p><strong>Fix</strong>: Always post receive buffers before the remote side can send. In the ping-pong pattern, post the receive before sending the message that will trigger the remote side’s reply.</p>
+<h3 id="mistake-2-wrong-access-flags-on-mr-or-qp"><a class="header" href="#mistake-2-wrong-access-flags-on-mr-or-qp">Mistake 2: Wrong Access Flags on MR or QP</a></h3>
+<p><strong>Symptom</strong>: <code>IBV_WC_REM_ACCESS_ERR</code> for RDMA Read/Write. <code>IBV_WC_LOC_PROT_ERR</code> for local access issues.</p>
+<p><strong>Fix</strong>: Use <code>IBV_ACCESS_REMOTE_WRITE</code> on both QP and MR for RDMA Write. Use <code>IBV_ACCESS_REMOTE_READ</code> for RDMA Read. Always include <code>IBV_ACCESS_LOCAL_WRITE</code> for any MR that the RNIC writes to.</p>
+<h3 id="mistake-3-mismatched-qp-parameters"><a class="header" href="#mistake-3-mismatched-qp-parameters">Mistake 3: Mismatched QP Parameters</a></h3>
+<p><strong>Symptom</strong>: <code>IBV_WC_RETRY_EXC_ERR</code>. Packets are sent but the remote side does not recognize them.</p>
+<p><strong>Fix</strong>: Ensure <code>sq_psn</code> on one side matches <code>rq_psn</code> on the other. Ensure <code>dest_qp_num</code> is correct. Double-check GID and LID values.</p>
+<h3 id="mistake-4-not-accounting-for-grh-in-ud-receive"><a class="header" href="#mistake-4-not-accounting-for-grh-in-ud-receive">Mistake 4: Not Accounting for GRH in UD Receive</a></h3>
+<p><strong>Symptom</strong>: <code>IBV_WC_LOC_LEN_ERR</code> on UD receives.</p>
+<p><strong>Fix</strong>: Add 40 bytes to every UD receive buffer for the GRH.</p>
+<h3 id="mistake-5-forgetting-to-arm-cq-for-event-notification"><a class="header" href="#mistake-5-forgetting-to-arm-cq-for-event-notification">Mistake 5: Forgetting to Arm CQ for Event Notification</a></h3>
+<p><strong>Symptom</strong>: <code>ibv_get_cq_event()</code> blocks forever, even though completions are arriving.</p>
+<p><strong>Fix</strong>: Call <code>ibv_req_notify_cq()</code> before blocking on <code>ibv_get_cq_event()</code>. Remember to re-arm after each event.</p>
+<h3 id="mistake-6-cq-overflow"><a class="header" href="#mistake-6-cq-overflow">Mistake 6: CQ Overflow</a></h3>
+<p><strong>Symptom</strong>: <code>IBV_EVENT_CQ_ERR</code> async event. Completions are lost. QPs associated with the CQ may enter error state.</p>
+<p><strong>Fix</strong>: Size the CQ large enough to hold all possible outstanding completions. Poll completions promptly.</p>
+<h3 id="mistake-7-using-stale-mr-keys-after-re-registration"><a class="header" href="#mistake-7-using-stale-mr-keys-after-re-registration">Mistake 7: Using Stale MR Keys After Re-registration</a></h3>
+<p><strong>Symptom</strong>: <code>IBV_WC_REM_ACCESS_ERR</code> or <code>IBV_WC_LOC_PROT_ERR</code>.</p>
+<p><strong>Fix</strong>: When an MR is deregistered and re-registered, the L_Key and R_Key change. Update all references to the old keys.</p>
+<h3 id="mistake-8-destroying-resources-in-wrong-order"><a class="header" href="#mistake-8-destroying-resources-in-wrong-order">Mistake 8: Destroying Resources in Wrong Order</a></h3>
+<p><strong>Symptom</strong>: <code>ibv_destroy_qp()</code>, <code>ibv_dereg_mr()</code>, or <code>ibv_destroy_cq()</code> returns <code>EBUSY</code>.</p>
+<p><strong>Fix</strong>: Destroy resources in reverse order of creation: QP first, then MR, then CQ, then PD, then close the device. Drain all outstanding completions before destroying the CQ.</p>
+<h2 id="diagnostic-checklist"><a class="header" href="#diagnostic-checklist">Diagnostic Checklist</a></h2>
+<p>When an RDMA operation fails, work through this checklist:</p>
+<ol>
+<li><strong>Check the completion status code</strong> and look up its meaning in the table above.</li>
+<li><strong>Check QP state</strong>: Use <code>ibv_query_qp()</code> to verify the QP is in RTS.</li>
+<li><strong>Check MR validity</strong>: Ensure the MR is still registered and the L_Key/R_Key are current.</li>
+<li><strong>Check access flags</strong>: Verify both QP and MR have the required access permissions.</li>
+<li><strong>Check address arithmetic</strong>: For RDMA Read/Write, verify the remote address and length are within the MR boundaries.</li>
+<li><strong>Check network connectivity</strong>: Use <code>ibv_devinfo</code> to verify port state, and <code>ibping</code> or <code>rping</code> to verify basic RDMA connectivity.</li>
+<li><strong>Check hardware counters</strong>: Look for packet errors, link integrity errors, or buffer overruns.</li>
+<li><strong>Check the remote side</strong>: The error may originate from the remote machine. Check remote logs and counters.</li>
+<li><strong>Reproduce with a simple test</strong>: Use <code>ib_send_bw</code>, <code>ib_read_bw</code>, or <code>rping</code> to verify that basic RDMA operations work between the two machines.</li>
+</ol>
+<h2 id="key-takeaways"><a class="header" href="#key-takeaways">Key Takeaways</a></h2>
+<ol>
+<li><strong>Errors surface through three channels</strong>: Synchronous verb returns, CQE status codes, and async events. Monitor all three.</li>
+<li><strong><code>IBV_WC_RETRY_EXC_ERR</code> is the most common error</strong>: It usually indicates network or QP setup problems, not application bugs.</li>
+<li><strong>Flush errors are secondary symptoms</strong>: When a QP enters the error state, all outstanding WRs are flushed. Find the first non-flush error.</li>
+<li><strong>Async events require a dedicated thread</strong>: Start the async event thread early and keep it running throughout the application’s lifetime.</li>
+<li><strong>Every async event must be acknowledged</strong>: Failing to call <code>ibv_ack_async_event()</code> will cause <code>ibv_close_device()</code> to hang.</li>
+<li><strong>Hardware counters are your best diagnostic tool</strong>: They reveal errors that may not be visible through the software API.</li>
+<li><strong>QP recovery is possible but rarely practical</strong>: Destroying and recreating the QP is usually simpler than recovering it.</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-3-programming/ch09-programming-patterns/completion-handling.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-3-programming/ch10-rdma-cm-programming/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-3-programming/ch09-programming-patterns/completion-handling.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-3-programming/ch10-rdma-cm-programming/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

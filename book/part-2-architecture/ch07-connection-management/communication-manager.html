@@ -1,0 +1,423 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Communication Manager (CM) - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h2 id="72-communication-manager-cm"><a class="header" href="#72-communication-manager-cm">7.2 Communication Manager (CM)</a></h2>
+<p>In Section 7.1, we examined the QP state machine and the <code>ibv_modify_qp()</code> calls needed to walk a QP from RESET to RTS. A critical problem was left unaddressed: how do two nodes exchange the endpoint information – QP numbers, LIDs, GIDs, PSNs – required for the INIT-to-RTR transition? The QP state machine is purely local. It tells the hardware about the remote peer, but it provides no mechanism for <em>discovering</em> or <em>communicating with</em> that peer.</p>
+<p>The InfiniBand Communication Manager (CM) solves this problem. The CM is a kernel-level protocol that enables nodes to establish, manage, and tear down connections using a well-defined message exchange carried over the InfiniBand fabric itself. It automates the metadata exchange that would otherwise require an out-of-band channel (such as a TCP socket), and it provides additional services including service discovery, alternate path negotiation, and graceful disconnection.</p>
+<h3 id="cm-architecture"><a class="header" href="#cm-architecture">CM Architecture</a></h3>
+<p>The Communication Manager operates over <strong>Management Datagrams (MADs)</strong>, which are special InfiniBand packets sent and received on <strong>QP1</strong> – a dedicated Queue Pair that every InfiniBand port maintains for management traffic. QP1 is a UD (Unreliable Datagram) QP that is set up by the Subnet Manager during fabric initialization. Because QP1 is unreliable, the CM implements its own reliability mechanisms: timeouts, retransmissions, and sequence tracking.</p>
+<p>The CM protocol is defined in the InfiniBand Architecture Specification (Volume 1, Chapter 12). It supports several connection models:</p>
+<ul>
+<li><strong>RC (Reliable Connected)</strong> connections: full three-way handshake</li>
+<li><strong>UC (Unreliable Connected)</strong> connections: same handshake, but with UC transport semantics</li>
+<li><strong>UD (Unreliable Datagram)</strong> service resolution: SIDR protocol for resolving service IDs to QP numbers</li>
+<li><strong>XRC (eXtended Reliable Connected)</strong>: extended connection model sharing transport resources</li>
+</ul>
+<p>The CM maintains state machines for both the active side (initiator/client) and the passive side (responder/server) of a connection, and generates events that applications or upper-layer protocols consume through the kernel’s CM interface or through user-space wrappers like <code>rdma_cm</code>.</p>
+<h3 id="the-three-way-handshake-req-rep-rtu"><a class="header" href="#the-three-way-handshake-req-rep-rtu">The Three-Way Handshake: REQ, REP, RTU</a></h3>
+<p>Connection establishment for RC and UC transport types uses a three-way handshake that is conceptually similar to TCP’s SYN/SYN-ACK/ACK, but carries far more information. The exchange is illustrated below:</p>
+<pre class="mermaid">sequenceDiagram
+    participant C as Active Side (Client)
+    participant S as Passive Side (Server)
+
+    Note over S: Listening on Service ID
+
+    C-&gt;&gt;S: CM REQ
+    Note right of C: Local QPN, PSN, Service ID,&lt;br/&gt;Path info, RDMA parameters,&lt;br/&gt;Private data (92 bytes)
+
+    Note over S: Allocate QP, transition to RTR
+
+    S-&gt;&gt;C: CM REP
+    Note left of S: Local QPN, PSN,&lt;br/&gt;RDMA parameters,&lt;br/&gt;Private data (196 bytes)
+
+    Note over C: Transition QP to RTR then RTS
+
+    C-&gt;&gt;S: CM RTU
+    Note right of C: Private data (224 bytes)
+
+    Note over S: Transition QP to RTS
+    Note over C,S: Connection Established
+</pre>
+
+<h4 id="cm-req-connection-request"><a class="header" href="#cm-req-connection-request">CM REQ (Connection Request)</a></h4>
+<p>The active side initiates a connection by sending a CM REQ message. This message contains all the information the passive side needs to set up its end of the connection:</p>
+<ul>
+<li><strong>Local Communication ID (Local COMID):</strong> A unique identifier for this connection on the active side, used to correlate subsequent messages.</li>
+<li><strong>Service ID:</strong> A 64-bit identifier that selects the target service on the passive side. Service IDs function like TCP port numbers – the passive side registers interest in a specific Service ID, and incoming REQ messages are routed to the appropriate handler. Well-known Service IDs are defined in the IB spec; applications typically define their own in the upper 48 bits.</li>
+<li><strong>Local QPN:</strong> The active side’s QP number.</li>
+<li><strong>Starting PSN:</strong> The PSN the active side will use for its first send packet.</li>
+<li><strong>Responder Resources:</strong> The number of outstanding RDMA Read/Atomic operations the active side can accept (maps to <code>max_dest_rd_atomic</code>).</li>
+<li><strong>Initiator Depth:</strong> The number of outstanding outgoing RDMA Read/Atomic operations (maps to <code>max_rd_atomic</code>).</li>
+<li><strong>Primary Path:</strong> Complete path information including the source and destination LID/GID, service level, MTU, hop limit, and traffic class.</li>
+<li><strong>Alternate Path (optional):</strong> A secondary path for Automatic Path Migration.</li>
+<li><strong>Retry Count and RNR Retry Count:</strong> Transport-level retry parameters.</li>
+<li><strong>Private Data:</strong> Up to 92 bytes of application-defined data. This is the application’s opportunity to exchange protocol-level information during connection setup – for example, a version identifier, capability flags, or memory region keys.</li>
+</ul>
+<p>The CM REQ message is transmitted as a MAD on QP1. Because QP1 uses UD transport, the CM implements its own reliability: if no REP is received within a configurable timeout, the REQ is retransmitted. The timeout and maximum retry count are specified in the REQ message itself.</p>
+<h4 id="cm-rep-connection-reply"><a class="header" href="#cm-rep-connection-reply">CM REP (Connection Reply)</a></h4>
+<p>Upon receiving a REQ, the passive side’s CM generates an event for the application (or kernel-level consumer). The application examines the REQ parameters and private data, decides whether to accept the connection, and if so, allocates a QP and provides its own parameters. The CM then sends a REP message containing:</p>
+<ul>
+<li><strong>Remote Communication ID:</strong> Echoes the active side’s Local COMID.</li>
+<li><strong>Local Communication ID:</strong> The passive side’s unique identifier for this connection.</li>
+<li><strong>Local QPN:</strong> The passive side’s QP number.</li>
+<li><strong>Starting PSN:</strong> The PSN the passive side will use for its first send packet.</li>
+<li><strong>Responder Resources and Initiator Depth:</strong> The passive side’s RDMA Read/Atomic capabilities, which must be compatible with the active side’s request.</li>
+<li><strong>Private Data:</strong> Up to 196 bytes of application-defined data. The asymmetry in private data sizes (92 for REQ, 196 for REP) reflects the fact that the server often needs to communicate more setup information (such as memory region keys and addresses for RDMA operations) than the client.</li>
+</ul>
+<p>When the passive side sends the REP, its QP should already be in the RTR state – it has all the information it needs from the REQ to complete the RESET -&gt; INIT -&gt; RTR transitions. The QP is ready to receive data but not yet ready to send.</p>
+<h4 id="cm-rtu-ready-to-use"><a class="header" href="#cm-rtu-ready-to-use">CM RTU (Ready to Use)</a></h4>
+<p>The active side receives the REP, extracts the passive side’s QP number and PSN, transitions its own QP through INIT -&gt; RTR -&gt; RTS, and sends the RTU message. The RTU is essentially an acknowledgment that the active side has processed the REP and is ready for data transfer. It carries up to 224 bytes of private data, though this is rarely used.</p>
+<p>Upon receiving the RTU, the passive side transitions its QP from RTR to RTS. Both sides are now in the RTS state, and data transfer can begin.</p>
+<div class="note">
+<p><strong>Note on Timing:</strong> There is an inherent asymmetry in the handshake. After sending the REP, the passive side’s QP is in RTR – it can <em>receive</em> packets but cannot yet <em>send</em>. The active side reaches RTS first (upon receiving the REP) and may begin sending data immediately. The passive side only reaches RTS after receiving the RTU. This means the active side should not expect immediate responses from the passive side – there is a brief window where data can flow only from active to passive. Well-designed protocols account for this by having the active side send first, or by using the RTU’s private data to signal readiness.</p>
+</div>
+
+<h3 id="connection-rejection"><a class="header" href="#connection-rejection">Connection Rejection</a></h3>
+<p>The passive side may reject a connection request by sending a CM REJ (Reject) message instead of a REP. The REJ includes a reason code and up to 148 bytes of additional rejection information (ARI – Additional Rejection Information) plus 196 bytes of private data. Common rejection reasons include:</p>
+<ul>
+<li><strong>Consumer Reject:</strong> The application decided not to accept the connection. The private data may contain an application-specific reason.</li>
+<li><strong>Invalid Service ID:</strong> No listener registered for the requested Service ID.</li>
+<li><strong>Stale Connection:</strong> The connection request refers to a stale or already-destroyed connection.</li>
+<li><strong>Invalid Communication Instance:</strong> The QP or CM state is inconsistent.</li>
+</ul>
+<h3 id="disconnection-dreq-and-drep"><a class="header" href="#disconnection-dreq-and-drep">Disconnection: DREQ and DREP</a></h3>
+<p>Graceful disconnection follows a two-way handshake:</p>
+<pre><code class="language-c">/* Disconnect sequence */
+/* Active side: */
+/*   sends CM DREQ (Disconnect Request) */
+/*   includes up to 220 bytes private data */
+
+/* Passive side: */
+/*   receives DREQ event */
+/*   sends CM DREP (Disconnect Reply) */
+/*   includes up to 224 bytes private data */
+</code></pre>
+<p>Either side can initiate the disconnect. The DREQ sender waits for the DREP; if it times out, the disconnect is considered complete anyway (the remote side may have crashed). After the DREQ/DREP exchange, both sides transition their QPs to ERROR and clean up resources.</p>
+<div class="warning">
+<p><strong>Warning:</strong> The CM does not automatically transition QPs to ERROR upon disconnect. The application must handle the disconnect event and explicitly tear down the QP. Failing to do so leaves the QP in RTS state, consuming NIC resources, potentially processing stale retransmissions, and leaking memory.</p>
+</div>
+
+<h3 id="service-ids-and-service-registration"><a class="header" href="#service-ids-and-service-registration">Service IDs and Service Registration</a></h3>
+<p>Service IDs are 64-bit values that identify a service on the passive side. They are conceptually equivalent to TCP port numbers but with a much larger namespace. The InfiniBand specification defines a structure for Service IDs:</p>
+<ul>
+<li><strong>Bits 63-60:</strong> Format type (0 for general services)</li>
+<li><strong>Bits 59-0:</strong> Service-specific identifier</li>
+</ul>
+<p>In practice, applications choose Service IDs by convention or configuration. The passive side registers a Service ID with the CM, indicating willingness to accept connections for that service:</p>
+<pre><code class="language-c">/* Kernel CM API (simplified) */
+struct ib_cm_id *cm_id;
+ib_cm_listen(cm_id, service_id, 0);  /* 0 = exact match */
+
+/* User-space via RDMA_CM (see Section 7.3) */
+struct rdma_cm_id *id;
+struct sockaddr_in addr = {
+    .sin_family = AF_INET,
+    .sin_port   = htons(20886),    /* Port used to derive Service ID */
+    .sin_addr   = { .s_addr = INADDR_ANY },
+};
+rdma_bind_addr(id, (struct sockaddr *)&amp;addr);
+rdma_listen(id, backlog);
+</code></pre>
+<p>The RDMA_CM library (Section 7.3) maps IP addresses and port numbers to Service IDs, making the service registration feel more like traditional socket programming.</p>
+<h3 id="sidr-service-id-resolution-for-ud"><a class="header" href="#sidr-service-id-resolution-for-ud">SIDR: Service ID Resolution for UD</a></h3>
+<p>Unreliable Datagram QPs are connectionless – they do not go through the REQ/REP/RTU handshake. But a client still needs to discover the server’s QP number and Q-Key before it can send UD messages. The CM provides the <strong>SIDR (Service ID Resolution)</strong> protocol for this purpose:</p>
+<ol>
+<li>The client sends a <strong>SIDR_REQ</strong> to the server, specifying the desired Service ID and up to 216 bytes of private data.</li>
+<li>The server responds with a <strong>SIDR_REP</strong> containing its QP number, Q-Key, and up to 136 bytes of private data.</li>
+<li>The client creates an Address Handle and can now send UD messages to the server’s QP.</li>
+</ol>
+<p>SIDR is a simple request-response protocol with no connection state – it is purely a discovery mechanism.</p>
+<h3 id="alternate-path-lap-and-apr"><a class="header" href="#alternate-path-lap-and-apr">Alternate Path: LAP and APR</a></h3>
+<p>InfiniBand supports <strong>Automatic Path Migration (APM)</strong>, a hardware-level mechanism for failover between a primary and alternate network path. The CM facilitates alternate path setup through the <strong>LAP (Load Alternate Path)</strong> and <strong>APR (Alternate Path Response)</strong> messages:</p>
+<ol>
+<li>Either side sends a LAP message proposing an alternate path (different LID, different SL, or different port).</li>
+<li>The receiving side evaluates the proposed path, and responds with an APR indicating acceptance or rejection.</li>
+<li>If accepted, the alternate path is programmed into the QP through <code>ibv_modify_qp()</code> (typically requiring the SQD transition from RTS).</li>
+<li>If the primary path fails, the hardware automatically switches to the alternate path and generates an <code>IBV_EVENT_PATH_MIG</code> async event.</li>
+</ol>
+<p>APM is transparent to the data path – the application does not need to take any action for the failover to occur. However, setting up the alternate path and monitoring path migration events requires application awareness.</p>
+<h3 id="retry-and-timeout-mechanisms"><a class="header" href="#retry-and-timeout-mechanisms">Retry and Timeout Mechanisms</a></h3>
+<p>The CM’s own reliability is independent of the transport reliability of the data QPs. Since CM messages travel on QP1 (UD), which provides no delivery guarantees, the CM implements:</p>
+<ul>
+<li><strong>REQ retransmission:</strong> If no REP is received within the timeout, the REQ is resent. The timeout and retry count are specified in the REQ message (encoded as a power-of-two multiplier of base timeout). Typical configurations allow 15-20 retries with exponential backoff.</li>
+<li><strong>REP retransmission:</strong> If no RTU is received within the timeout, the REP is resent. The passive side retains the connection state in a “REP sent” state until the RTU arrives or the retry limit is exhausted.</li>
+<li><strong>DREQ retransmission:</strong> If no DREP is received, the DREQ is resent. After the retry limit, the disconnect is considered complete unilaterally.</li>
+<li><strong>Duplicate detection:</strong> Each CM message carries a communication ID and transaction ID. Duplicate messages (from retransmissions that arrive after the original was already processed) are detected and handled idempotently.</li>
+</ul>
+<h3 id="cm-interaction-with-qp-state"><a class="header" href="#cm-interaction-with-qp-state">CM Interaction with QP State</a></h3>
+<p>The CM protocol and the QP state machine interact in a specific sequence:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Event</th><th>Active Side QP State</th><th>Passive Side QP State</th></tr>
+</thead>
+<tbody>
+<tr><td>Before REQ sent</td><td>RESET or INIT</td><td>RESET</td></tr>
+<tr><td>REQ sent</td><td>INIT</td><td>RESET</td></tr>
+<tr><td>REQ received</td><td>INIT</td><td>RESET -&gt; INIT -&gt; RTR</td></tr>
+<tr><td>REP sent</td><td>INIT</td><td>RTR</td></tr>
+<tr><td>REP received</td><td>INIT -&gt; RTR -&gt; RTS</td><td>RTR</td></tr>
+<tr><td>RTU sent</td><td>RTS</td><td>RTR</td></tr>
+<tr><td>RTU received</td><td>RTS</td><td>RTR -&gt; RTS</td></tr>
+</tbody>
+</table>
+</div>
+<p>The passive side reaches RTR when it sends the REP (before the REP is even received by the active side). The active side reaches RTS when it receives the REP. The passive side only reaches RTS after receiving the RTU. This means there is a brief period where the active side can send data that the passive side can receive, but the passive side cannot yet send.</p>
+<div class="tip">
+<p><strong>Tip:</strong> In high-performance applications that need to minimize connection setup latency, the active side can begin posting RDMA Write operations immediately after sending the RTU, without waiting for the passive side to confirm readiness. Since RDMA Write is one-sided and does not require a posted receive buffer on the remote side, the writes will be processed as soon as the passive side’s QP reaches RTR. The passive side will see the data appear in memory once it transitions to RTS and begins checking.</p>
+</div>
+
+<h3 id="using-the-cm-directly-vs-rdma_cm"><a class="header" href="#using-the-cm-directly-vs-rdma_cm">Using the CM Directly vs. RDMA_CM</a></h3>
+<p>The kernel CM API (<code>ib_cm_*</code> functions) provides the most control over connection management but requires kernel-mode programming or the use of low-level user-space wrappers through <code>/dev/infiniband/ucmX</code> device files. For most applications, the <strong>RDMA_CM</strong> library (Section 7.3) provides a far more convenient interface that wraps the CM protocol in a user-space event-driven API. The RDMA_CM handles QP state transitions automatically, maps between IP addresses and InfiniBand paths, and presents a programming model familiar to socket developers.</p>
+<p>Direct CM usage is appropriate for kernel-level protocols (like NFS over RDMA or iSER), for applications that need fine-grained control over CM parameters (custom retry policies, alternate path setup), or for specialized scenarios where the RDMA_CM’s abstractions are insufficient. For user-space applications, the RDMA_CM is almost always the right choice.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-2-architecture/ch07-connection-management/qp-state-machine.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-2-architecture/ch07-connection-management/rdma-cm.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-2-architecture/ch07-connection-management/qp-state-machine.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-2-architecture/ch07-connection-management/rdma-cm.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

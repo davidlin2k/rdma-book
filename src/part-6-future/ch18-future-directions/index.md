@@ -1,0 +1,13 @@
+# Chapter 18: Future Directions
+
+The RDMA ecosystem is at an inflection point. For decades, RDMA was synonymous with InfiniBand in High-Performance Computing clusters -- a niche technology delivering extraordinary performance within a narrow domain. The emergence of RoCE brought RDMA to Ethernet data centers, and the explosion of machine learning workloads has made high-performance networking a mainstream concern. Today, RDMA principles -- kernel bypass, zero-copy, hardware-offloaded protocols -- are influencing the design of technologies far beyond traditional networking.
+
+This chapter surveys the technologies and trends that are reshaping the landscape around RDMA. Some are complementary, extending RDMA's reach into new domains. Others are competitive, offering alternative approaches to the same fundamental problems. All of them reflect a common trajectory: the boundary between compute, memory, storage, and networking is dissolving.
+
+We begin with CXL (Compute Express Link), a PCIe-based interconnect that brings cache-coherent memory access to disaggregated architectures. Where RDMA provides remote memory access at microsecond latencies with explicit software management, CXL promises remote memory access at sub-microsecond latencies with hardware-managed coherence. The relationship between RDMA and CXL is nuanced -- they serve different latency regimes and will likely coexist rather than compete.
+
+We then examine SmartNICs and DPUs (Data Processing Units), which embed general-purpose processors into the network interface. These devices can run RDMA processing, security, and storage functions on the NIC itself, removing the host CPU from the networking path entirely. NVIDIA's BlueField, AMD's Pensando, and Intel's IPU represent different visions of this architecture, but all share the goal of offloading infrastructure functions from the host.
+
+GPUDirect RDMA, which enables direct data transfer between GPUs and NICs without CPU involvement, has become critical infrastructure for distributed machine learning. We explore how GPUDirect works, its performance characteristics, and its evolution toward GPUDirect Storage and broader heterogeneous device interconnection.
+
+Finally, we look beyond current technologies to emerging concepts: computational storage, in-network computing, the Ultra Ethernet Consortium's efforts to standardize next-generation transports, and the long-term vision of unified memory semantics that could make the distinction between local and remote memory transparent to applications. The future of high-performance networking is not just faster versions of what we have today -- it is a fundamental rethinking of where computation happens and how data moves.

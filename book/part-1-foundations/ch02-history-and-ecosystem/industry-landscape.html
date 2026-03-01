@@ -1,0 +1,337 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Industry Landscape - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="25-industry-landscape"><a class="header" href="#25-industry-landscape">2.5 Industry Landscape</a></h1>
+<h2 id="a-consolidated-market"><a class="header" href="#a-consolidated-market">A Consolidated Market</a></h2>
+<p>The RDMA industry in the mid-2020s looks radically different from the crowded, multi-vendor landscape of the early 2000s. Acquisitions, exits, and the gravitational pull of the AI/HPC boom have consolidated the market around a small number of players, with one company—NVIDIA—dominating to a degree that shapes the technology’s evolution, pricing, and competitive dynamics.</p>
+<p>Understanding who builds what, which products matter, and how cloud providers make their networking choices is practical knowledge for any RDMA practitioner. The hardware you deploy determines your driver, your firmware update cadence, your performance envelope, and your support options. This section maps the current landscape.</p>
+<h2 id="nvidia-formerly-mellanox-the-dominant-force"><a class="header" href="#nvidia-formerly-mellanox-the-dominant-force">NVIDIA (formerly Mellanox): The Dominant Force</a></h2>
+<h3 id="the-acquisition"><a class="header" href="#the-acquisition">The Acquisition</a></h3>
+<p>On April 27, 2020, NVIDIA completed its acquisition of Mellanox Technologies for approximately $6.9 billion. This was, at the time, the largest acquisition in NVIDIA’s history, and it signaled a strategic thesis that has since been validated by the AI boom: that high-performance networking and GPU computing would converge into a unified system problem. Training a large language model across thousands of GPUs is as much a networking challenge as a compute challenge—the GPUs spend a significant fraction of their time waiting for gradient synchronization across the network, and reducing that synchronization latency translates directly into faster training and lower cost.</p>
+<p>The acquisition gave NVIDIA control of the dominant RDMA hardware platform, the dominant InfiniBand switching platform, and the software ecosystem (MLNX_OFED, UCX, NCCL’s transport layer) that ties GPUs to the network. The result is a vertically integrated stack from GPU to NIC to switch fabric, optimized as a system.</p>
+<h3 id="the-connectx-series"><a class="header" href="#the-connectx-series">The ConnectX Series</a></h3>
+<p>The ConnectX family of network adapters is the backbone of NVIDIA’s RDMA strategy. Each generation has brought significant capabilities:</p>
+<p><strong>ConnectX-3 / ConnectX-3 Pro (2012–2013).</strong> The first widely deployed dual-mode adapters supporting both InfiniBand (FDR, 56 Gbps) and Ethernet (40/56 GbE) with RoCE. ConnectX-3 Pro added hardware-based RoCE and improved stateless offloads. These adapters established the pattern of a single adapter supporting multiple RDMA transports—a strategy that reduced adoption risk for customers uncertain about which transport to choose.</p>
+<p><strong>ConnectX-4 / ConnectX-4 Lx (2015–2016).</strong> The jump to 100 Gbps (EDR InfiniBand, 100 GbE) and a major architectural change: ConnectX-4 moved to the <code>mlx5</code> driver model that remains current today. ConnectX-4 Lx was an Ethernet-only variant at lower cost, targeting the broader datacenter market. These adapters introduced enhanced RoCE v2 support, improved ECMP hashing, and better congestion management.</p>
+<p><strong>ConnectX-5 / ConnectX-5 Ex (2017).</strong> Brought 200 Gbps HDR InfiniBand and 100/200 GbE. Key innovations included enhanced adaptive routing, Multi-Path capability for bonding multiple ports, and critically, <strong>selective retransmission</strong> for RoCE—replacing the go-back-N behavior that made earlier RoCE implementations fragile under packet loss. ConnectX-5 Ex added PCIe 4.0 support.</p>
+<p><strong>ConnectX-6 / ConnectX-6 Dx / ConnectX-6 Lx (2019–2020).</strong> HDR200 InfiniBand (200 Gbps) and up to 200 GbE. ConnectX-6 Dx added inline hardware acceleration for IPsec, TLS, and other security protocols. ConnectX-6 Lx was a cost-optimized 25/50 GbE variant for cloud deployments. This generation significantly improved RoCE congestion management and introduced programmable congestion control.</p>
+<p><strong>ConnectX-7 (2022).</strong> NDR InfiniBand (400 Gbps) and 400 GbE. Added in-network computing capabilities, enhanced GPUDirect RDMA performance, and PCIe Gen 5. ConnectX-7 represents the current high-end for standalone NIC deployments.</p>
+<h3 id="bluefield-dpus"><a class="header" href="#bluefield-dpus">BlueField DPUs</a></h3>
+<p>Alongside ConnectX NICs, NVIDIA has developed the <strong>BlueField</strong> line of Data Processing Units (DPUs)—SmartNICs that combine ConnectX networking silicon with embedded Arm cores, hardware accelerators, and programmable packet processing engines. BlueField is relevant to the RDMA story because it enables infrastructure-level RDMA offload: a BlueField DPU can terminate RDMA connections, perform storage virtualization (NVMe-oF over RDMA), and enforce network policies, all without consuming host CPU cycles.</p>
+<p><strong>BlueField-2</strong> (2020) paired ConnectX-6 networking with 8 Arm A72 cores. <strong>BlueField-3</strong> (2022) paired ConnectX-7 networking with 16 Arm A78 cores and added hardware-accelerated cryptography, regex, and decompression engines. <strong>BlueField-4</strong> is expected to further integrate networking and compute.</p>
+<div class="note">
+<p>For RDMA application developers, BlueField DPUs are largely transparent. The RDMA Verbs API works the same whether the underlying hardware is a ConnectX NIC or a BlueField DPU. The differences matter primarily to infrastructure teams deploying storage-over-RDMA, SR-IOV virtualization, or DPU-offloaded network functions.</p>
+</div>
+
+<h2 id="intel-a-shifting-strategy"><a class="header" href="#intel-a-shifting-strategy">Intel: A Shifting Strategy</a></h2>
+<p>Intel’s RDMA history is a story of multiple starts, pivots, and organizational changes.</p>
+<p><strong>Early InfiniBand and iWARP.</strong> Intel was a founding member of the IBTA and an early InfiniBand proponent, but exited the InfiniBand HCA market in the early 2000s to focus on PCI Express. Intel later championed iWARP on its Ethernet controllers, notably the X722, positioning iWARP as the RDMA solution for Intel’s Ethernet ecosystem.</p>
+<p><strong>Omni-Path Architecture (OPA).</strong> In 2012, Intel acquired QLogic’s InfiniBand business and used the technology as the foundation for Omni-Path, a proprietary high-performance fabric aimed at HPC. Omni-Path used a custom transport protocol distinct from InfiniBand, with 100 Gbps link speeds and architecture optimizations for small-message MPI workloads. Intel deployed Omni-Path in several major supercomputers, including the Aurora exascale system at Argonne National Laboratory. However, Intel discontinued internal Omni-Path development in 2019 and spun out the technology to <strong>Cornelis Networks</strong>, an independent company that continues to develop and sell Omni-Path products.</p>
+<p><strong>E810 and the <code>irdma</code> driver.</strong> Intel’s current RDMA-capable Ethernet adapter is the <strong>E810</strong> series (marketed as Intel Ethernet 800 Series), supported by the <code>ice</code> network driver and the <code>irdma</code> RDMA driver. The E810 supports both iWARP and RoCE v2, making it one of the few adapters that offers both RDMA-over-TCP and RDMA-over-UDP from the same hardware. However, the E810’s RDMA performance and feature set lag behind NVIDIA’s ConnectX in most benchmarks, and Intel’s RDMA market share is correspondingly small.</p>
+<p><strong>Gaudi accelerators.</strong> Intel’s Gaudi AI accelerators (from the Habana Labs acquisition) use their own integrated networking based on Ethernet and RoCE, with a proprietary scale-out architecture. This represents another distinct networking path within Intel’s product portfolio.</p>
+<h2 id="broadcom-ethernet-first-rdma-second"><a class="header" href="#broadcom-ethernet-first-rdma-second">Broadcom: Ethernet-First, RDMA-Second</a></h2>
+<p>Broadcom (which acquired Emulex in 2015 and Brocade in 2017) is the world’s largest merchant Ethernet switching and NIC silicon provider. Its <strong>NetXtreme-E</strong> series of Ethernet adapters support RoCE v2 through the <code>bnxt_re</code> kernel driver. Broadcom’s RDMA support is adequate for basic RoCE workloads but has historically received less engineering investment and community attention than NVIDIA’s, resulting in a narrower feature set and later adoption of advanced capabilities.</p>
+<p>Broadcom’s strategic emphasis is on Ethernet switching silicon (Memory, Memory and Memory families) and mainstream NIC features (SR-IOV, hardware timestamping, flow offloads) rather than on RDMA-specific innovation. For organizations already standardized on Broadcom NICs, RoCE is available as an incremental capability; for organizations where RDMA performance is a primary requirement, NVIDIA ConnectX remains the more common choice.</p>
+<h2 id="hca-vs-rnic-terminology-and-architecture"><a class="header" href="#hca-vs-rnic-terminology-and-architecture">HCA vs. RNIC: Terminology and Architecture</a></h2>
+<p>The RDMA ecosystem uses two distinct terms for network adapters, and the distinction reflects real architectural differences:</p>
+<p><strong>Host Channel Adapter (HCA)</strong> is the InfiniBand term for an RDMA-capable network adapter. The term “channel adapter” comes from InfiniBand’s channel-based I/O heritage (as opposed to a network-based heritage). An HCA is designed from the ground up for RDMA: it has dedicated hardware for queue pair management, reliable transport, memory translation tables, and completion processing. Every transistor on an HCA is optimized for RDMA workloads.</p>
+<p><strong>RDMA-capable NIC (RNIC)</strong> is the term used for Ethernet NICs that have been enhanced with RDMA support, typically for iWARP or RoCE. An RNIC starts as a conventional Ethernet NIC and adds RDMA offload engines. The RDMA capability may share silicon resources with other NIC functions (TCP offload, SR-IOV, flow steering), leading to potential contention under load.</p>
+<p>In practice, the distinction between HCA and RNIC has blurred. NVIDIA’s ConnectX adapters are both HCAs (when used with InfiniBand) and RNICs (when used with Ethernet/RoCE), and they deliver comparable RDMA performance in both modes. The terms persist mainly in specifications and vendor documentation.</p>
+<h2 id="comparison-of-major-rdma-vendors-and-products"><a class="header" href="#comparison-of-major-rdma-vendors-and-products">Comparison of Major RDMA Vendors and Products</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Vendor</th><th>Product Line</th><th>RDMA Transport(s)</th><th>Max Speed</th><th>Kernel Driver</th><th>Key Market</th></tr>
+</thead>
+<tbody>
+<tr><td>NVIDIA</td><td>ConnectX-7</td><td>InfiniBand, RoCE v2</td><td>400 Gbps</td><td>mlx5_ib</td><td>HPC, AI, Cloud</td></tr>
+<tr><td>NVIDIA</td><td>BlueField-3</td><td>InfiniBand, RoCE v2</td><td>400 Gbps</td><td>mlx5_ib</td><td>Cloud infrastructure</td></tr>
+<tr><td>Intel</td><td>E810</td><td>iWARP, RoCE v2</td><td>100 Gbps</td><td>irdma</td><td>Enterprise</td></tr>
+<tr><td>Cornelis</td><td>Omni-Path Express</td><td>OPA (Verbs-compatible)</td><td>400 Gbps</td><td>opa</td><td>HPC</td></tr>
+<tr><td>Broadcom</td><td>NetXtreme-E</td><td>RoCE v2</td><td>200 Gbps</td><td>bnxt_re</td><td>Enterprise Ethernet</td></tr>
+<tr><td>Chelsio</td><td>T6/T7</td><td>iWARP</td><td>100 Gbps</td><td>cxgb4, iw_cxgb4</td><td>Storage, Enterprise</td></tr>
+<tr><td>AWS</td><td>EFA</td><td>Custom (SRD)</td><td>3200 Gbps</td><td>efa</td><td>AWS cloud only</td></tr>
+<tr><td>Microsoft</td><td>MANA</td><td>RoCE v2</td><td>200 Gbps</td><td>mana_ib</td><td>Azure cloud only</td></tr>
+<tr><td>Huawei</td><td>HiNIC3</td><td>RoCE v2</td><td>200 Gbps</td><td>hns_roce</td><td>China market</td></tr>
+<tr><td>AMD/Xilinx</td><td>Alveo</td><td>RoCE v2</td><td>100 Gbps</td><td>(varies)</td><td>Specialized</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="cloud-provider-strategies"><a class="header" href="#cloud-provider-strategies">Cloud Provider Strategies</a></h2>
+<p>Each major cloud provider has taken a distinct approach to RDMA, reflecting their infrastructure philosophies and workload requirements.</p>
+<h3 id="microsoft-azure"><a class="header" href="#microsoft-azure">Microsoft Azure</a></h3>
+<p>Azure was an early and aggressive adopter of RDMA in the public cloud. Azure’s RDMA story began with iWARP (using Chelsio and other NICs in early deployments) and transitioned to RoCE v2 running on NVIDIA ConnectX adapters in the current generation. Azure exposes RDMA to customers through its <strong>HB-series</strong> (HPC) and <strong>ND-series</strong> (AI/GPU) virtual machine families, where the RDMA NIC is passed through to the guest VM using SR-IOV.</p>
+<p>Azure has also developed <strong>MANA (Microsoft Azure Network Adapter)</strong>, a custom SmartNIC with RDMA support for general-purpose VMs, with a corresponding <code>mana_ib</code> kernel driver contributed upstream. Azure’s extensive investment in RDMA—and its publicly documented experiences with PFC deadlocks, congestion management, and large-scale RoCE deployment—has produced some of the most valuable operational literature in the RDMA field.</p>
+<h3 id="amazon-web-services-aws"><a class="header" href="#amazon-web-services-aws">Amazon Web Services (AWS)</a></h3>
+<p>AWS took a different path. Rather than deploying standard InfiniBand or RoCE, AWS developed <strong>Elastic Fabric Adapter (EFA)</strong>, a custom network interface with a proprietary RDMA-like transport called <strong>Scalable Reliable Datagram (SRD)</strong>. SRD is designed for AWS’s network environment: it provides reliable, unordered delivery (unlike TCP’s ordered delivery), multipath operation, and tolerance for packet reordering—characteristics that align with AWS’s large-scale, multi-path network fabric.</p>
+<p>EFA exposes a Verbs-like API through the <code>efa</code> provider in rdma-core, allowing existing RDMA applications (particularly those using libfabric, the MPI-oriented fabric abstraction) to run with minimal modification. However, EFA is not standard RoCE or iWARP—it is a proprietary transport available only on AWS. EFA is available on P4d/P5 (GPU), Hpc6a/Hpc7g (HPC), and other instance types.</p>
+<div class="note">
+<p>EFA’s approach—a custom transport with a Verbs-compatible API—illustrates an important trend: the separation of the RDMA programming model (queue pairs, completion queues, memory registration) from the specific wire protocol. Applications written to the Verbs API can run on InfiniBand, RoCE, iWARP, or EFA with minimal changes, even though the underlying transports are radically different. This portability is a testament to the durability of the abstraction that originated with InfiniBand.</p>
+</div>
+
+<h3 id="google-cloud-platform-gcp"><a class="header" href="#google-cloud-platform-gcp">Google Cloud Platform (GCP)</a></h3>
+<p>Google has been more measured in its public RDMA offerings. Internally, Google uses a custom network stack (including custom NICs and switches) for its datacenter infrastructure, and Google’s published research on RDMA (including work on Swift, a custom congestion control protocol for RoCE) indicates significant internal use. For external customers, GCP offers <strong>A3 instances</strong> with NVIDIA H100 GPUs connected via ConnectX-7 NICs with RoCE v2 support for AI training workloads.</p>
+<h2 id="emerging-players-and-technologies"><a class="header" href="#emerging-players-and-technologies">Emerging Players and Technologies</a></h2>
+<p>Several developments are shaping the next phase of the RDMA landscape:</p>
+<p><strong>Ultra Ethernet Consortium (UEC).</strong> Founded in 2023, the UEC brings together AMD, Broadcom, Cisco, Intel, Meta, Microsoft, and others to develop a next-generation Ethernet-based transport protocol purpose-built for AI and HPC workloads. The UEC aims to address RoCE’s limitations (lossless requirements, congestion sensitivity) with a new transport designed for lossy networks, multipath operation, and massive scale. If successful, UEC could displace RoCE v2 as the standard Ethernet-based RDMA transport, though production-ready implementations are likely several years away.</p>
+<p><strong>CXL (Compute Express Link).</strong> While not an RDMA technology per se, CXL is expanding the concept of remote memory access beyond the network and into the memory bus. CXL 3.0’s memory sharing and fabric-attached memory capabilities overlap with some RDMA use cases, particularly for rack-scale disaggregated memory. The relationship between CXL and RDMA—complementary, competitive, or converging—is an open question in the industry.</p>
+<p><strong>AMD/Xilinx.</strong> AMD’s acquisition of Xilinx brought FPGA-based SmartNIC technology (the Alveo series) with programmable RDMA offload capabilities. AMD’s Pensando DPU (from the 2022 acquisition) also supports RoCE v2. While AMD has not yet challenged NVIDIA’s RDMA dominance, its combined portfolio of GPUs, FPGAs, DPUs, and CPUs positions it as a potential competitor for integrated AI infrastructure.</p>
+<p><strong>Fungible (acquired by Microsoft).</strong> Fungible developed DPU technology with custom networking silicon designed for composable infrastructure. Microsoft’s acquisition of Fungible in 2023 folded this technology into Azure’s infrastructure roadmap, potentially influencing future Azure RDMA offerings.</p>
+<h2 id="market-share-and-deployment-patterns"><a class="header" href="#market-share-and-deployment-patterns">Market Share and Deployment Patterns</a></h2>
+<p>Precise RDMA market share data is difficult to obtain, as many deployments are internal to cloud providers and are not publicly reported. However, several patterns are clear:</p>
+<p><strong>InfiniBand</strong> dominates in dedicated HPC and AI supercomputing. The largest AI training clusters in the world—including those operated by Meta, Microsoft, Tesla, and xAI—use InfiniBand fabrics with NVIDIA ConnectX-7 adapters and Quantum-2 switches. InfiniBand’s share of the Top500 supercomputer interconnects remains above 40%.</p>
+<p><strong>RoCE v2</strong> dominates in cloud and enterprise datacenter deployments where RDMA is used for storage (NVMe-oF, disaggregated storage), inter-service communication, and mid-scale AI training. Azure, GCP, and many enterprise organizations deploy RoCE v2 on NVIDIA ConnectX adapters over their existing Ethernet fabrics.</p>
+<p><strong>iWARP</strong> continues to serve niche deployments, particularly Windows Server environments (where iWARP’s compatibility with SMB Direct over standard Ethernet is valued) and legacy installations. New iWARP deployments are uncommon.</p>
+<p><strong>Custom transports</strong> (AWS EFA/SRD, various internal hyperscaler designs) are growing in significance as cloud providers optimize their stacks for specific workloads, particularly AI training.</p>
+<p>The overall trend is clear: RDMA has moved from a niche HPC technology to a mainstream datacenter capability. The question for most organizations is no longer <em>whether</em> to use RDMA, but <em>which transport</em> and <em>which vendor</em> to choose. For the majority of deployments in the mid-2020s, the answer is RoCE v2 on NVIDIA ConnectX hardware—but this default is being challenged by custom cloud-provider solutions from above and by emerging standards like UEC from below.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-1-foundations/ch02-history-and-ecosystem/ofed-rdma-core.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-1-foundations/ch03-transport-protocols/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-1-foundations/ch02-history-and-ecosystem/ofed-rdma-core.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-1-foundations/ch03-transport-protocols/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

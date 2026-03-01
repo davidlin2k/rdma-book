@@ -1,0 +1,398 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>RDMA Write (One-Sided) - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="52-rdma-write-one-sided"><a class="header" href="#52-rdma-write-one-sided">5.2 RDMA Write (One-Sided)</a></h1>
+<p>RDMA Write is the operation that most viscerally demonstrates what makes RDMA different from conventional networking. When an application posts an RDMA Write, the local NIC reads data from the application’s memory, transmits it across the network, and the remote NIC deposits it directly into a specified location in the remote application’s memory. The remote CPU is not involved. No receive buffer is posted. No interrupt is raised. No completion is generated on the remote side. The data simply materializes in remote memory, as if placed there by a ghost.</p>
+<p>This one-sided semantic is what enables RDMA to achieve throughput and latency numbers that are fundamentally impossible with traditional networking. The remote CPU is entirely free to do other work – or to be completely idle. The remote application does not even need to be running when the write occurs, as long as the memory region remains registered and the QP remains connected.</p>
+<h2 id="anatomy-of-an-rdma-write"><a class="header" href="#anatomy-of-an-rdma-write">Anatomy of an RDMA Write</a></h2>
+<p>An RDMA Write requires four pieces of information:</p>
+<ol>
+<li><strong>Local data source</strong>: one or more scatter-gather entries describing the local buffers to send, each with a local key (<code>lkey</code>).</li>
+<li><strong>Remote destination address</strong>: the virtual address in the remote process’s address space where data should be written.</li>
+<li><strong>Remote key</strong> (<code>rkey</code>): the memory region key that authorizes access to the remote memory.</li>
+<li><strong>Length</strong>: implicit from the scatter-gather list – the sum of all SGE lengths.</li>
+</ol>
+<p>The remote address and remote key must be exchanged out-of-band before any RDMA Write can occur. Typically, during connection setup, each side registers a memory region, obtains its <code>rkey</code> and base virtual address, and sends these to the peer via a Send/Receive exchange or an out-of-band TCP connection. This key exchange is a one-time setup cost; once the keys are exchanged, any number of RDMA Writes can be performed without further coordination.</p>
+<pre class="mermaid">sequenceDiagram
+    participant App as Requester App
+    participant LNIC as Requester NIC
+    participant Net as Network
+    participant RNIC as Responder NIC
+    participant RMem as Responder Memory
+
+    Note over App,RMem: Prerequisites: rkey and remote VA exchanged during setup
+
+    App-&gt;&gt;LNIC: ibv_post_send(IBV_WR_RDMA_WRITE)
+    LNIC-&gt;&gt;LNIC: DMA read from local buffers
+    LNIC-&gt;&gt;Net: Transmit RDMA Write packets
+    Net-&gt;&gt;RNIC: Packets arrive at responder
+    RNIC-&gt;&gt;RMem: DMA write directly into remote memory
+    RNIC-&gt;&gt;LNIC: ACK (RC transport)
+    LNIC-&gt;&gt;App: CQE on requester's CQ
+
+    Note over RMem: Data appears in remote memory
+    Note over RNIC: NO CQE on responder side
+    Note over RNIC: Responder CPU is not involved
+</pre>
+
+<h2 id="the-verbs-api"><a class="header" href="#the-verbs-api">The Verbs API</a></h2>
+<p>RDMA Write uses <code>ibv_post_send()</code> with the <code>IBV_WR_RDMA_WRITE</code> opcode. The key difference from a plain Send is the <code>wr.rdma</code> union member, which carries the remote address and key:</p>
+<pre><code class="language-c">struct ibv_sge sge = {
+    .addr   = (uintptr_t)local_buf,
+    .length = data_len,
+    .lkey   = local_mr-&gt;lkey
+};
+
+struct ibv_send_wr wr = {
+    .wr_id      = my_wr_id,
+    .sg_list    = &amp;sge,
+    .num_sge    = 1,
+    .opcode     = IBV_WR_RDMA_WRITE,
+    .send_flags = IBV_SEND_SIGNALED,
+    .wr = {
+        .rdma = {
+            .remote_addr = remote_va,      // Remote virtual address
+            .rkey        = remote_rkey      // Remote memory region key
+        }
+    }
+};
+
+struct ibv_send_wr *bad_wr;
+int ret = ibv_post_send(qp, &amp;wr, &amp;bad_wr);
+</code></pre>
+<p>The <code>remote_addr</code> field is a 64-bit virtual address in the remote process’s address space. It must fall within the bounds of a memory region that the remote side has registered with at least <code>IBV_ACCESS_REMOTE_WRITE</code> permission. The <code>rkey</code> is the remote key associated with that memory region.</p>
+<div class="warning">
+<p><strong>Security Model.</strong> The <code>rkey</code> is essentially a capability token. Anyone who possesses a valid <code>rkey</code> and the corresponding virtual address can write to (or read from, if read access is also granted) the remote memory. RDMA has no per-operation authentication. The protection is at the memory region level: registering a region with <code>IBV_ACCESS_REMOTE_WRITE</code> is an explicit grant of write access to anyone holding the <code>rkey</code>. Protect <code>rkey</code> values as carefully as you would protect a password. In production systems, consider using Memory Windows (MWs) for finer-grained, revocable access control.</p>
+</div>
+
+<h2 id="completion-semantics-local-only"><a class="header" href="#completion-semantics-local-only">Completion Semantics: Local Only</a></h2>
+<p>This is one of the most important properties of RDMA Write and one of the most common sources of confusion: <strong>RDMA Write generates a completion only on the requester side.</strong> The responder gets nothing – no CQE, no interrupt, no notification of any kind.</p>
+<p>On the requester side, the CQE semantics depend on the transport type:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Transport</th><th>CQE Meaning</th></tr>
+</thead>
+<tbody>
+<tr><td>RC (Reliable Connected)</td><td>The remote NIC has acknowledged the write. Data is in remote memory.</td></tr>
+<tr><td>UC (Unreliable Connected)</td><td>The data has left the local NIC. No guarantee of delivery.</td></tr>
+</tbody>
+</table>
+</div>
+<p>For RC transport, a successful completion on the requester side is a strong guarantee: the data has been written to the remote memory region and is visible to subsequent RDMA operations targeting that address. However, note a subtlety: the data is visible to the remote <strong>NIC</strong> (for subsequent RDMA operations) but not necessarily visible to the remote <strong>CPU</strong> immediately, due to CPU cache coherency effects. In practice, modern PCIe-attached NICs write directly to main memory (or are cache-coherent via mechanisms like DDIO), so this is rarely an issue – but it is an important distinction in theory.</p>
+<h2 id="segmentation-and-mtu"><a class="header" href="#segmentation-and-mtu">Segmentation and MTU</a></h2>
+<p>For messages larger than the path MTU, the NIC automatically segments the RDMA Write into multiple packets. On an RC QP, each packet is individually acknowledged, and the NIC handles retransmission of lost packets transparently. The application sees a single completion for the entire write, regardless of how many packets were needed.</p>
+<p>For example, a 1 MB RDMA Write over a 4 KB MTU generates 256 packets. If packet 100 is lost, the NIC retransmits it (and possibly subsequent packets, depending on the go-back-N vs. selective-repeat implementation). The application sees a single successful CQE only after all 256 packets are acknowledged.</p>
+<h2 id="zero-byte-rdma-write"><a class="header" href="#zero-byte-rdma-write">Zero-Byte RDMA Write</a></h2>
+<p>An RDMA Write with zero length is legal and useful. It acts as a <strong>fence</strong> or <strong>flush</strong> operation: the CQE confirms that all prior RDMA Writes on this QP have been delivered to the remote NIC. This can be used as a lightweight synchronization mechanism.</p>
+<h2 id="performance-characteristics"><a class="header" href="#performance-characteristics">Performance Characteristics</a></h2>
+<p>RDMA Write is typically the highest-performance data transfer operation in RDMA:</p>
+<ul>
+<li><strong>Latency</strong>: One network traversal plus local and remote DMA. For small messages on modern hardware (ConnectX-6/7), expect 1-2 microseconds on InfiniBand, slightly more on RoCE.</li>
+<li><strong>Throughput</strong>: Can saturate the link bandwidth. A single QP on HDR InfiniBand (200 Gbps) can achieve close to line rate with sufficiently large messages and pipelining.</li>
+<li><strong>CPU overhead</strong>: Minimal on both sides. The requester CPU only posts the work request and polls the completion. The responder CPU does nothing at all.</li>
+</ul>
+<p>RDMA Write outperforms Send/Receive for bulk data transfer because there is no receive buffer management overhead on the remote side. There is no RNR NAK risk, no receive pool to maintain, and no per-message completion to process on the responder.</p>
+<h2 id="practical-use-cases"><a class="header" href="#practical-use-cases">Practical Use Cases</a></h2>
+<p><strong>Log replication.</strong> A primary node writes log entries directly into a pre-allocated circular buffer in the replica’s memory. The replica periodically checks a watermark to see how far the log has advanced. This is the pattern used by systems like HERD, FaRM, and many replicated state machines.</p>
+<p><strong>Remote buffer updates.</strong> In key-value stores like Pilaf, the server publishes its hash table in a memory region. Clients use RDMA Read to look up keys and RDMA Write to update values (with appropriate concurrency control).</p>
+<p><strong>Distributed file systems.</strong> Systems like Octopus and Assise use RDMA Write to transfer file data between nodes, achieving near-wire-speed throughput without any involvement from the CPU on the storage node.</p>
+<p><strong>RDMA-based RPC data path.</strong> Many high-performance RPC frameworks (eRPC, FaSST) use RDMA Write to deliver response payloads directly into the caller’s buffer, bypassing the receive queue entirely.</p>
+<h2 id="writing-to-specific-offsets"><a class="header" href="#writing-to-specific-offsets">Writing to Specific Offsets</a></h2>
+<p>One of the most powerful aspects of RDMA Write is the ability to target a specific offset within a remote memory region. The <code>remote_addr</code> can be any address within the registered region, not just its base address. This enables patterns like:</p>
+<pre><code class="language-c">// Write to a specific slot in a remote ring buffer
+uint64_t slot_addr = remote_base_addr + (slot_index * SLOT_SIZE);
+
+wr.wr.rdma.remote_addr = slot_addr;
+wr.wr.rdma.rkey        = remote_rkey;
+</code></pre>
+<p>This capability is what makes RDMA Write suitable for building complex remote data structures: ring buffers, hash tables, B-trees, and log-structured stores, all updated from the remote side without any CPU involvement on the host.</p>
+<h2 id="the-notification-problem"><a class="header" href="#the-notification-problem">The Notification Problem</a></h2>
+<p>The power of RDMA Write – the remote CPU’s non-involvement – is also its limitation. If the remote CPU needs to know that a write has occurred, RDMA Write alone is insufficient. There are several patterns for solving this notification problem:</p>
+<ol>
+<li>
+<p><strong>Polling a flag.</strong> The writer writes data to one region and then writes a flag value to a known “doorbell” location. The remote CPU polls this location. This requires careful ordering (see Section 5.6 on fencing).</p>
+</li>
+<li>
+<p><strong>RDMA Write with Immediate Data.</strong> The write carries a 32-bit immediate value that generates a CQE on the remote side. This is covered in Section 5.5.</p>
+</li>
+<li>
+<p><strong>Separate Send.</strong> After the RDMA Write, the requester posts a Send that acts as a notification. The remote CPU processes the Send completion and knows the data is ready.</p>
+</li>
+<li>
+<p><strong>Application-level protocol.</strong> The remote CPU periodically scans the data region for changes (e.g., checking a sequence number or watermark).</p>
+</li>
+</ol>
+<p>Each approach has trade-offs. Polling wastes CPU cycles. Immediate data requires the remote side to post receive buffers. A separate Send adds a round trip of latency. Application-level scanning adds detection latency. The right choice depends on the application’s latency, throughput, and CPU utilization requirements.</p>
+<div class="warning">
+<p><strong>Ordering Subtlety.</strong> When performing multiple RDMA Writes to the same remote node, they are guaranteed to be <strong>initiated</strong> in posting order on an RC QP. However, if you write data to one address and then write a “ready” flag to another address, you need the second write to be visible only after the first. On most implementations, writes within a single QP are ordered – but if you need an absolute guarantee, use the <code>IBV_SEND_FENCE</code> flag on the second write, or use RDMA Write with Immediate Data for the notification step. See Section 5.6 for the full ordering model.</p>
+</div>
+
+<h2 id="rdma-write-vs-send-when-to-use-which"><a class="header" href="#rdma-write-vs-send-when-to-use-which">RDMA Write vs. Send: When to Use Which</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Consideration</th><th>RDMA Write</th><th>Send/Receive</th></tr>
+</thead>
+<tbody>
+<tr><td>Remote CPU involvement</td><td>None</td><td>Required (must post receives)</td></tr>
+<tr><td>Remote notification</td><td>None (unless Immediate Data)</td><td>CQE on receiver</td></tr>
+<tr><td>Buffer management</td><td>Remote address pre-exchanged</td><td>Receive pool managed at runtime</td></tr>
+<tr><td>Maximum throughput</td><td>Higher (no remote CQ overhead)</td><td>Lower (CQE per message)</td></tr>
+<tr><td>Use case fit</td><td>Bulk data, known destinations</td><td>Control messages, RPC requests</td></tr>
+<tr><td>Flow control</td><td>Application-managed</td><td>Implicit via receive buffer availability</td></tr>
+</tbody>
+</table>
+</div>
+<p>The general rule: use RDMA Write when you know exactly where data should go in remote memory and the remote CPU does not need per-transfer notification. Use Send/Receive when the remote side needs to actively process each message or when you need the built-in flow control of the receive queue.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-2-architecture/ch05-rdma-operations/send-receive.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-2-architecture/ch05-rdma-operations/rdma-read.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-2-architecture/ch05-rdma-operations/send-receive.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-2-architecture/ch05-rdma-operations/rdma-read.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

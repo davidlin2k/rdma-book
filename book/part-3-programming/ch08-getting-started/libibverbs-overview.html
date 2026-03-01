@@ -1,0 +1,463 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>libibverbs API Overview - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="82-libibverbs-api-overview"><a class="header" href="#82-libibverbs-api-overview">8.2 libibverbs API Overview</a></h1>
+<p>Before diving into code, it is worth surveying the API landscape. The libibverbs library is the primary user-space interface to RDMA hardware on Linux. It is a C library with a procedural API organized around a small number of object types and a consistent set of conventions. This section provides a map that will help you navigate the API efficiently as you write increasingly complex programs.</p>
+<h2 id="header-files"><a class="header" href="#header-files">Header Files</a></h2>
+<p>Two header files cover the vast majority of RDMA programming:</p>
+<pre><code class="language-c">#include &lt;infiniband/verbs.h&gt;    /* Core verbs API: QP, CQ, MR, PD, etc. */
+#include &lt;rdma/rdma_cma.h&gt;       /* RDMA Connection Manager API */
+</code></pre>
+<p>The <code>verbs.h</code> header declares all functions and data structures for resource management and data transfer. The <code>rdma_cma.h</code> header declares the connection management API, which handles address resolution, route resolution, and connection establishment. You can write complete RDMA programs using only <code>verbs.h</code> if you manage connections manually (by exchanging QP information out-of-band), but most production applications use both.</p>
+<p>Additional headers you may encounter include:</p>
+<pre><code class="language-c">#include &lt;infiniband/verbs_api.h&gt;  /* Extended verbs (ibv_*_ex functions) */
+#include &lt;rdma/rdma_verbs.h&gt;       /* Convenience wrappers over CM + verbs */
+#include &lt;infiniband/mlx5dv.h&gt;     /* Mellanox/NVIDIA direct verbs (hardware-specific) */
+</code></pre>
+<h2 id="naming-conventions"><a class="header" href="#naming-conventions">Naming Conventions</a></h2>
+<p>The API follows strict naming prefixes:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Prefix</th><th>Scope</th><th>Examples</th></tr>
+</thead>
+<tbody>
+<tr><td><code>ibv_</code></td><td>Core verbs functions and structures</td><td><code>ibv_open_device()</code>, <code>ibv_create_qp()</code>, <code>struct ibv_qp</code></td></tr>
+<tr><td><code>rdma_</code></td><td>Connection Manager functions and structures</td><td><code>rdma_create_id()</code>, <code>rdma_connect()</code>, <code>struct rdma_cm_event</code></td></tr>
+<tr><td><code>IBV_</code></td><td>Verbs constants and enumerations</td><td><code>IBV_QPT_RC</code>, <code>IBV_WR_SEND</code>, <code>IBV_WC_SUCCESS</code></td></tr>
+<tr><td><code>RDMA_</code></td><td>CM constants and enumerations</td><td><code>RDMA_CM_EVENT_ESTABLISHED</code>, <code>RDMA_PS_TCP</code></td></tr>
+</tbody>
+</table>
+</div>
+<p>Function names follow the pattern <code>ibv_&lt;verb&gt;_&lt;object&gt;</code>: <code>ibv_create_qp</code>, <code>ibv_destroy_cq</code>, <code>ibv_reg_mr</code>, <code>ibv_post_send</code>. This makes the API highly discoverable once you know the pattern.</p>
+<h2 id="the-object-lifecycle-pattern"><a class="header" href="#the-object-lifecycle-pattern">The Object Lifecycle Pattern</a></h2>
+<p>Every RDMA object follows the same lifecycle: <strong>create</strong>, <strong>use</strong>, <strong>destroy</strong>. Objects are created with <code>ibv_create_*</code> or <code>ibv_alloc_*</code> functions, used for their intended purpose, and then freed with the corresponding <code>ibv_destroy_*</code> or <code>ibv_dealloc_*</code> function. The creation and destruction functions are always paired:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Create</th><th>Destroy</th></tr>
+</thead>
+<tbody>
+<tr><td><code>ibv_open_device()</code></td><td><code>ibv_close_device()</code></td></tr>
+<tr><td><code>ibv_alloc_pd()</code></td><td><code>ibv_dealloc_pd()</code></td></tr>
+<tr><td><code>ibv_create_cq()</code></td><td><code>ibv_destroy_cq()</code></td></tr>
+<tr><td><code>ibv_reg_mr()</code></td><td><code>ibv_dereg_mr()</code></td></tr>
+<tr><td><code>ibv_create_qp()</code></td><td><code>ibv_destroy_qp()</code></td></tr>
+</tbody>
+</table>
+</div>
+<div class="warning">
+<p>Resources must be destroyed in the reverse order of creation. A Protection Domain cannot be deallocated while Queue Pairs or Memory Regions still reference it. A Completion Queue cannot be destroyed while Queue Pairs are still attached to it. Violating the ordering will cause the destroy call to fail with <code>EBUSY</code>. The correct teardown order for a typical program is: QP, MR, CQ, PD, device context.</p>
+</div>
+
+<h2 id="key-data-structures"><a class="header" href="#key-data-structures">Key Data Structures</a></h2>
+<p>The core of the API revolves around a handful of opaque and semi-opaque structures. Understanding what each one represents and how they relate to each other is essential.</p>
+<h3 id="struct-ibv_context"><a class="header" href="#struct-ibv_context"><code>struct ibv_context</code></a></h3>
+<p>The device context, returned by <code>ibv_open_device()</code>. It represents an open handle to a specific RDMA device. All subsequent resource allocation calls take a context (or a resource derived from one) as a parameter. You can open the same device multiple times to get multiple independent contexts.</p>
+<h3 id="struct-ibv_pd"><a class="header" href="#struct-ibv_pd"><code>struct ibv_pd</code></a></h3>
+<p>A Protection Domain, allocated with <code>ibv_alloc_pd()</code>. It is the security boundary for RDMA resources. Queue Pairs and Memory Regions must belong to the same PD to interact. Most applications create a single PD and use it for all resources.</p>
+<h3 id="struct-ibv_cq"><a class="header" href="#struct-ibv_cq"><code>struct ibv_cq</code></a></h3>
+<p>A Completion Queue, created with <code>ibv_create_cq()</code>. It receives completion notifications for send and receive operations posted to any QP that references it. You poll it with <code>ibv_poll_cq()</code> to retrieve <code>ibv_wc</code> entries. A single CQ can be shared by multiple QPs, or you can create separate send and receive CQs.</p>
+<h3 id="struct-ibv_qp"><a class="header" href="#struct-ibv_qp"><code>struct ibv_qp</code></a></h3>
+<p>A Queue Pair, created with <code>ibv_create_qp()</code>. It contains a Send Queue and a Receive Queue. You post work requests to these queues, and the hardware processes them. The QP type (RC, UC, UD, etc.) determines the transport semantics. After creation, the QP must be transitioned through the state machine (RST -&gt; INIT -&gt; RTR -&gt; RTS) before it can send data.</p>
+<h3 id="struct-ibv_mr"><a class="header" href="#struct-ibv_mr"><code>struct ibv_mr</code></a></h3>
+<p>A Memory Region, registered with <code>ibv_reg_mr()</code>. It represents a contiguous block of virtual memory that has been pinned and registered with the RDMA device. Registration returns a local key (<code>lkey</code>) used by the local side when posting work requests, and a remote key (<code>rkey</code>) used by the remote side for RDMA Read and Write operations.</p>
+<h3 id="struct-ibv_send_wr--the-send-work-request"><a class="header" href="#struct-ibv_send_wr--the-send-work-request"><code>struct ibv_send_wr</code> — The Send Work Request</a></h3>
+<p>This structure describes a single operation to be posted to the Send Queue. It is arguably the most complex structure in the API:</p>
+<pre><code class="language-c">struct ibv_send_wr {
+    uint64_t                wr_id;       /* User-defined ID, returned in WC */
+    struct ibv_send_wr     *next;        /* Linked list for batch posting */
+    struct ibv_sge         *sg_list;     /* Scatter/gather list */
+    int                     num_sge;     /* Number of SGE entries */
+    enum ibv_wr_opcode      opcode;      /* SEND, RDMA_WRITE, RDMA_READ, etc. */
+    unsigned int            send_flags;  /* IBV_SEND_SIGNALED, IBV_SEND_INLINE, etc. */
+
+    union {
+        struct {                         /* For RDMA Read/Write */
+            uint64_t        remote_addr; /* Remote virtual address */
+            uint32_t        rkey;        /* Remote memory region key */
+        } rdma;
+        struct {                         /* For Atomic operations */
+            uint64_t        remote_addr;
+            uint64_t        compare_add;
+            uint64_t        swap;
+            uint32_t        rkey;
+        } atomic;
+        struct {                         /* For UD Send */
+            struct ibv_ah  *ah;          /* Address Handle */
+            uint32_t        remote_qpn;
+            uint32_t        remote_qkey;
+        } ud;
+    } wr;
+
+    uint32_t                imm_data;    /* Immediate data (network byte order) */
+};
+</code></pre>
+<p>The <code>wr_id</code> field is critical: it is a 64-bit value that you set when posting the request, and it is returned verbatim in the work completion. You can use it to identify which request completed, or as a pointer to application-level state (by casting a pointer to <code>uint64_t</code>).</p>
+<p>The <code>sg_list</code> points to an array of scatter/gather elements, each of which references a region of registered memory:</p>
+<pre><code class="language-c">struct ibv_sge {
+    uint64_t addr;    /* Virtual address of the buffer */
+    uint32_t length;  /* Length in bytes */
+    uint32_t lkey;    /* Local key from ibv_reg_mr() */
+};
+</code></pre>
+<h3 id="struct-ibv_recv_wr--the-receive-work-request"><a class="header" href="#struct-ibv_recv_wr--the-receive-work-request"><code>struct ibv_recv_wr</code> — The Receive Work Request</a></h3>
+<p>Simpler than the send WR, because receive operations are always passive:</p>
+<pre><code class="language-c">struct ibv_recv_wr {
+    uint64_t                wr_id;       /* User-defined ID */
+    struct ibv_recv_wr     *next;        /* Linked list */
+    struct ibv_sge         *sg_list;     /* Where to place incoming data */
+    int                     num_sge;     /* Number of SGE entries */
+};
+</code></pre>
+<p>You post receive WRs before the remote side sends data. If a Send arrives and there is no posted receive buffer, the QP enters an error state (for RC transport).</p>
+<h3 id="struct-ibv_wc--the-work-completion"><a class="header" href="#struct-ibv_wc--the-work-completion"><code>struct ibv_wc</code> — The Work Completion</a></h3>
+<p>When the hardware completes a work request, it writes a work completion entry to the CQ. You retrieve these by polling:</p>
+<pre><code class="language-c">struct ibv_wc {
+    uint64_t                wr_id;       /* From the original WR */
+    enum ibv_wc_status      status;      /* IBV_WC_SUCCESS or error code */
+    enum ibv_wc_opcode      opcode;      /* IBV_WC_SEND, IBV_WC_RECV, etc. */
+    uint32_t                vendor_err;  /* Hardware-specific error code */
+    uint32_t                byte_len;    /* Bytes transferred (recv only) */
+    uint32_t                imm_data;    /* Immediate data (if present) */
+    uint32_t                qp_num;      /* QP that generated this completion */
+    uint32_t                src_qp;      /* Source QP (UD only) */
+    unsigned int            wc_flags;    /* IBV_WC_WITH_IMM, IBV_WC_GRH, etc. */
+    uint16_t                pkey_index;
+    uint16_t                slid;        /* Source LID (IB only) */
+    uint8_t                 sl;          /* Service Level */
+    uint8_t                 dlid_path_bits;
+};
+</code></pre>
+<p>The most important fields are <code>status</code>, <code>wr_id</code>, and <code>byte_len</code>. Always check <code>status</code> first: if it is anything other than <code>IBV_WC_SUCCESS</code>, the other fields (except <code>wr_id</code> and <code>qp_num</code>) may be invalid.</p>
+<h2 id="error-handling-conventions"><a class="header" href="#error-handling-conventions">Error Handling Conventions</a></h2>
+<p>The libibverbs API uses two error reporting patterns:</p>
+<p><strong>Functions that return pointers</strong> return <code>NULL</code> on error and set <code>errno</code>:</p>
+<pre><code class="language-c">struct ibv_pd *pd = ibv_alloc_pd(ctx);
+if (!pd) {
+    fprintf(stderr, "ibv_alloc_pd failed: %s\n", strerror(errno));
+    /* handle error */
+}
+</code></pre>
+<p><strong>Functions that return integers</strong> return 0 on success and a positive <code>errno</code> value on failure (or -1 with <code>errno</code> set, depending on the function):</p>
+<pre><code class="language-c">int ret = ibv_destroy_qp(qp);
+if (ret) {
+    fprintf(stderr, "ibv_destroy_qp failed: %s\n", strerror(ret));
+}
+</code></pre>
+<p>The posting functions (<code>ibv_post_send</code> and <code>ibv_post_recv</code>) have a special convention. They return 0 on success and set a “bad work request” output parameter on failure:</p>
+<pre><code class="language-c">struct ibv_send_wr *bad_wr;
+int ret = ibv_post_send(qp, &amp;send_wr, &amp;bad_wr);
+if (ret) {
+    fprintf(stderr, "ibv_post_send failed: %s\n", strerror(ret));
+    /* bad_wr points to the first WR that failed */
+}
+</code></pre>
+<p>This is useful when posting a linked list of work requests: <code>bad_wr</code> tells you exactly which one in the chain could not be posted. All WRs before <code>bad_wr</code> were successfully posted; <code>bad_wr</code> and all subsequent WRs were not.</p>
+<h2 id="thread-safety"><a class="header" href="#thread-safety">Thread Safety</a></h2>
+<p>The libibverbs library provides the following thread safety guarantees:</p>
+<ul>
+<li><strong>Posting operations</strong> (<code>ibv_post_send</code>, <code>ibv_post_recv</code>) are thread-safe with respect to the same QP. Multiple threads can post to the same QP concurrently without external locking.</li>
+<li><strong>Polling</strong> (<code>ibv_poll_cq</code>) is thread-safe with respect to the same CQ. Multiple threads can poll the same CQ concurrently.</li>
+<li><strong>Resource creation and destruction</strong> functions are thread-safe at the library level, but you must ensure that no thread is using a resource while another thread destroys it.</li>
+<li><strong>Modifying QP state</strong> (<code>ibv_modify_qp</code>) is not safe to call concurrently with posting operations on the same QP. Transition the QP to RTS before starting to post.</li>
+</ul>
+<div class="tip">
+<p>In high-performance designs, a common pattern is to give each thread its own QP and CQ, eliminating all contention. If threads must share a CQ, the polling thread should use <code>ibv_poll_cq</code> in a tight loop (busy-polling) rather than using event-driven notification with <code>ibv_get_cq_event</code>, which involves a kernel call.</p>
+</div>
+
+<h2 id="linking"><a class="header" href="#linking">Linking</a></h2>
+<p>To compile and link an RDMA program, you need to link against at least <code>libibverbs</code>. If you use the connection manager, add <code>librdmacm</code>:</p>
+<pre><code class="language-bash"># Verbs only
+gcc -o my_program my_program.c -libverbs
+
+# Verbs + Connection Manager
+gcc -o my_program my_program.c -libverbs -lrdmacm
+
+# With pkg-config (recommended)
+gcc -o my_program my_program.c $(pkg-config --cflags --libs libibverbs)
+gcc -o my_program my_program.c $(pkg-config --cflags --libs libibverbs librdmacm)
+</code></pre>
+<h2 id="ibv_post_send-and-ibv_post_recv-semantics"><a class="header" href="#ibv_post_send-and-ibv_post_recv-semantics">ibv_post_send() and ibv_post_recv() Semantics</a></h2>
+<p>These two functions are the hot-path API—they are called for every data transfer operation, potentially millions of times per second. Understanding their exact semantics is critical:</p>
+<pre><code class="language-c">int ibv_post_send(struct ibv_qp *qp,
+                  struct ibv_send_wr *wr,
+                  struct ibv_send_wr **bad_wr);
+
+int ibv_post_recv(struct ibv_qp *qp,
+                  struct ibv_recv_wr *wr,
+                  struct ibv_recv_wr **bad_wr);
+</code></pre>
+<p>Key semantics:</p>
+<ol>
+<li>
+<p><strong>Batch posting</strong>: The <code>wr</code> parameter is the head of a linked list. You can post multiple WRs in a single call by chaining them through the <code>next</code> field. This amortizes the cost of the function call (and any MMIO doorbell ring) across multiple operations.</p>
+</li>
+<li>
+<p><strong>Ordering</strong>: WRs are processed in the order they appear in the linked list, and in the order of successive <code>ibv_post_send</code> calls. This ordering guarantee is per-QP, not global.</p>
+</li>
+<li>
+<p><strong>Completion signaling</strong>: For send operations, you can control whether a completion is generated by setting or omitting the <code>IBV_SEND_SIGNALED</code> flag. If the QP was created with <code>sq_sig_all = 1</code>, all send WRs generate completions regardless of the flag. For receive operations, a completion is always generated.</p>
+</li>
+<li>
+<p><strong>Inline sends</strong>: For small messages, setting <code>IBV_SEND_INLINE</code> copies the data directly into the WQE, bypassing the DMA read from the registered buffer. This can reduce latency for small messages (typically up to 64–256 bytes, depending on hardware). When using inline sends, the buffer does not need to be registered (no <code>lkey</code> is needed), and the buffer can be reused immediately after <code>ibv_post_send</code> returns.</p>
+</li>
+<li>
+<p><strong>Return value</strong>: Zero means all WRs in the chain were posted successfully. Non-zero means posting failed, and <code>*bad_wr</code> points to the first failing WR. WRs before it were posted; it and all subsequent WRs were not.</p>
+</li>
+<li>
+<p><strong>Memory semantics</strong>: After <code>ibv_post_send</code> returns successfully, ownership of the buffers referenced by the SGE list transfers to the hardware. You must not modify the data until the corresponding work completion is polled. After <code>ibv_post_recv</code> returns, the receive buffers are owned by the hardware until a receive completion arrives.</p>
+</li>
+</ol>
+<p>With this API map in hand, you are ready to write your first RDMA program.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-3-programming/ch08-getting-started/environment-setup.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-3-programming/ch08-getting-started/first-rdma-program.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-3-programming/ch08-getting-started/environment-setup.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-3-programming/ch08-getting-started/first-rdma-program.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

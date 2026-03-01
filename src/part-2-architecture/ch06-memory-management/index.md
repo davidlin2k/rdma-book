@@ -1,0 +1,21 @@
+# Chapter 6: Memory Management
+
+Memory management is the keystone of RDMA's architecture. In conventional networking, the kernel owns the data path: it allocates socket buffers, copies data between user space and kernel space, and manages the lifecycle of every byte in transit. Applications never need to think about physical addresses, DMA mappings, or page table entries. RDMA demolishes this comfortable abstraction. When an application hands a buffer to an RDMA-capable NIC, the hardware will read from or write to that buffer directly -- without any CPU involvement, without any kernel mediation, potentially while the application is doing something else entirely. This architectural choice is the source of RDMA's extraordinary performance, and it is also the source of its most demanding programming challenges.
+
+The fundamental problem is simple to state: a NIC performing DMA needs stable physical addresses. It cannot chase pointers through a page table that might change at any moment. It cannot tolerate a page being swapped to disk mid-transfer. It cannot handle a virtual address that suddenly maps to a different physical page because the kernel decided to defragment memory. Every buffer that participates in RDMA operations must therefore be **registered** with the hardware -- a process that pins physical pages in place, creates DMA mappings, and programs translation tables inside the NIC itself.
+
+This registration requirement has profound implications. It means that memory management is not merely an implementation detail hidden behind an API; it is a first-class concern that directly affects application design, performance characteristics, and operational behavior. Register too little memory and your application stalls waiting for registrations. Register too much and you starve the system of reclaimable pages. Register at the wrong time and you add milliseconds of latency to a path that should take microseconds. Choose the wrong registration strategy and you leave half your bandwidth on the table.
+
+This chapter explores memory management in depth, covering the mechanisms, trade-offs, and strategies that every RDMA developer must understand:
+
+- **Section 6.1: Memory Registration Deep Dive** dissects what actually happens when you call `ibv_reg_mr()`. We follow the registration path from user space through the kernel and into the NIC hardware, examining each step's cost and purpose. We then discuss strategies for amortizing registration overhead: caching, pooling, and pre-registration.
+
+- **Section 6.2: Memory Pinning** examines the kernel-level mechanism that underpins registration. We explore why pinning is necessary, how it interacts with the virtual memory system, and the operational considerations -- memory limits, huge pages, and monitoring -- that administrators must manage.
+
+- **Section 6.3: MR Types** surveys the different kinds of memory regions available in the verbs API: standard user MRs, MRs with explicit IO virtual addresses, device memory allocated on the NIC itself, and the re-registration mechanism for modifying MR properties without a full deregister/register cycle.
+
+- **Section 6.4: Memory Windows** introduces a lighter-weight alternative to full memory registration. Memory Windows allow fine-grained, dynamic access control over sub-regions of an existing MR, enabling patterns like granting temporary remote access to a buffer and then revoking it -- all without the cost of re-registration.
+
+- **Section 6.5: On-Demand Paging** presents a modern approach that relaxes the explicit registration requirement. With ODP, the NIC handles page faults transparently, allowing applications to use dynamically allocated memory without pre-registration. We examine the performance trade-offs, hardware requirements, and scenarios where ODP is the right choice.
+
+Together, these sections build a complete picture of how RDMA applications and the underlying infrastructure collaborate to manage memory. The decisions you make here -- which registration strategy to use, whether to employ huge pages, when to use memory windows versus full MRs, whether ODP suits your workload -- will shape the performance and reliability of everything you build on RDMA.

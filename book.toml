@@ -1,0 +1,31 @@
+[book]
+title = "Mastering RDMA: From Fundamentals to Production Systems"
+authors = ["David Lin"]
+description = "A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment"
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+create-missing = false
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+additional-css = ["theme/custom.css"]
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
+
+[output.html.fold]
+enable = true
+level = 0
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
+optional = true
+
+[output.html.playground]
+editable = false
+copyable = true
+
+[preprocessor.katex]
+after = ["mermaid"]

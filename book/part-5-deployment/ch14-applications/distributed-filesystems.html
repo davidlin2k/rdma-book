@@ -1,0 +1,464 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Distributed File Systems - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="144-distributed-file-systems"><a class="header" href="#144-distributed-file-systems">14.4 Distributed File Systems</a></h1>
+<p>Distributed file systems form the storage backbone of supercomputing centers, research institutions, and large-scale data analytics platforms. These systems aggregate the storage capacity and bandwidth of many servers into a single, coherent namespace that thousands of compute nodes can access simultaneously. When a scientific simulation runs across 10,000 nodes, each producing gigabytes of output per second, the parallel file system must deliver aggregate bandwidth measured in terabytes per second. RDMA is the enabling technology that makes this possible, eliminating the CPU overhead and memory copies that would otherwise throttle the storage servers.</p>
+<h2 id="lustre-the-hpc-parallel-file-system"><a class="header" href="#lustre-the-hpc-parallel-file-system">Lustre: The HPC Parallel File System</a></h2>
+<p>Lustre is the most widely deployed parallel file system in high-performance computing. It powers many of the world’s largest supercomputers, including systems at national laboratories, research universities, and government facilities. Lustre separates metadata operations (file creation, directory listing, permission checking) from data operations (read/write), allowing each to scale independently.</p>
+<h3 id="architecture"><a class="header" href="#architecture">Architecture</a></h3>
+<p>A Lustre file system consists of three main components:</p>
+<ul>
+<li><strong>MDS (Metadata Server)</strong>: Manages the file system namespace, file attributes, and layout information. Uses an MDT (Metadata Target) for storage.</li>
+<li><strong>OSS (Object Storage Server)</strong>: Stores file data. Each OSS manages one or more OSTs (Object Storage Targets). Files are striped across multiple OSTs to achieve parallel I/O bandwidth.</li>
+<li><strong>Client</strong>: Mounts the Lustre file system and accesses files through POSIX I/O calls. The client communicates with the MDS for metadata and directly with OSS nodes for data.</li>
+</ul>
+<pre><code>┌─────────┐ ┌─────────┐ ┌─────────┐     Compute Nodes
+│ Client  │ │ Client  │ │ Client  │     (thousands)
+└────┬────┘ └────┬────┘ └────┬────┘
+     │           │           │
+     │      RDMA Network (LNet)
+     │           │           │
+┌────┴────┐ ┌───┴─────┐ ┌──┴──────┐
+│  MDS    │ │  OSS    │ │  OSS    │    Storage Servers
+│  (MDT)  │ │(OST×4) │ │(OST×4) │    (hundreds)
+└─────────┘ └─────────┘ └─────────┘
+</code></pre>
+<h3 id="lnet-lustre-networking"><a class="header" href="#lnet-lustre-networking">LNet: Lustre Networking</a></h3>
+<p>Lustre’s networking layer, <strong>LNet (Lustre Networking)</strong>, provides an abstraction over multiple network transports. For RDMA networks, LNet uses the <strong>o2ib</strong> (OpenFabrics over InfiniBand) transport, which implements Lustre’s messaging protocol over libibverbs.</p>
+<p>LNet supports several critical features for large-scale deployments:</p>
+<ul>
+<li><strong>Multi-rail</strong>: A single node can use multiple RDMA NICs simultaneously, multiplying available bandwidth.</li>
+<li><strong>Routing</strong>: LNet routers bridge between different network segments, allowing Lustre traffic to traverse networks that are not directly interconnected.</li>
+<li><strong>Dynamic discovery</strong>: Nodes discover each other’s network endpoints dynamically, simplifying configuration in large clusters.</li>
+</ul>
+<p>The LNet RDMA transport (<code>ko2iblnd</code> kernel module) operates as follows:</p>
+<ol>
+<li><strong>Small messages</strong> (metadata operations, RPCs &lt; 4 KB): Sent inline via RDMA Send/Receive.</li>
+<li><strong>Bulk data transfers</strong> (file I/O): The sender registers the data buffer and sends the remote memory key to the receiver. The receiver issues an RDMA Read (for read operations) or RDMA Write (for write operations) to transfer data directly between the application buffer and the OST storage buffer.</li>
+</ol>
+<pre><code class="language-bash"># Configure LNet with InfiniBand
+lnetctl lnet configure
+lnetctl net add --net o2ib --if ib0
+
+# Check LNet status
+lnetctl net show
+lnetctl peer show
+
+# Configure multi-rail
+lnetctl net add --net o2ib --if ib0
+lnetctl net add --net o2ib --if ib1
+</code></pre>
+<h3 id="performance-with-rdma"><a class="header" href="#performance-with-rdma">Performance with RDMA</a></h3>
+<p>On a modern Lustre deployment with HDR InfiniBand (200 Gbps per link):</p>
+<ul>
+<li><strong>Single OSS throughput</strong>: 20-25 GB/s with RDMA, compared to 8-12 GB/s with TCP</li>
+<li><strong>Aggregate throughput</strong>: Scales linearly with the number of OSS nodes; large deployments achieve 1+ TB/s</li>
+<li><strong>Metadata operations</strong>: 100K+ operations per second per MDS with RDMA-accelerated RPCs</li>
+</ul>
+<div class="tip">
+<p>For optimal Lustre performance over RDMA, tune the following parameters:</p>
+<ul>
+<li><code>peer_credits</code>: Controls the number of concurrent RDMA operations to a single peer. Increase for high-throughput workloads (default: 8, recommended: 32-128).</li>
+<li><code>concurrent_sends</code>: Maximum concurrent Send operations. Match to <code>peer_credits</code>.</li>
+<li><code>fmr_pool_size</code>: Size of the Fast Memory Registration pool. Increase for workloads with many concurrent I/O operations.
+Monitor LNet statistics via <code>/proc/sys/lnet/</code> for bottleneck identification.</li>
+</ul>
+</div>
+
+<h2 id="gpfs--ibm-spectrum-scale"><a class="header" href="#gpfs--ibm-spectrum-scale">GPFS / IBM Spectrum Scale</a></h2>
+<p>IBM’s General Parallel File System (GPFS), now marketed as IBM Spectrum Scale, is another widely deployed parallel file system used in both HPC and enterprise environments. Unlike Lustre’s separate metadata and data servers, GPFS uses a symmetric architecture where any node can serve both metadata and data.</p>
+<h3 id="rdma-enhanced-data-shipping"><a class="header" href="#rdma-enhanced-data-shipping">RDMA-Enhanced Data Shipping</a></h3>
+<p>GPFS supports two data access modes:</p>
+<ul>
+<li><strong>Direct I/O</strong>: Clients access storage directly through locally attached disks (in a shared-disk SAN architecture).</li>
+<li><strong>Data shipping</strong>: When a client needs to access data stored on a remote node’s disks, the remote node “ships” the data over the network. RDMA significantly accelerates this data shipping path.</li>
+</ul>
+<p>GPFS implements its RDMA transport using the <strong>verbs</strong> API directly. Key optimizations include:</p>
+<ul>
+<li><strong>RDMA-based remote buffer cache access</strong>: Remote file system cache contents are transferred via RDMA Read/Write, avoiding TCP/IP overhead.</li>
+<li><strong>Multipath RDMA</strong>: GPFS automatically uses multiple RDMA NICs for bandwidth aggregation and fault tolerance.</li>
+<li><strong>Adaptive message protocol</strong>: Small messages use Send/Receive, while large transfers use RDMA Read/Write with memory registration caching.</li>
+</ul>
+<pre><code class="language-bash"># Configure GPFS with RDMA (verbsRdma)
+mmchconfig verbsRdma=enable
+mmchconfig verbsRdmaSend=yes
+mmchconfig verbsPorts="mlx5_0/1 mlx5_1/1"
+
+# Verify RDMA status
+mmdiag --network | grep -i rdma
+</code></pre>
+<h2 id="ceph-distributed-storage-system"><a class="header" href="#ceph-distributed-storage-system">Ceph: Distributed Storage System</a></h2>
+<p>Ceph is an open-source distributed storage system that provides object, block, and file storage in a unified platform. Originally designed around the TCP/IP networking model, Ceph has progressively added RDMA support to address performance requirements in HPC and high-end enterprise deployments.</p>
+<h3 id="messenger-architecture"><a class="header" href="#messenger-architecture">Messenger Architecture</a></h3>
+<p>Ceph’s networking layer is built around the <strong>messenger</strong> abstraction. There have been three generations:</p>
+<ol>
+<li><strong>Simple Messenger</strong>: Original implementation, TCP-only, one thread per connection.</li>
+<li><strong>Async Messenger</strong>: Event-driven design supporting multiple connections per thread. Added RDMA as an optional transport backend.</li>
+<li><strong>RDMA Messenger</strong>: The async messenger’s RDMA backend uses libibverbs for data transfer between Ceph daemons (OSDs, MONs, MDS).</li>
+</ol>
+<p>The RDMA messenger operates as follows:</p>
+<ul>
+<li><strong>Connection setup</strong>: Uses RDMA CM (Connection Manager) to establish RC (Reliable Connected) QPs between Ceph daemons.</li>
+<li><strong>Small messages</strong>: Ceph protocol messages (heartbeats, OSD map updates) are sent via RDMA Send/Receive.</li>
+<li><strong>Large data transfers</strong>: RADOS object data is transferred using RDMA Write, with the sender registering data buffers dynamically.</li>
+</ul>
+<pre><code class="language-ini"># ceph.conf RDMA configuration
+[global]
+ms_type = async+rdma
+ms_async_rdma_device_name = mlx5_0
+ms_async_rdma_port_num = 1
+ms_async_rdma_buffer_size = 131072
+ms_async_rdma_send_buffers = 1024
+ms_async_rdma_receive_buffers = 1024
+ms_async_rdma_polling_us = 1000
+</code></pre>
+<div class="warning">
+<p>Ceph’s RDMA support has historically been less mature than its TCP implementation. Before deploying RDMA in production Ceph clusters, test thoroughly with your specific workload patterns and Ceph version. Memory registration overhead can be significant for small I/O sizes, and some Ceph features (such as messenger-level compression) may not work with the RDMA transport. Check the release notes for your Ceph version for known RDMA limitations.</p>
+</div>
+
+<h3 id="performance-impact"><a class="header" href="#performance-impact">Performance Impact</a></h3>
+<p>With RDMA enabled, Ceph OSD-to-OSD replication latency drops significantly:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Operation</th><th>TCP Latency</th><th>RDMA Latency</th><th>Improvement</th></tr>
+</thead>
+<tbody>
+<tr><td>4 KB write (3x repl)</td><td>~400 μs</td><td>~180 μs</td><td>2.2x</td></tr>
+<tr><td>4 KB read</td><td>~150 μs</td><td>~60 μs</td><td>2.5x</td></tr>
+<tr><td>128 KB write (3x repl)</td><td>~800 μs</td><td>~350 μs</td><td>2.3x</td></tr>
+<tr><td>128 KB read</td><td>~250 μs</td><td>~90 μs</td><td>2.8x</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="glusterfs-rdma-transport-for-volume-access"><a class="header" href="#glusterfs-rdma-transport-for-volume-access">GlusterFS: RDMA Transport for Volume Access</a></h2>
+<p>GlusterFS is a scalable network file system that aggregates storage from multiple servers. It supports RDMA as an alternative transport to TCP for both client-to-server and server-to-server communication.</p>
+<p>GlusterFS RDMA transport:</p>
+<ul>
+<li>Uses RDMA CM for connection establishment</li>
+<li>Transfers file data via RDMA Read/Write operations</li>
+<li>Supports concurrent TCP and RDMA transports on the same volume</li>
+</ul>
+<pre><code class="language-bash"># Create a volume with RDMA transport
+gluster volume create myvolume transport rdma \
+    server1:/data/brick1 server2:/data/brick2
+
+# Or enable both TCP and RDMA
+gluster volume create myvolume transport tcp,rdma \
+    server1:/data/brick1 server2:/data/brick2
+
+# Mount with RDMA transport
+mount -t glusterfs -o transport=rdma server1:/myvolume /mnt/gluster
+</code></pre>
+<div class="note">
+<p>GlusterFS RDMA support has received less development attention in recent years as the project has focused on its TCP transport. For new GlusterFS deployments requiring high performance, evaluate whether the RDMA transport is actively maintained in your target version. In some cases, TCP with modern kernel optimizations may deliver comparable performance with simpler operations.</p>
+</div>
+
+<h2 id="beegfs-built-for-rdma"><a class="header" href="#beegfs-built-for-rdma">BeeGFS: Built for RDMA</a></h2>
+<p>BeeGFS (originally FhGFS, developed at the Fraunhofer Center for High Performance Computing) distinguishes itself from other parallel file systems by being designed with RDMA as a first-class transport from the beginning, rather than retrofitting RDMA onto a TCP-based architecture.</p>
+<h3 id="architecture-1"><a class="header" href="#architecture-1">Architecture</a></h3>
+<p>BeeGFS uses a similar separation of metadata and storage services as Lustre, but with a lighter-weight design:</p>
+<ul>
+<li><strong>Management service</strong>: Cluster coordination and monitoring.</li>
+<li><strong>Metadata service</strong>: File system namespace management. Can run on multiple servers for scalability.</li>
+<li><strong>Storage service</strong>: Stores file data on local disks. Files are striped across multiple storage targets.</li>
+<li><strong>Client</strong>: Kernel module that mounts BeeGFS and translates POSIX operations to BeeGFS protocol messages.</li>
+</ul>
+<h3 id="native-rdma-support"><a class="header" href="#native-rdma-support">Native RDMA Support</a></h3>
+<p>BeeGFS’s RDMA implementation differs from Lustre and GPFS in its approach to memory registration:</p>
+<ul>
+<li><strong>Pre-registered buffer pools</strong>: BeeGFS pre-allocates and pre-registers large buffer pools with the RDMA NIC, avoiding the latency and overhead of dynamic memory registration during I/O operations.</li>
+<li><strong>Direct data placement</strong>: Storage servers use RDMA Write to place data directly into the client’s application buffer, achieving true zero-copy for the read path.</li>
+<li><strong>Efficient metadata</strong>: Metadata operations use RDMA Send/Receive with inline data for low-latency RPCs.</li>
+</ul>
+<pre><code class="language-bash"># BeeGFS client configuration for RDMA
+# /etc/beegfs/beegfs-client.conf
+connRDMAEnabled = true
+connRDMABufSize = 65536
+connRDMABufNum = 128
+connRDMATypeOfService = 0
+</code></pre>
+<p>BeeGFS achieves strong scaling with RDMA: a 10-server BeeGFS cluster with HDR InfiniBand can deliver over 100 GB/s aggregate sequential read throughput, compared to approximately 50 GB/s with TCP.</p>
+<h2 id="performance-impact-rdma-vs-tcp-for-parallel-io"><a class="header" href="#performance-impact-rdma-vs-tcp-for-parallel-io">Performance Impact: RDMA vs TCP for Parallel I/O</a></h2>
+<p>Across all the file systems discussed, RDMA consistently delivers substantial performance improvements over TCP for parallel I/O workloads. The magnitude of improvement depends on the I/O pattern:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Workload Pattern</th><th>Typical RDMA Advantage</th><th>Reason</th></tr>
+</thead>
+<tbody>
+<tr><td>Large sequential I/O</td><td>1.5-2.5x bandwidth</td><td>Reduced CPU overhead, zero-copy</td></tr>
+<tr><td>Small random I/O</td><td>2-4x IOPS</td><td>Lower per-operation latency</td></tr>
+<tr><td>Metadata-heavy</td><td>2-3x ops/sec</td><td>Lower RPC latency</td></tr>
+<tr><td>Many-to-one (N:1)</td><td>2-5x throughput</td><td>CPU no longer the bottleneck</td></tr>
+<tr><td>Checkpoint/restart</td><td>2-3x throughput</td><td>Burst write absorption</td></tr>
+</tbody>
+</table>
+</div>
+<p>The advantage is most pronounced for workloads that stress the server CPU – such as many-client-to-one-server access patterns where the server must handle thousands of connections simultaneously. With TCP, the server CPU spends a large fraction of its cycles in protocol processing. With RDMA, protocol processing is offloaded to the NIC, freeing the server CPU for file system operations.</p>
+<div class="tip">
+<p>When benchmarking parallel file system performance with RDMA, use tools that generate realistic parallel I/O patterns. The IOR benchmark (Interleaved-Or-Random) is the standard tool for measuring parallel file system performance:</p>
+<pre><code class="language-bash"># IOR large sequential write test
+mpirun -np 256 ior -a POSIX -t 1m -b 16g -F -w -o /lustre/testfile
+
+# IOR small random read test
+mpirun -np 256 ior -a POSIX -t 4k -b 1g -z -r -o /lustre/testfile
+
+# MDTest for metadata performance
+mpirun -np 256 mdtest -n 10000 -d /lustre/mdtest
+</code></pre>
+<p>Always compare TCP and RDMA with the same benchmark parameters, number of clients, and server configuration to isolate the transport’s impact.</p>
+</div>
+
+<p>The trend in distributed file systems is clear: RDMA is transitioning from an optional optimization to a required capability. As NVMe storage devices get faster and all-flash file system deployments become the norm, the network fabric – and specifically, the choice of transport protocol – becomes the primary determinant of achievable I/O performance. File systems that were designed with RDMA as an afterthought are being re-architected to make it central, while new file systems are being built RDMA-native from the ground up.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-5-deployment/ch14-applications/databases.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-5-deployment/ch14-applications/ml-and-ai.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-5-deployment/ch14-applications/databases.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-5-deployment/ch14-applications/ml-and-ai.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

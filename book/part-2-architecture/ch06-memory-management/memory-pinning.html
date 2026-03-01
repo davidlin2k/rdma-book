@@ -1,0 +1,477 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Memory Pinning - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="62-memory-pinning"><a class="header" href="#62-memory-pinning">6.2 Memory Pinning</a></h1>
+<p>In the previous section, we traced the path of <code>ibv_reg_mr()</code> through the kernel and noted that page pinning is a critical step. In this section, we examine pinning in depth: why it is necessary, how the kernel implements it, what impact it has on the system, and how administrators and developers can manage its consequences.</p>
+<h2 id="why-pinning-is-necessary"><a class="header" href="#why-pinning-is-necessary">Why Pinning Is Necessary</a></h2>
+<p>A modern operating system manages physical memory as a fungible resource. The kernel’s virtual memory subsystem continuously makes decisions about physical pages: swapping infrequently used pages to disk, migrating pages between NUMA nodes for locality, compacting pages to create contiguous regions for huge page allocation, and reclaiming pages from file-backed mappings when memory is scarce. This dynamic management is transparent to applications, which see only stable virtual addresses.</p>
+<p>RDMA breaks this transparency. When a NIC performs a DMA transfer, it uses a <strong>physical</strong> (or bus/IOMMU) address that was programmed into its Memory Translation Table at registration time. If the kernel were to swap a page to disk, migrate it to a different physical frame, or reclaim it entirely, the NIC’s DMA address would become stale. The NIC would then read garbage data or, worse, write to memory now belonging to a different process or the kernel itself.</p>
+<pre class="mermaid">flowchart LR
+    subgraph "Without Pinning (DANGEROUS)"
+        A1["Virtual Page 0x7f00"] --&gt; B1["Physical Frame 0x3A00"]
+        B1 -.-&gt;|"Kernel swaps out"| C1["Disk (swap)"]
+        B1 -.-&gt;|"Frame reused"| D1["Other Process Data"]
+        E1["NIC DMA to 0x3A00"] --&gt;|"CORRUPTION"| D1
+    end
+</pre>
+
+<pre class="mermaid">flowchart LR
+    subgraph "With Pinning (SAFE)"
+        A2["Virtual Page 0x7f00"] --&gt; B2["Physical Frame 0x3A00&lt;br/&gt;(PINNED)"]
+        B2 -.-x|"Cannot swap"| C2["Disk"]
+        B2 -.-x|"Cannot migrate"| D2["Other Frame"]
+        E2["NIC DMA to 0x3A00"] --&gt;|"CORRECT"| B2
+    end
+</pre>
+
+<p>Pinning solves this by telling the kernel: “Do not touch these physical pages. They must remain at their current physical addresses until I say otherwise.” The kernel honors this by incrementing a reference count on each page, which prevents the page from being considered for any operation that would change its physical location.</p>
+<h2 id="the-kernels-page-pinning-mechanism"><a class="header" href="#the-kernels-page-pinning-mechanism">The Kernel’s Page Pinning Mechanism</a></h2>
+<p>The kernel provides several functions for pinning user-space pages. The historical interface is <code>get_user_pages()</code> and its faster variant <code>get_user_pages_fast()</code>. In newer kernels (5.6+), the preferred interface is <code>pin_user_pages()</code> / <code>pin_user_pages_fast()</code>, which was introduced specifically to address long-standing issues with how DMA-pinned pages interact with the kernel’s memory management.</p>
+<p>The calling sequence within an RDMA registration typically looks like this (simplified):</p>
+<pre><code class="language-c">/* Kernel-side pseudocode during ibv_reg_mr() */
+long npages = (length + offset_in_page(addr) + PAGE_SIZE - 1) / PAGE_SIZE;
+struct page **pages = kvmalloc_array(npages, sizeof(struct page *));
+
+/* Pin all pages in the user's address space */
+long pinned = pin_user_pages_fast(
+    addr,           /* Starting user virtual address */
+    npages,         /* Number of pages to pin */
+    FOLL_WRITE,     /* Need write access (for receive buffers) */
+    pages           /* Output: array of struct page pointers */
+);
+
+if (pinned != npages) {
+    /* Handle partial pin: unpin what we got and return error */
+    unpin_user_pages(pages, pinned);
+    return -ENOMEM;
+}
+</code></pre>
+<h3 id="what-pin_user_pages_fast-does"><a class="header" href="#what-pin_user_pages_fast-does">What <code>pin_user_pages_fast()</code> Does</a></h3>
+<p>Internally, this function:</p>
+<ol>
+<li><strong>Walks the process’s page tables</strong> to find the physical frame backing each virtual page.</li>
+<li><strong>Faults in pages</strong> that are not yet present – this includes pages that have never been accessed (demand-paged), pages that have been swapped out, and pages in lazily-mapped regions.</li>
+<li><strong>Sets the FOLL_PIN flag</strong> (in modern kernels) on each page, which increments a special pin count distinct from the regular reference count. This pin count prevents the page from being migrated by mechanisms like <code>move_pages()</code>, compaction, or CMA (Contiguous Memory Allocator) reclaim.</li>
+<li><strong>Handles copy-on-write (COW) pages</strong>: If a page is shared (e.g., after <code>fork()</code>) and the caller needs write access, the kernel breaks the COW by allocating a new physical page and copying the data.</li>
+</ol>
+<div class="warning">
+<p><strong>Warning</strong>: The interaction between RDMA pinning and <code>fork()</code> is a well-known source of bugs. When a process calls <code>fork()</code>, the kernel marks all writable pages as copy-on-write. If a parent process has pinned pages for RDMA and then forks, the child’s writes to those shared pages trigger COW, but the parent’s NIC still DMA’s to the <em>original</em> physical page. This can lead to data corruption. The <code>ibv_fork_init()</code> function (or the <code>RDMAV_FORK_SAFE=1</code> environment variable) instructs libibverbs to call <code>madvise(MADV_DONTFORK)</code> on registered regions, preventing the child from inheriting them. However, this comes at a cost: <code>madvise()</code> adds overhead, and the child cannot access those memory regions at all.</p>
+</div>
+
+<h2 id="impact-on-system-memory"><a class="header" href="#impact-on-system-memory">Impact on System Memory</a></h2>
+<p>Pinned pages are removed from the kernel’s pool of reclaimable memory. This has several consequences:</p>
+<h3 id="reduced-available-memory"><a class="header" href="#reduced-available-memory">Reduced Available Memory</a></h3>
+<p>Every pinned page is a page that cannot be reclaimed, even under severe memory pressure. If an RDMA application pins 64 GB of memory on a 128 GB machine, only 64 GB remains for the kernel, page cache, other applications, and the swap daemon. Under memory pressure, the OOM killer may terminate processes because it cannot reclaim the pinned pages.</p>
+<h3 id="no-swap-out"><a class="header" href="#no-swap-out">No Swap-Out</a></h3>
+<p>Pinned pages cannot be written to swap. This is the entire point – but it means that RDMA applications effectively reduce the system’s overcommit capacity. A system that could previously support 200 GB of virtual memory across all processes (using 128 GB of RAM plus 72 GB of swap) may struggle when 64 GB of that RAM is pinned.</p>
+<h3 id="numa-implications"><a class="header" href="#numa-implications">NUMA Implications</a></h3>
+<p>Pages are pinned at their current physical location. If a page was allocated on NUMA node 0 but the RDMA NIC is attached to NUMA node 1, the NIC’s DMA must cross the inter-socket link on every access. Pinning prevents the kernel from migrating the page to node 1 for better locality. The solution is to ensure correct NUMA-local allocation <em>before</em> registration:</p>
+<pre><code class="language-c">/* Allocate memory on the NUMA node local to the NIC */
+void *buf = numa_alloc_onnode(size, nic_numa_node);
+
+/* Now register -- pages will be pinned on the correct node */
+struct ibv_mr *mr = ibv_reg_mr(pd, buf, size, access_flags);
+</code></pre>
+<h3 id="fragmentation"><a class="header" href="#fragmentation">Fragmentation</a></h3>
+<p>Large numbers of pinned pages can contribute to physical memory fragmentation. Because pinned pages cannot be moved, the kernel’s compaction mechanism (which moves pages to create contiguous free regions) becomes less effective. This can interfere with huge page allocation and CMA regions.</p>
+<h2 id="the-memlock-limit-rlimit_memlock"><a class="header" href="#the-memlock-limit-rlimit_memlock">The Memlock Limit: RLIMIT_MEMLOCK</a></h2>
+<p>The kernel imposes a per-process limit on the amount of memory that can be locked (pinned). This limit is controlled by <code>RLIMIT_MEMLOCK</code>, accessible via the <code>ulimit</code> shell command:</p>
+<pre><code class="language-bash">$ ulimit -l
+65536    # 64 MB default on many distributions
+</code></pre>
+<p>When <code>ibv_reg_mr()</code> internally calls <code>pin_user_pages()</code>, the kernel checks whether pinning additional pages would exceed this limit. If it would, the registration fails with <code>errno = ENOMEM</code>.</p>
+<h3 id="setting-appropriate-limits"><a class="header" href="#setting-appropriate-limits">Setting Appropriate Limits</a></h3>
+<p>For RDMA applications, the default limit is almost always too low. A typical configuration requires increasing it to match the application’s needs:</p>
+<p><strong>For a specific user (persistent)</strong>:</p>
+<p>Edit <code>/etc/security/limits.conf</code>:</p>
+<pre><code># /etc/security/limits.conf
+rdma_user    soft    memlock    unlimited
+rdma_user    hard    memlock    unlimited
+</code></pre>
+<p>Or for a specific group:</p>
+<pre><code>@rdma_group    soft    memlock    unlimited
+@rdma_group    hard    memlock    unlimited
+</code></pre>
+<p><strong>For a systemd service</strong>:</p>
+<pre><code class="language-ini"># /etc/systemd/system/my-rdma-app.service
+[Service]
+LimitMEMLOCK=infinity
+</code></pre>
+<p><strong>Programmatically</strong>:</p>
+<pre><code class="language-c">#include &lt;sys/resource.h&gt;
+
+struct rlimit rl = {
+    .rlim_cur = RLIM_INFINITY,
+    .rlim_max = RLIM_INFINITY,
+};
+setrlimit(RLIMIT_MEMLOCK, &amp;rl);  /* Requires CAP_SYS_RESOURCE */
+</code></pre>
+<div class="note">
+<p><strong>Note</strong>: Setting <code>memlock</code> to <code>unlimited</code> removes the per-process constraint but does not remove the physical constraint. The system still has finite RAM. Monitor actual pinned memory usage to avoid OOM conditions.</p>
+</div>
+
+<h2 id="huge-pages"><a class="header" href="#huge-pages">Huge Pages</a></h2>
+<p>Standard Linux pages are 4 KB. For large RDMA registrations, using <strong>huge pages</strong> (2 MB or 1 GB) provides significant benefits:</p>
+<h3 id="fewer-page-table-entries"><a class="header" href="#fewer-page-table-entries">Fewer Page Table Entries</a></h3>
+<p>A 1 GB buffer registered with 4 KB pages requires 262,144 MTT entries in the NIC. With 2 MB huge pages, the same buffer requires only 512 entries. With 1 GB huge pages, a single entry suffices. Fewer entries mean:</p>
+<ul>
+<li><strong>Faster registration</strong>: Fewer pages to pin, fewer DMA mappings to create, fewer MTT entries to program.</li>
+<li><strong>Smaller MTT footprint</strong>: The NIC’s internal memory for translation tables is finite. Smaller MTTs leave room for more concurrent registrations.</li>
+<li><strong>Fewer TLB misses</strong>: Both the CPU’s TLB and the NIC’s internal TLB benefit from larger pages.</li>
+</ul>
+<h3 id="allocating-huge-pages"><a class="header" href="#allocating-huge-pages">Allocating Huge Pages</a></h3>
+<p><strong>Reserve huge pages at boot (most reliable)</strong>:</p>
+<pre><code class="language-bash"># In kernel command line (grub):
+hugepagesz=2M hugepages=8192    # Reserve 16 GB as 2 MB huge pages
+hugepagesz=1G hugepages=16      # Reserve 16 GB as 1 GB huge pages
+</code></pre>
+<p><strong>Reserve at runtime</strong>:</p>
+<pre><code class="language-bash">echo 8192 &gt; /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+</code></pre>
+<p><strong>Use in application code</strong>:</p>
+<pre><code class="language-c">#include &lt;sys/mman.h&gt;
+
+/* Allocate 1 GB using 2 MB huge pages */
+void *buf = mmap(NULL, 1UL &lt;&lt; 30,
+                 PROT_READ | PROT_WRITE,
+                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
+                 -1, 0);
+
+/* Register with IBV_ACCESS_HUGETLB for optimal NIC handling */
+struct ibv_mr *mr = ibv_reg_mr(pd, buf, 1UL &lt;&lt; 30,
+                                IBV_ACCESS_LOCAL_WRITE |
+                                IBV_ACCESS_HUGETLB);
+</code></pre>
+<p>The <code>IBV_ACCESS_HUGETLB</code> flag is a hint to the provider that the memory is backed by huge pages, allowing it to optimize MTT programming.</p>
+<h3 id="transparent-huge-pages-thp"><a class="header" href="#transparent-huge-pages-thp">Transparent Huge Pages (THP)</a></h3>
+<p>Transparent Huge Pages are the kernel’s mechanism for automatically promoting 4 KB page runs into 2 MB huge pages without application changes. While THP can benefit RDMA in theory (fewer MTT entries), the interaction is nuanced:</p>
+<ul>
+<li><strong>THP pages can be split</strong>: Under memory pressure, the kernel may split a transparent huge page back into 4 KB pages. If this happens to a pinned region, the behavior depends on the driver – some handle it gracefully, others do not.</li>
+<li><strong>Khugepaged overhead</strong>: The <code>khugepaged</code> kernel thread scans memory to find promotion opportunities, which can cause latency spikes.</li>
+<li><strong>Compaction stalls</strong>: THP promotion requires contiguous physical memory. Under fragmentation, allocation attempts can stall for milliseconds.</li>
+</ul>
+<div class="note">
+<p><strong>Tip</strong>: For RDMA workloads, explicit huge pages (via <code>mmap</code> with <code>MAP_HUGETLB</code> or <code>libhugetlbfs</code>) are generally preferred over THP. They provide the same benefits with predictable behavior and no risk of unexpected splitting or compaction stalls.</p>
+</div>
+
+<h2 id="memory-overcommit-considerations"><a class="header" href="#memory-overcommit-considerations">Memory Overcommit Considerations</a></h2>
+<p>Linux allows memory overcommit by default: applications can <code>malloc()</code> more memory than physically exists, and the kernel only allocates physical pages on first access. This works well for general workloads but interacts poorly with RDMA:</p>
+<ul>
+<li>When <code>ibv_reg_mr()</code> pins pages, it forces the kernel to back every page with a physical frame <strong>immediately</strong>. A 10 GB registration on a system with only 8 GB of free RAM will fail – or worse, trigger the OOM killer.</li>
+<li>Applications that <code>malloc()</code> a large region, register it, but only use a small portion waste physical memory. The registration pins all pages, even untouched ones (which the kernel must fault in during pinning).</li>
+</ul>
+<p>Best practice: allocate memory with <code>mmap(MAP_POPULATE)</code> or explicitly fault pages with <code>memset()</code> before registration. This makes the physical memory cost explicit and avoids surprises during registration.</p>
+<pre><code class="language-c">/* Allocate and immediately populate all pages */
+void *buf = mmap(NULL, size, PROT_READ | PROT_WRITE,
+                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE,
+                 -1, 0);
+if (buf == MAP_FAILED) {
+    /* Handle allocation failure here, before registration */
+    perror("mmap");
+    return -1;
+}
+struct ibv_mr *mr = ibv_reg_mr(pd, buf, size, access_flags);
+</code></pre>
+<h2 id="monitoring-pinned-memory"><a class="header" href="#monitoring-pinned-memory">Monitoring Pinned Memory</a></h2>
+<p>Administrators can monitor pinned memory through several interfaces:</p>
+<h3 id="procmeminfo"><a class="header" href="#procmeminfo">/proc/meminfo</a></h3>
+<pre><code class="language-bash">$ grep -E "Mlocked|Unevictable" /proc/meminfo
+Unevictable:     4194304 kB
+Mlocked:         4194304 kB
+</code></pre>
+<p><code>Mlocked</code> shows the total amount of memory locked by all processes (via <code>mlock()</code>, <code>mlockall()</code>, or RDMA registration). <code>Unevictable</code> includes mlocked pages plus other pages that cannot be reclaimed.</p>
+<h3 id="per-process-monitoring"><a class="header" href="#per-process-monitoring">Per-process monitoring</a></h3>
+<pre><code class="language-bash">$ grep -E "VmLck|VmPin" /proc/&lt;pid&gt;/status
+VmLck:    4194304 kB    # Memory locked by mlock/mlockall
+VmPin:    4194304 kB    # Memory pinned for DMA (newer kernels)
+</code></pre>
+<h3 id="rdma-specific-counters"><a class="header" href="#rdma-specific-counters">RDMA-specific counters</a></h3>
+<p>Some NVIDIA/Mellanox drivers expose registration statistics:</p>
+<pre><code class="language-bash">$ cat /sys/class/infiniband/mlx5_0/diag_counters/num_mrs
+1024
+
+$ cat /sys/class/infiniband/mlx5_0/diag_counters/num_page_fault_eq
+0
+</code></pre>
+<div class="note">
+<p><strong>Tip</strong>: In production environments, monitor <code>Mlocked</code> and <code>Unevictable</code> in <code>/proc/meminfo</code> and alert if they approach a threshold (e.g., 80% of total RAM). Excessive pinning can lead to OOM kills of unrelated processes.</p>
+</div>
+
+<h2 id="best-practices-summary"><a class="header" href="#best-practices-summary">Best Practices Summary</a></h2>
+<ol>
+<li>
+<p><strong>Pre-allocate and pre-register</strong>: Allocate all RDMA buffers at application startup. Register them once and reuse them.</p>
+</li>
+<li>
+<p><strong>Use explicit huge pages for large registrations</strong>: Allocate via <code>mmap(MAP_HUGETLB)</code> and pass <code>IBV_ACCESS_HUGETLB</code>. This reduces MTT pressure and accelerates registration.</p>
+</li>
+<li>
+<p><strong>Set appropriate memlock limits</strong>: Configure <code>/etc/security/limits.conf</code> or systemd unit files to allow sufficient pinning for your workload.</p>
+</li>
+<li>
+<p><strong>Allocate NUMA-locally</strong>: Use <code>numa_alloc_onnode()</code> or <code>mbind()</code> to ensure buffers are on the same NUMA node as the NIC before registering.</p>
+</li>
+<li>
+<p><strong>Populate pages before registration</strong>: Use <code>MAP_POPULATE</code> or <code>memset()</code> to fault in pages before calling <code>ibv_reg_mr()</code>, making physical memory allocation explicit.</p>
+</li>
+<li>
+<p><strong>Monitor pinned memory</strong>: Track <code>Mlocked</code> and <code>Unevictable</code> in <code>/proc/meminfo</code>. Set up alerts for memory pressure.</p>
+</li>
+<li>
+<p><strong>Handle fork() carefully</strong>: Call <code>ibv_fork_init()</code> or set <code>RDMAV_FORK_SAFE=1</code> if your application forks. Better yet, avoid forking after memory registration.</p>
+</li>
+<li>
+<p><strong>Size your system appropriately</strong>: If your application will pin 64 GB, the system needs at least 64 GB of RAM plus enough additional RAM for the kernel, page cache, and other processes. Do not rely on overcommit for RDMA workloads.</p>
+</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-2-architecture/ch06-memory-management/registration-deep-dive.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-2-architecture/ch06-memory-management/mr-types.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-2-architecture/ch06-memory-management/registration-deep-dive.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-2-architecture/ch06-memory-management/mr-types.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

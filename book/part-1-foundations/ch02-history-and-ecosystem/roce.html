@@ -1,0 +1,374 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>RoCE and RoCEv2 - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="23-roce-and-roce-v2"><a class="header" href="#23-roce-and-roce-v2">2.3 RoCE and RoCE v2</a></h1>
+<h2 id="the-best-of-both-worlds"><a class="header" href="#the-best-of-both-worlds">The Best of Both Worlds</a></h2>
+<p>By the late 2000s, the RDMA landscape presented a clear dilemma. InfiniBand delivered outstanding performance but required a dedicated, parallel network fabric. iWARP ran over existing Ethernet but carried the overhead and complexity of TCP. What the market wanted was a third option: InfiniBand’s efficient, lightweight RDMA transport running directly over the Ethernet infrastructure that already connected every machine in every datacenter.</p>
+<p>RoCE—RDMA over Converged Ethernet—was that option. Developed by the InfiniBand Trade Association and first specified in 2010, RoCE took InfiniBand’s transport protocol and placed it directly on top of Ethernet frames, bypassing TCP and IP entirely. The result was RDMA with InfiniBand-class latency and throughput, delivered over standard Ethernet cabling and Ethernet NICs. It was a conceptually simple and technically elegant solution, and it has become the dominant RDMA transport for cloud and datacenter deployments.</p>
+<p>But the first version of RoCE had a critical limitation that took four years to resolve, and the resolution—RoCE v2—required a careful engineering compromise that shaped the modern datacenter network. Understanding the distinction between RoCE v1 and v2 is essential for any RDMA practitioner.</p>
+<h2 id="roce-v1-infiniband-transport-on-ethernet-2010"><a class="header" href="#roce-v1-infiniband-transport-on-ethernet-2010">RoCE v1: InfiniBand Transport on Ethernet (2010)</a></h2>
+<p>RoCE v1 works by taking an InfiniBand transport-layer packet—the same packet format used by InfiniBand HCAs, with the same headers, the same BTH (Base Transport Header), and the same payload format—and encapsulating it directly in an Ethernet frame. The Ethernet frame uses a dedicated EtherType, <strong>0x8915</strong>, to identify its payload as an InfiniBand transport packet rather than an IP datagram.</p>
+<p>From the perspective of the RDMA hardware, very little changes between InfiniBand and RoCE v1. The transport layer—queue pairs, sequence numbers, acknowledgments, retransmission, RDMA Read/Write/Send semantics—is identical. The main difference is below the transport layer: instead of InfiniBand’s link layer (with its Local Identifiers, Virtual Lanes, and Subnet Manager-assigned routing), RoCE v1 uses Ethernet’s link layer (with MAC addresses and VLAN tags).</p>
+<p>This reuse of InfiniBand’s transport layer was a deliberate strategy. It allowed Mellanox (the primary RoCE developer) to add RoCE support to its ConnectX adapters with relatively modest silicon changes, and it allowed the same software stack—libibverbs, librdmacm, and the kernel RDMA subsystem—to drive RoCE hardware with minimal modifications.</p>
+<p>RoCE v1 appeared in the ConnectX-2 adapter with a firmware update and was natively supported in ConnectX-3. Early deployments demonstrated latency and throughput comparable to InfiniBand over the same link speeds, validating the design approach.</p>
+<h3 id="the-layer-2-problem"><a class="header" href="#the-layer-2-problem">The Layer 2 Problem</a></h3>
+<p>RoCE v1’s simplicity was also its greatest limitation. Because RoCE v1 frames are Ethernet frames with a non-IP EtherType, they are <strong>Layer 2 only</strong>. Standard IP routers do not know how to forward them. They cannot cross subnet boundaries. They cannot be load-balanced across multiple paths using Equal-Cost Multi-Path (ECMP) routing, because ECMP operates on IP headers that RoCE v1 frames do not have.</p>
+<p>In a small cluster connected by a single Ethernet switch, this is not a problem. But modern datacenters are built on multi-tier, routed network fabrics—often leaf-spine or fat-tree topologies where every path between two servers crosses at least one Layer 3 boundary. In these environments, RoCE v1 traffic was confined to a single Layer 2 domain (a single VLAN or subnet), severely limiting its utility.</p>
+<p>This Layer 2 limitation also prevented RoCE v1 from benefiting from the sophisticated traffic engineering capabilities of modern datacenter networks: ECMP load balancing across spine switches, traffic isolation between tenants using IP routing, and the operational simplicity of Layer 3-only network designs where every switch link is a routed interface.</p>
+<h2 id="roce-v2-udpip-encapsulation-2014"><a class="header" href="#roce-v2-udpip-encapsulation-2014">RoCE v2: UDP/IP Encapsulation (2014)</a></h2>
+<p>RoCE v2, specified by the IBTA in 2014, solved the routing problem by adding IP and UDP headers beneath the InfiniBand transport packet. The RoCE v2 packet format places the same InfiniBand BTH and payload inside a UDP datagram, using a well-known destination port: <strong>4791</strong>.</p>
+<pre class="mermaid">block-beta
+    columns 5
+
+    block:rocev1label:1
+        rv1["RoCE v1"]
+    end
+    block:rocev1:4
+        eth1["Ethernet Header\n(EtherType 0x8915)"]
+        grh1["GRH"]
+        bth1["BTH + Payload"]
+        icrc1["ICRC"]
+    end
+
+    block:rocev2label:1
+        rv2["RoCE v2"]
+    end
+    block:rocev2:4
+        eth2["Ethernet Header\n(EtherType 0x0800)"]
+        ipudp["IP + UDP\n(dst port 4791)"]
+        bth2["BTH + Payload"]
+        icrc2["ICRC"]
+    end
+
+    block:iblabel:1
+        ib["InfiniBand\n(reference)"]
+    end
+    block:ibstack:4
+        lrh["LRH\n(Local Route)"]
+        grh3["GRH"]
+        bth3["BTH + Payload"]
+        icrc3["ICRC"]
+    end
+
+    style rv1 fill:#4a90d9,color:#fff
+    style rv2 fill:#50c878,color:#fff
+    style ib fill:#e8a838,color:#fff
+    style eth1 fill:#6cb4ee
+    style grh1 fill:#87ceeb
+    style bth1 fill:#b0d4f1
+    style icrc1 fill:#d4e8f7
+    style eth2 fill:#7ddf9a
+    style ipudp fill:#98e8b0
+    style bth2 fill:#b3f0c4
+    style icrc2 fill:#d4f7dc
+    style lrh fill:#f0c060
+    style grh3 fill:#f5d080
+    style bth3 fill:#fae0a0
+    style icrc3 fill:#fff0c0
+</pre>
+
+<p>The choice of UDP as the encapsulation layer—rather than TCP or a raw IP protocol—was deliberate and consequential:</p>
+<p><strong>Statelessness.</strong> UDP is stateless: there is no connection setup, no sequence numbers, no acknowledgment processing, and no congestion window to maintain. The InfiniBand transport layer, which sits above UDP in the RoCE v2 stack, already handles all of these functions. Using TCP would have meant duplicating reliable transport functionality, adding latency and complexity for no benefit—which is precisely the problem iWARP suffers from. UDP allows the InfiniBand transport layer to operate as if it were running natively, with the UDP/IP headers serving purely as a routing envelope.</p>
+<p><strong>ECMP compatibility.</strong> Modern datacenter networks distribute traffic across multiple equal-cost paths by hashing on the 5-tuple (source IP, destination IP, source port, destination port, protocol). By placing RoCE traffic inside UDP datagrams, RoCE v2 gives network switches the entropy they need to distribute RDMA flows across spine switches. The source UDP port is typically derived from a hash of the queue pair number or other per-flow state, providing good flow distribution even when many RDMA connections exist between the same pair of hosts.</p>
+<p><strong>Routability.</strong> With standard IP headers, RoCE v2 packets are routable across Layer 3 boundaries by any IP router, without requiring the router to understand RDMA or InfiniBand protocols. The router sees an ordinary UDP/IP packet and forwards it according to its routing table.</p>
+<div class="note">
+<p>The UDP destination port 4791 for RoCE v2 is assigned by IANA. The source port is not fixed—it is typically chosen by the NIC to provide entropy for ECMP hashing. A common implementation hashes the source and destination QP numbers to generate the source port, ensuring that different QP connections between the same hosts take different ECMP paths.</p>
+</div>
+
+<h2 id="the-lossless-ethernet-requirement"><a class="header" href="#the-lossless-ethernet-requirement">The Lossless Ethernet Requirement</a></h2>
+<p>RoCE v2 solved the routing problem, but it introduced (or more precisely, inherited from RoCE v1) a different operational challenge: <strong>the need for a lossless Ethernet network</strong>.</p>
+<p>InfiniBand’s transport layer was designed for a lossless fabric. InfiniBand’s link layer implements credit-based flow control that prevents buffer overflow at every hop, ensuring that packets are never dropped due to congestion. The reliable transport protocol in InfiniBand does include retransmission capabilities (go-back-N retransmission), but these are intended as a safety net for rare hardware errors, not as a routine response to congestion-induced loss. The retransmission path is slow, expensive, and can cascade into severe performance degradation if triggered frequently.</p>
+<p>When this same transport layer is placed on top of Ethernet—a network that was designed to tolerate and recover from packet loss—a mismatch arises. If an Ethernet switch drops a RoCE packet due to buffer overflow, the InfiniBand transport layer must detect the loss (via a timeout or a sequence number gap in an acknowledgment) and retransmit. This retransmission is far more expensive than TCP’s retransmission: it can stall the entire queue pair, and in early implementations, it often required resending all packets in the window rather than just the lost one (go-back-N behavior).</p>
+<p>To avoid this, RoCE deployments configure the Ethernet network for <strong>lossless</strong> operation using two key mechanisms:</p>
+<p><strong>Priority Flow Control (PFC)</strong>, defined in IEEE 802.1Qbb, allows a switch to send a pause frame to its upstream neighbor when a receive buffer for a specific traffic class (priority) is filling up. The upstream device stops transmitting traffic of that priority until the congestion clears. By enabling PFC for the traffic class carrying RoCE traffic, the network creates a lossless path for RDMA while allowing other traffic classes to operate in the normal lossy manner.</p>
+<p><strong>Explicit Congestion Notification (ECN)</strong>, defined in RFC 3168 and adapted for RoCE, provides a complementary congestion signal. When a switch detects that a queue is building up, it marks packets passing through that queue by setting the ECN bits in their IP header. The RoCE receiver echoes this congestion signal back to the sender via a Congestion Notification Packet (CNP), and the sender reduces its transmission rate. ECN acts as an early warning system that reduces congestion <em>before</em> PFC is triggered, because PFC’s binary stop/go behavior can cause head-of-line blocking and congestion spreading if activated frequently.</p>
+<p>Together, PFC and ECN form the <strong>Data Center Bridging (DCB)</strong> configuration required for RoCE. Deploying DCB correctly—with appropriate buffer thresholds, PFC headroom calculations, and ECN marking thresholds—is one of the more operationally complex aspects of running RoCE in production.</p>
+<div class="warning">
+<p>PFC-induced deadlocks are a real and well-documented problem in datacenter networks. When PFC pause frames create circular dependencies across multiple switches, the result is a deadlock where no traffic can flow. Modern datacenter designs mitigate this through careful topology design (avoiding cycles in the PFC-enabled paths), PFC watchdog timers that break deadlocks by dropping traffic after a timeout, and DCQCN (Data Center QoS-based Congestion Notification) tuning. Chapters on network configuration later in this book cover these topics in detail.</p>
+</div>
+
+<h2 id="the-rise-of-lossy-roce"><a class="header" href="#the-rise-of-lossy-roce">The Rise of Lossy RoCE</a></h2>
+<p>The operational burden of maintaining lossless Ethernet has driven significant industry effort toward making RoCE work acceptably over <strong>lossy</strong> networks—standard Ethernet without PFC. Several developments have contributed:</p>
+<p><strong>Improved retransmission in hardware.</strong> Modern ConnectX-5 and later adapters support selective retransmission (rather than go-back-N), significantly reducing the performance impact of occasional packet loss.</p>
+<p><strong>Software-based congestion control.</strong> NVIDIA’s DCQCN and subsequent algorithms provide congestion management that reduces loss rates even without PFC.</p>
+<p><strong>Application-level tolerance.</strong> Some applications, particularly those with large transfer sizes and tolerance for occasional latency spikes, can operate over RoCE with packet loss rates that would be unacceptable for latency-sensitive workloads.</p>
+<p>While lossless configuration remains the recommendation for production RoCE deployments, the trend toward lossy-tolerant RoCE is relaxing one of the technology’s most significant operational barriers.</p>
+<h2 id="rapid-adoption-why-roce-won"><a class="header" href="#rapid-adoption-why-roce-won">Rapid Adoption: Why RoCE Won</a></h2>
+<p>RoCE v2’s ascent to dominance was driven by the convergence of several market forces:</p>
+<p><strong>Ethernet ubiquity.</strong> Every datacenter already has an Ethernet network. Deploying RoCE requires upgrading NICs but not replacing the fabric. Switches need firmware updates for DCB support, but no hardware replacement.</p>
+<p><strong>Hyperscale demand.</strong> Cloud providers—Microsoft Azure, Google Cloud, and others—needed RDMA for internal services (storage, inter-VM communication, AI training) at a scale where building parallel InfiniBand networks for every rack was impractical. RoCE over their existing Ethernet fabrics was the natural choice.</p>
+<p><strong>NVIDIA/Mellanox’s product strategy.</strong> Mellanox’s ConnectX adapters have supported both InfiniBand and RoCE from the same hardware since ConnectX-3. Customers choosing Ethernet did not have to sacrifice RDMA capability. This dual-mode support lowered the barrier to RoCE adoption and allowed organizations to start with Ethernet/RoCE and migrate to InfiniBand only if their workloads demanded it.</p>
+<p><strong>AI and machine learning.</strong> The explosion of GPU-accelerated training workloads, which require massive bandwidth for gradient synchronization across hundreds or thousands of GPUs, created urgent demand for RDMA. AI training clusters increasingly use either InfiniBand (for the largest installations) or RoCE v2 (for smaller and mid-scale clusters), and RoCE’s lower infrastructure cost makes it the entry point for most organizations.</p>
+<h2 id="comparing-the-three-rdma-transports"><a class="header" href="#comparing-the-three-rdma-transports">Comparing the Three RDMA Transports</a></h2>
+<p>With all three transports now introduced, a summary comparison is useful:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Characteristic</th><th>InfiniBand</th><th>iWARP</th><th>RoCE v2</th></tr>
+</thead>
+<tbody>
+<tr><td>Network</td><td>InfiniBand fabric</td><td>Any Ethernet/IP</td><td>Ethernet (DCB recommended)</td></tr>
+<tr><td>Routing</td><td>Subnet Manager</td><td>Standard IP routing</td><td>Standard IP routing</td></tr>
+<tr><td>Typical latency</td><td>~1 us</td><td>~3–7 us</td><td>~1.5 us</td></tr>
+<tr><td>Lossless required</td><td>Yes (credit-based)</td><td>No (TCP handles loss)</td><td>Recommended (PFC/ECN)</td></tr>
+<tr><td>Connection setup</td><td>Fast (~10 us)</td><td>Slow (TCP handshake)</td><td>Fast (~10 us)</td></tr>
+<tr><td>ECMP support</td><td>Adaptive routing</td><td>Yes (TCP 5-tuple)</td><td>Yes (UDP 5-tuple)</td></tr>
+<tr><td>Max connections</td><td>Hardware-limited</td><td>TOE table limited</td><td>Hardware-limited</td></tr>
+<tr><td>Standards body</td><td>IBTA</td><td>IETF</td><td>IBTA / RoCEv2 Annex</td></tr>
+<tr><td>Primary market</td><td>HPC, AI at scale</td><td>Legacy, niche</td><td>Cloud, datacenter</td></tr>
+</tbody>
+</table>
+</div>
+<p>Today, the choice between InfiniBand and RoCE v2 is the primary architectural decision for new RDMA deployments. InfiniBand dominates in dedicated HPC and AI supercomputing environments where every microsecond and every gigabit matters, and where the operational team controls the entire network. RoCE v2 dominates in cloud and enterprise datacenters where Ethernet is the established fabric and RDMA is one of many workloads sharing the network.</p>
+<p>iWARP remains a viable choice for specific scenarios—RDMA over networks that cannot be configured for lossless operation, or RDMA over routed wide-area paths—but its market share continues to decline as lossy-tolerant RoCE improves and as more organizations invest in DCB-capable Ethernet infrastructure.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-1-foundations/ch02-history-and-ecosystem/iwarp.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-1-foundations/ch02-history-and-ecosystem/ofed-rdma-core.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-1-foundations/ch02-history-and-ecosystem/iwarp.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-1-foundations/ch02-history-and-ecosystem/ofed-rdma-core.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

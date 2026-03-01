@@ -1,0 +1,404 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>DMA Fundamentals - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="12-dma-fundamentals"><a class="header" href="#12-dma-fundamentals">1.2 DMA Fundamentals</a></h1>
+<p>Before we can understand Remote Direct Memory Access, we need to understand plain Direct Memory Access. DMA is the hardware mechanism that allows peripheral devices—network adapters, storage controllers, GPUs—to read from and write to system memory without involving the CPU for each byte transferred. It is one of the most important performance features in modern computer architecture, and it is the foundation upon which RDMA is built.</p>
+<h2 id="why-dma-exists"><a class="header" href="#why-dma-exists">Why DMA Exists</a></h2>
+<p>In the earliest personal computers, every byte of data transferred between a peripheral and memory required the CPU to execute an explicit load or store instruction. This technique, known as <strong>Programmed I/O (PIO)</strong>, works as follows:</p>
+<ol>
+<li>The CPU writes a command to the device’s I/O port (or memory-mapped register) telling it to make data available.</li>
+<li>The CPU reads a byte (or word) from the device’s data register into a CPU register.</li>
+<li>The CPU writes that byte from the CPU register into the destination address in memory.</li>
+<li>Repeat for each byte.</li>
+</ol>
+<p>For a 4 KB transfer at one byte per instruction, this is 4,096 load-store pairs. The CPU is completely occupied during the transfer—it cannot execute any other instructions. On a 1 MHz 8088 processor moving data from a floppy disk controller, this was tolerable. On a modern server receiving data at 400 Gb/s, it would be catastrophically impossible: the CPU would need to execute 50 billion byte-moves per second just to keep up with the network, leaving no cycles for anything else.</p>
+<p>DMA solves this by giving the peripheral device the ability to read from and write to system memory autonomously. The CPU’s role is reduced to setup: it tells the DMA-capable device <em>where</em> in memory to transfer data, <em>how much</em> to transfer, and <em>in which direction</em>. The device then performs the transfer independently, using the system’s memory bus. When the transfer is complete, the device notifies the CPU—typically via an interrupt—and the CPU can then process the data that has appeared in memory.</p>
+<h2 id="bus-mastering-the-evolution-of-dma"><a class="header" href="#bus-mastering-the-evolution-of-dma">Bus Mastering: The Evolution of DMA</a></h2>
+<p>The original IBM PC’s DMA was handled by a dedicated DMA controller chip (the Intel 8237) on the motherboard. The peripheral would request DMA service from this controller, which would then arbitrate for the bus and perform the transfer on behalf of the device. This approach had severe limitations: the 8237 could only address 16 MB of memory, supported only a handful of channels, and was far too slow for high-bandwidth peripherals.</p>
+<p>Modern DMA uses <strong>bus mastering</strong>, where the peripheral device itself contains a DMA engine and directly drives transactions on the system bus (PCIe in today’s systems). The device becomes a “bus master”—it can initiate memory read and write transactions without any intermediary. This is vastly more capable than the old controller-based approach:</p>
+<ul>
+<li><strong>No address limitations</strong>: PCIe devices can address the full 64-bit physical address space (with appropriate IOMMU configuration).</li>
+<li><strong>No bandwidth bottleneck</strong>: Each PCIe device has its own dedicated lanes to the root complex, so multiple devices can perform DMA concurrently without contention.</li>
+<li><strong>Sophisticated transfer logic</strong>: Modern NIC DMA engines can handle scatter-gather lists, completion notifications, and multiple concurrent transfers.</li>
+</ul>
+<p>Every modern NIC—whether it costs <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span><span class="mord mathnormal" style="margin-right:0.02778em;">or</span></span></span></span>5,000—is a bus-mastering DMA device. When your Linux server receives a packet over a standard TCP socket, the packet data was placed into kernel memory by the NIC’s DMA engine, not by the CPU. The CPU only gets involved <em>after</em> the data has arrived in memory. This is already a major optimization over PIO. RDMA takes it further.</p>
+<h2 id="how-conventional-nics-use-dma"><a class="header" href="#how-conventional-nics-use-dma">How Conventional NICs Use DMA</a></h2>
+<p>A conventional (non-RDMA) NIC uses DMA extensively, but always under kernel supervision. Here is the standard flow for packet reception:</p>
+<ol>
+<li>
+<p><strong>Ring buffer setup</strong>: During driver initialization, the kernel allocates a set of memory buffers and constructs a <strong>receive descriptor ring</strong>—a circular array of descriptors, each pointing to one pre-allocated buffer. The kernel writes the physical addresses of these buffers into the descriptors and programs the NIC with the ring’s base address and size.</p>
+</li>
+<li>
+<p><strong>Packet arrival</strong>: When a frame arrives from the network, the NIC’s DMA engine reads the next available receive descriptor from the ring (via DMA read from host memory), determines the target buffer address, and writes the packet data into that buffer (via DMA write to host memory).</p>
+</li>
+<li>
+<p><strong>Descriptor completion</strong>: The NIC updates the descriptor with metadata (packet length, checksum status, RSS hash, VLAN tag, timestamps) and advances its internal pointer.</p>
+</li>
+<li>
+<p><strong>Notification</strong>: The NIC raises an interrupt (or, under NAPI, the kernel polls for completions) to inform the driver that new packets are available.</p>
+</li>
+<li>
+<p><strong>Processing</strong>: The kernel processes the packet through the network stack (as described in Section 1.1) and eventually copies the data to user space.</p>
+</li>
+</ol>
+<p>The transmit path is the mirror image: the kernel writes packet data into transmit buffers, fills in transmit descriptors with buffer addresses and metadata, and notifies the NIC by writing to a <strong>doorbell register</strong> (a memory-mapped I/O address). The NIC’s DMA engine reads the descriptor, reads the packet data from the buffer, and transmits the frame.</p>
+<pre class="mermaid">graph LR
+    subgraph "System Memory"
+        RXR["RX Descriptor Ring&lt;br/&gt;(physical addresses)"]
+        RXB["RX Data Buffers&lt;br/&gt;(kernel memory)"]
+        TXR["TX Descriptor Ring&lt;br/&gt;(physical addresses)"]
+        TXB["TX Data Buffers&lt;br/&gt;(kernel memory)"]
+    end
+
+    subgraph "CPU"
+        DRV["NIC Driver&lt;br/&gt;(kernel)"]
+        NET["Network Stack&lt;br/&gt;(kernel)"]
+        APP["Application&lt;br/&gt;(user space)"]
+    end
+
+    subgraph "NIC Hardware"
+        RXDMA["RX DMA Engine"]
+        TXDMA["TX DMA Engine"]
+        MAC["MAC / PHY"]
+    end
+
+    MAC --&gt;|"Frame arrives"| RXDMA
+    RXDMA --&gt;|"① DMA read:&lt;br/&gt;fetch RX descriptor"| RXR
+    RXDMA --&gt;|"② DMA write:&lt;br/&gt;packet data"| RXB
+    RXDMA --&gt;|"③ Interrupt"| DRV
+    DRV --&gt;|"④ Process packet"| NET
+    NET --&gt;|"⑤ memcpy to&lt;br/&gt;user space"| APP
+
+    APP --&gt;|"⑥ send() syscall&lt;br/&gt;memcpy to kernel"| NET
+    NET --&gt;|"⑦ Build packet,&lt;br/&gt;fill TX descriptor"| TXR
+    NET --&gt;|"⑧ Packet data to&lt;br/&gt;TX buffer"| TXB
+    DRV --&gt;|"⑨ Doorbell write"| TXDMA
+    TXDMA --&gt;|"⑩ DMA read:&lt;br/&gt;descriptor + data"| TXR
+    TXDMA --&gt;|"⑪ Transmit"| MAC
+
+    style RXDMA fill:#e74c3c,color:#fff
+    style TXDMA fill:#e74c3c,color:#fff
+    style APP fill:#4a90d9,color:#fff
+    style DRV fill:#f39c12,color:#fff
+    style NET fill:#f39c12,color:#fff
+</pre>
+
+<p>The critical observation is that even though DMA handles the bulk data transfer between NIC and memory, <strong>the kernel is still in the control path</strong>. The kernel decides which buffers the NIC uses, the kernel processes every packet through the protocol stack, and the kernel performs the final copy to user space. DMA removes the CPU from the <em>data movement</em> between NIC and kernel memory, but the CPU is still deeply involved in everything else.</p>
+<h2 id="the-iommu-protecting-dma"><a class="header" href="#the-iommu-protecting-dma">The IOMMU: Protecting DMA</a></h2>
+<p>Giving a peripheral device unrestricted access to all of physical memory is a serious security and reliability risk. A buggy or malicious device could overwrite kernel code, corrupt page tables, or read sensitive data from any process. The <strong>IOMMU</strong> (Input/Output Memory Management Unit)—known as VT-d on Intel platforms and AMD-Vi on AMD—solves this by providing address translation and access control for DMA transactions.</p>
+<p>The IOMMU sits between the PCIe root complex and the memory controller. When a device initiates a DMA transaction to physical address <code>X</code>, the IOMMU translates <code>X</code> through a set of page tables (separate from the CPU’s page tables) to determine the actual physical address—or rejects the transaction if the device is not authorized to access that region.</p>
+<p>Key IOMMU concepts relevant to RDMA:</p>
+<ul>
+<li><strong>DMA address space</strong>: Each device (or group of devices) can have its own virtual address space for DMA. The addresses that the device uses (“IOVA”—I/O Virtual Addresses) need not correspond to physical addresses.</li>
+<li><strong>Isolation domains</strong>: Devices can be placed in separate IOMMU domains, preventing one device from accessing memory assigned to another. This is essential for safe device assignment to virtual machines (VFIO/PCI passthrough).</li>
+<li><strong>Page granularity</strong>: IOMMU mappings are page-granular (typically 4 KB, with support for large pages). Creating a mapping is not free—it involves modifying IOMMU page tables and may require an IOTLB (I/O TLB) flush.</li>
+</ul>
+<p>For RDMA, the IOMMU adds an important wrinkle: when an RDMA NIC (RNIC) needs to DMA directly to a user-space application’s buffer, the IOMMU must have a mapping that translates the NIC’s DMA address to the correct physical page frames backing that application buffer. Setting up these mappings is part of the <strong>memory registration</strong> process that we will explore in detail in Chapter 6.</p>
+<div class="admonition note">
+<div class="admonition-title">Note</div>
+
+Some RDMA deployments disable the IOMMU for performance reasons, as IOMMU translation adds a small amount of latency to each DMA transaction (typically 50--100 ns for an IOTLB miss). This is a security trade-off: without the IOMMU, a malfunctioning NIC could corrupt arbitrary memory. Modern RNICs and IOMMUs have improved to the point where the overhead is negligible for most workloads, and disabling the IOMMU is increasingly discouraged.
+</div>
+
+<h2 id="scatter-gather-dma"><a class="header" href="#scatter-gather-dma">Scatter-Gather DMA</a></h2>
+<p>Real-world data is rarely laid out in a single contiguous buffer. A network packet, for example, consists of headers and payload that may reside in different memory locations. An application message might span multiple non-contiguous pages due to virtual memory layout. Copying all this data into a single contiguous buffer just so the NIC can DMA it would defeat the purpose of using DMA in the first place.</p>
+<p><strong>Scatter-gather DMA</strong> (also called vectored I/O at the DMA level) solves this. Instead of a single (address, length) pair, the DMA engine accepts a <strong>scatter-gather list (SGL)</strong>—an array of (address, length) entries. For a transmit operation, the NIC reads data from each entry in sequence and transmits it as a single contiguous frame on the wire (“gather”). For a receive operation, the NIC writes incoming data across the entries in sequence (“scatter”).</p>
+<p>Scatter-gather is essential for efficient networking:</p>
+<ul>
+<li><strong>On transmit</strong>, a TCP/IP packet can be assembled without copying: the TCP header might be in one buffer, the IP header prepended in another, and the payload data in a third (the application’s original buffer, if zero-copy is in use). The NIC gathers them all into one Ethernet frame.</li>
+<li><strong>On receive</strong>, large messages can be scattered across multiple pages, allowing the kernel (or, in RDMA, the application) to pre-post buffers of various sizes without knowing in advance exactly how large incoming messages will be.</li>
+</ul>
+<p>Modern NIC DMA engines support scatter-gather lists with dozens to hundreds of entries. RDMA relies heavily on this capability, as we will see when we discuss work requests and their scatter-gather lists in Chapter 5.</p>
+<h2 id="dma-engines-vs-cpu-driven-io"><a class="header" href="#dma-engines-vs-cpu-driven-io">DMA Engines vs. CPU-Driven I/O</a></h2>
+<p>To summarize the evolution and clarify the terminology:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Technique</th><th>Who moves the data?</th><th>CPU involvement</th><th>Throughput</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Programmed I/O (PIO)</strong></td><td>CPU executes load/store for each word</td><td>100% — CPU does all the work</td><td>Low (limited by instruction throughput)</td></tr>
+<tr><td><strong>Third-party DMA</strong> (8237-style)</td><td>External DMA controller</td><td>Setup only; CPU free during transfer</td><td>Moderate (controller is bottleneck)</td></tr>
+<tr><td><strong>Bus-mastering DMA</strong></td><td>Device’s own DMA engine</td><td>Setup only; CPU free during transfer</td><td>High (limited by PCIe bandwidth)</td></tr>
+<tr><td><strong>RDMA</strong></td><td>NIC’s DMA engine, controlled by user-space app</td><td>Minimal: app posts requests, NIC executes</td><td>Very high (CPU nearly uninvolved)</td></tr>
+</tbody>
+</table>
+</div>
+<p>The progression from PIO to bus-mastering DMA to RDMA is a story of systematically removing the CPU from the data path. With conventional DMA, the CPU is out of the data-movement loop but still orchestrates every transfer from within the kernel. RDMA removes the kernel from the orchestration, letting the application issue DMA commands directly to the NIC hardware.</p>
+<h2 id="dma-and-cache-coherence"><a class="header" href="#dma-and-cache-coherence">DMA and Cache Coherence</a></h2>
+<p>One subtlety of DMA that becomes important for RDMA programming is its interaction with the CPU cache hierarchy. When a NIC DMA-writes data into memory, that data goes to DRAM (or, on modern Intel platforms with DDIO—Data Direct I/O—into the last-level cache). But the CPU core that will process this data may have a stale cache line for that address, or may not have the line cached at all.</p>
+<p>On x86 platforms, PCIe transactions are <strong>cache-coherent</strong>: the DMA write will snoop the CPU caches, and if a conflicting line exists, it will be invalidated or updated. This means the CPU will always see the correct data after a DMA write, at the cost of a potential cache miss on first access. On other architectures (notably some ARM implementations), DMA coherence is not guaranteed, and explicit cache maintenance operations may be required.</p>
+<p>For RDMA, cache coherence matters because:</p>
+<ul>
+<li><strong>Receive completions</strong>: When the NIC writes data into an application’s receive buffer via RDMA, the application must be able to read the correct data immediately upon being notified of the completion. Cache coherence ensures this on x86, but the first read will likely be a cache miss if the buffer was not recently accessed.</li>
+<li><strong>Send operations</strong>: When the application writes data to a buffer and then posts an RDMA send, the NIC must read the most recent data. On x86, the write will be visible in memory (or LLC) by the time the NIC accesses it, because the CPU’s store buffer drains before the doorbell write that triggers the NIC becomes visible on the bus.</li>
+</ul>
+<div class="admonition note">
+<div class="admonition-title">Note</div>
+
+Intel's Data Direct I/O (DDIO) technology routes inbound DMA writes to the Last Level Cache (LLC) rather than DRAM, reducing the latency of CPU access to newly-DMA'd data by avoiding a DRAM round trip (~60--80 ns). This is generally beneficial for networking, but can cause cache pollution under high receive rates. RDMA applications that process large volumes of data may need to account for DDIO's interaction with their cache working set. Some operators disable DDIO on specific PCIe devices or allocate receive buffers from non-cacheable memory regions to control this effect.
+</div>
+
+<h2 id="the-gap-that-rdma-fills"><a class="header" href="#the-gap-that-rdma-fills">The Gap That RDMA Fills</a></h2>
+<p>Conventional DMA, as used by standard NICs, eliminates the CPU from bulk data movement between the NIC and kernel memory. But two major sources of overhead remain:</p>
+<ol>
+<li>
+<p><strong>The kernel is in the control path</strong>: Every send and receive operation requires a system call, kernel protocol processing, and kernel-managed buffer allocation. The CPU is still doing thousands of instructions of work per message—just not the byte-by-byte data movement.</p>
+</li>
+<li>
+<p><strong>The application’s data must be copied</strong>: Even with DMA, the data takes an indirect route: app buffer → kernel buffer → NIC (on send) and NIC → kernel buffer → app buffer (on receive). The kernel buffer is an intermediary that exists because the kernel mediates all NIC access.</p>
+</li>
+</ol>
+<p>RDMA eliminates both of these by extending DMA’s reach. Instead of the NIC performing DMA to and from kernel buffers under kernel control, an RDMA NIC performs DMA to and from application buffers under application control. The kernel is involved only during setup—establishing what memory the NIC is allowed to access and what operations are permitted—and then steps out of the data path entirely.</p>
+<p>This is what the “Remote” in “Remote Direct Memory Access” means: the DMA is not just between a local NIC and local memory, but between a remote NIC and local memory, or between a local NIC and remote memory—all without kernel involvement on either end during the actual data transfer. The next section explains exactly how this works.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-1-foundations/ch01-why-rdma/socket-model.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-1-foundations/ch01-why-rdma/rdma-concept.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-1-foundations/ch01-why-rdma/socket-model.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-1-foundations/ch01-why-rdma/rdma-concept.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

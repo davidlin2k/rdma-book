@@ -1,0 +1,532 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Multi-Threaded RDMA - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="115-multi-threaded-rdma"><a class="header" href="#115-multi-threaded-rdma">11.5 Multi-Threaded RDMA</a></h1>
+<p>Modern RDMA NICs can deliver 200 Gbps or more of bandwidth and tens of millions of messages per second. Saturating this capacity from a single CPU core is often impossible – a single core simply cannot post work requests and process completions fast enough. Multi-threaded RDMA programming is therefore essential for achieving full hardware utilization.</p>
+<p>However, RDMA’s low-level nature means that thread safety is not automatic. The libibverbs API has specific thread safety guarantees and limitations that the programmer must understand. Getting multi-threaded RDMA wrong can result in data corruption, missed completions, or – more subtly – performance far below single-threaded levels due to lock contention.</p>
+<h2 id="thread-safety-in-libibverbs"><a class="header" href="#thread-safety-in-libibverbs">Thread Safety in libibverbs</a></h2>
+<p>The libibverbs library provides the following thread safety guarantees:</p>
+<h3 id="thread-safe-operations"><a class="header" href="#thread-safe-operations">Thread-Safe Operations</a></h3>
+<p>The following operations are safe to call concurrently from multiple threads without external synchronization:</p>
+<ul>
+<li>
+<p><strong><code>ibv_post_send()</code> on the same QP</strong>: Multiple threads can post send work requests to the same QP concurrently. The library serializes these internally (typically using a spinlock). This is guaranteed by the verbs specification.</p>
+</li>
+<li>
+<p><strong><code>ibv_post_recv()</code> on the same QP</strong>: Similarly, multiple threads can post receive work requests concurrently.</p>
+</li>
+<li>
+<p><strong><code>ibv_post_srq_recv()</code> on the same SRQ</strong>: Thread-safe for concurrent posts.</p>
+</li>
+<li>
+<p><strong>Operations on different objects</strong>: Any operations on different QPs, CQs, MRs, or PDs can proceed concurrently without any synchronization.</p>
+</li>
+</ul>
+<h3 id="non-thread-safe-operations"><a class="header" href="#non-thread-safe-operations">Non-Thread-Safe Operations</a></h3>
+<p>The following operations require external synchronization:</p>
+<ul>
+<li>
+<p><strong><code>ibv_poll_cq()</code> on the same CQ from multiple threads</strong>: This is NOT thread-safe. Two threads polling the same CQ concurrently can both see the same completion, leading to double processing. The application must serialize access to a CQ.</p>
+</li>
+<li>
+<p><strong><code>ibv_req_notify_cq()</code> on the same CQ</strong>: Not safe to call concurrently with <code>ibv_poll_cq()</code> on the same CQ.</p>
+</li>
+<li>
+<p><strong>Resource creation/destruction</strong>: Operations like <code>ibv_create_qp()</code>, <code>ibv_destroy_qp()</code>, <code>ibv_reg_mr()</code>, and <code>ibv_dereg_mr()</code> should not be called concurrently on related objects (e.g., creating a QP while destroying the PD it belongs to).</p>
+</li>
+</ul>
+<div class="warning">
+<p><strong>Critical</strong>: The most common multi-threading bug in RDMA applications is polling the same CQ from multiple threads. Even though <code>ibv_post_send()</code> is thread-safe for the same QP, the associated CQ is NOT safe for concurrent polling. Every CQ must have exactly one polling thread, or access must be serialized with a lock.</p>
+</div>
+
+<h2 id="pattern-1-cq-per-thread"><a class="header" href="#pattern-1-cq-per-thread">Pattern 1: CQ-Per-Thread</a></h2>
+<p>The simplest and highest-performance pattern assigns each thread its own completion queue. Multiple threads can share a QP (since <code>ibv_post_send()</code> is thread-safe), but each thread’s work requests generate completions on its private CQ.</p>
+<p>This requires creating separate send CQs per thread:</p>
+<pre><code class="language-c">#define NUM_THREADS 4
+
+struct thread_ctx {
+    struct ibv_cq *send_cq;    /* Private CQ for this thread */
+    struct ibv_qp *qp;         /* Shared QP (or per-thread) */
+    int thread_id;
+};
+
+/* Create a shared QP with per-thread send CQs is not directly
+   possible -- a QP has one send CQ. So this pattern requires
+   separate QPs if you want separate CQs. See Pattern 2. */
+</code></pre>
+<p>In practice, the CQ-per-thread pattern naturally leads to the QP-per-thread pattern (Pattern 2), because a QP is bound to a single send CQ at creation time.</p>
+<h2 id="pattern-2-qp-per-thread"><a class="header" href="#pattern-2-qp-per-thread">Pattern 2: QP-Per-Thread</a></h2>
+<p>The most practical high-performance pattern gives each thread its own QP and CQ. This eliminates all contention:</p>
+<pre><code class="language-c">struct thread_ctx {
+    struct ibv_cq *cq;         /* Private CQ */
+    struct ibv_qp *qp;         /* Private QP */
+    struct ibv_mr *mr;         /* Can be shared or private */
+    void *send_buf;
+    void *recv_buf;
+    int thread_id;
+};
+
+void *worker_thread(void *arg) {
+    struct thread_ctx *ctx = (struct thread_ctx *)arg;
+
+    while (running) {
+        /* Post sends -- no locking needed, private QP */
+        ibv_post_send(ctx-&gt;qp, &amp;send_wr, &amp;bad_wr);
+
+        /* Poll completions -- no locking needed, private CQ */
+        struct ibv_wc wc[16];
+        int n = ibv_poll_cq(ctx-&gt;cq, 16, wc);
+        for (int i = 0; i &lt; n; i++) {
+            handle_completion(&amp;wc[i]);
+        }
+    }
+    return NULL;
+}
+</code></pre>
+<p>This pattern provides the best performance because:</p>
+<ul>
+<li>No lock contention on <code>ibv_post_send()</code> (private QP).</li>
+<li>No lock contention on <code>ibv_poll_cq()</code> (private CQ).</li>
+<li>Each thread’s working set (QP context, CQ, buffers) is cache-local.</li>
+</ul>
+<p>The trade-off is resource consumption: each thread needs its own QP connected to the remote peer, which means more QP state in the NIC. For moderate thread counts (4-16 threads) on modern hardware, this is not a concern.</p>
+<h3 id="connection-setup-for-qp-per-thread"><a class="header" href="#connection-setup-for-qp-per-thread">Connection Setup for QP-Per-Thread</a></h3>
+<p>When using QP-per-thread with RC transport, each thread’s QP needs a separate connection to the remote peer. This can be done by:</p>
+<ol>
+<li>Establishing connections sequentially during initialization.</li>
+<li>Using RDMA_CM to manage multiple connections to the same peer.</li>
+<li>Having each thread connect independently.</li>
+</ol>
+<pre><code class="language-c">/* Initialize: create per-thread QPs and connect them all */
+for (int t = 0; t &lt; NUM_THREADS; t++) {
+    threads[t].cq = ibv_create_cq(dev_ctx, CQ_SIZE, NULL, NULL, 0);
+
+    struct ibv_qp_init_attr attr = {
+        .send_cq = threads[t].cq,
+        .recv_cq = threads[t].cq,
+        .qp_type = IBV_QPT_RC,
+        .cap = {
+            .max_send_wr = 128,
+            .max_recv_wr = 128,
+            .max_send_sge = 1,
+            .max_recv_sge = 1
+        }
+    };
+    threads[t].qp = ibv_create_qp(pd, &amp;attr);
+
+    /* Connect this QP to the remote peer's corresponding QP */
+    connect_qp(threads[t].qp, remote_qp_info[t]);
+}
+</code></pre>
+<h2 id="pattern-3-shared-qp-with-synchronization"><a class="header" href="#pattern-3-shared-qp-with-synchronization">Pattern 3: Shared QP with Synchronization</a></h2>
+<p>When the number of connections must be minimized (e.g., due to QP resource limits or connection setup costs), threads can share a QP with explicit synchronization:</p>
+<pre><code class="language-c">struct shared_qp_ctx {
+    struct ibv_qp *qp;
+    struct ibv_cq *cq;
+    pthread_spinlock_t cq_lock;  /* Protects CQ polling */
+    /* ibv_post_send is thread-safe, no lock needed for posting */
+};
+
+void *worker_thread(void *arg) {
+    struct shared_qp_ctx *ctx = (struct shared_qp_ctx *)arg;
+
+    while (running) {
+        /* Post sends -- thread-safe, no lock needed */
+        ibv_post_send(ctx-&gt;qp, &amp;send_wr, &amp;bad_wr);
+
+        /* Poll completions -- MUST lock */
+        struct ibv_wc wc[16];
+        pthread_spin_lock(&amp;ctx-&gt;cq_lock);
+        int n = ibv_poll_cq(ctx-&gt;cq, 16, wc);
+        pthread_spin_unlock(&amp;ctx-&gt;cq_lock);
+
+        for (int i = 0; i &lt; n; i++) {
+            handle_completion(&amp;wc[i]);
+        }
+    }
+    return NULL;
+}
+</code></pre>
+<p>This pattern has lower resource usage but introduces contention on the CQ lock. The contention can be mitigated by:</p>
+<ul>
+<li><strong>Batching</strong>: Each thread polls multiple completions while holding the lock, amortizing the lock overhead.</li>
+<li><strong>Dedicated completion thread</strong>: One thread is responsible for polling the CQ and dispatching completions to worker threads through lock-free queues.</li>
+</ul>
+<h3 id="dedicated-completion-thread"><a class="header" href="#dedicated-completion-thread">Dedicated Completion Thread</a></h3>
+<pre><code class="language-c">void *completion_thread(void *arg) {
+    struct shared_qp_ctx *ctx = (struct shared_qp_ctx *)arg;
+
+    while (running) {
+        struct ibv_wc wc[64];
+        int n = ibv_poll_cq(ctx-&gt;cq, 64, wc);
+
+        for (int i = 0; i &lt; n; i++) {
+            /* Route completion to the appropriate worker thread
+               based on wr_id encoding */
+            int thread_id = wc[i].wr_id &gt;&gt; 48;  /* Upper bits = thread */
+            enqueue_completion(&amp;worker_queues[thread_id], &amp;wc[i]);
+        }
+    }
+    return NULL;
+}
+</code></pre>
+<p>Encoding the thread ID in the upper bits of <code>wr_id</code> is a common trick that allows the completion thread to route completions without a lookup table.</p>
+<h2 id="lock-free-polling-patterns"><a class="header" href="#lock-free-polling-patterns">Lock-Free Polling Patterns</a></h2>
+<p>For the highest performance, avoid locks entirely by using atomic operations:</p>
+<pre><code class="language-c">/* Atomic CQ ownership: only one thread polls at a time */
+static atomic_flag cq_polling = ATOMIC_FLAG_INIT;
+
+void try_poll_cq(struct ibv_cq *cq) {
+    /* Try to acquire polling rights */
+    if (!atomic_flag_test_and_set(&amp;cq_polling)) {
+        /* We own the CQ -- poll it */
+        struct ibv_wc wc[64];
+        int n = ibv_poll_cq(cq, 64, wc);
+
+        atomic_flag_clear(&amp;cq_polling);
+
+        for (int i = 0; i &lt; n; i++) {
+            handle_completion(&amp;wc[i]);
+        }
+    }
+    /* If we didn't get the flag, skip -- another thread is polling */
+}
+</code></pre>
+<p>This pattern avoids blocking but means completions may be delayed if a thread cannot acquire polling rights. It works well when threads have other work to do between polls.</p>
+<h2 id="numa-aware-thread-placement"><a class="header" href="#numa-aware-thread-placement">NUMA-Aware Thread Placement</a></h2>
+<p>RDMA NICs are physically connected to a specific PCIe root complex, which is associated with a specific NUMA node. Threads that access the NIC from the local NUMA node avoid cross-socket memory accesses, which can save 100-200 nanoseconds per operation.</p>
+<h3 id="determining-nic-numa-affinity"><a class="header" href="#determining-nic-numa-affinity">Determining NIC NUMA Affinity</a></h3>
+<pre><code class="language-c">#include &lt;infiniband/verbs.h&gt;
+
+/* Query the NUMA node of the RDMA device */
+const char *dev_name = ibv_get_device_name(device);
+char path[256];
+snprintf(path, sizeof(path),
+         "/sys/class/infiniband/%s/device/numa_node", dev_name);
+
+FILE *f = fopen(path, "r");
+int numa_node;
+fscanf(f, "%d", &amp;numa_node);
+fclose(f);
+
+printf("Device %s is on NUMA node %d\n", dev_name, numa_node);
+</code></pre>
+<h3 id="pinning-threads-to-numa-local-cores"><a class="header" href="#pinning-threads-to-numa-local-cores">Pinning Threads to NUMA-Local Cores</a></h3>
+<pre><code class="language-c">#include &lt;sched.h&gt;
+#include &lt;numa.h&gt;
+
+void pin_thread_to_numa_node(int numa_node) {
+    struct bitmask *cpumask = numa_allocate_cpumask();
+    numa_node_to_cpus(numa_node, cpumask);
+
+    cpu_set_t cpuset;
+    CPU_ZERO(&amp;cpuset);
+
+    for (int i = 0; i &lt; numa_num_configured_cpus(); i++) {
+        if (numa_bitmask_isbitset(cpumask, i)) {
+            CPU_SET(i, &amp;cpuset);
+        }
+    }
+
+    pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &amp;cpuset);
+    numa_free_cpumask(cpumask);
+}
+</code></pre>
+<h3 id="numa-aware-memory-allocation"><a class="header" href="#numa-aware-memory-allocation">NUMA-Aware Memory Allocation</a></h3>
+<p>Equally important is allocating RDMA buffers on the correct NUMA node:</p>
+<pre><code class="language-c">#include &lt;numaif.h&gt;
+
+/* Allocate memory on the same NUMA node as the NIC */
+void *buf = numa_alloc_onnode(BUF_SIZE, nic_numa_node);
+struct ibv_mr *mr = ibv_reg_mr(pd, buf, BUF_SIZE,
+    IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_WRITE);
+</code></pre>
+<p>Cross-NUMA memory access for RDMA buffers is particularly expensive because every DMA transaction crosses the inter-socket link.</p>
+<div class="tip">
+<p><strong>Tip</strong>: On systems with two NUMA nodes and two NICs, the ideal configuration is to assign each NIC to threads running on its local NUMA node, with all RDMA buffers allocated on that node. This eliminates all cross-NUMA traffic for RDMA operations.</p>
+</div>
+
+<h2 id="best-practices-summary"><a class="header" href="#best-practices-summary">Best Practices Summary</a></h2>
+<ol>
+<li>
+<p><strong>Default to QP-per-thread</strong>: Unless resource constraints prevent it, give each thread its own QP and CQ. This eliminates all contention.</p>
+</li>
+<li>
+<p><strong>Never share a CQ without synchronization</strong>: This is the most common source of bugs. If you must share, use a spinlock or a dedicated completion thread.</p>
+</li>
+<li>
+<p><strong>Pin threads to NUMA-local cores</strong>: Determine which NUMA node the NIC is on and pin worker threads to cores on that node.</p>
+</li>
+<li>
+<p><strong>Allocate buffers NUMA-locally</strong>: Use <code>numa_alloc_onnode()</code> or equivalent to place RDMA buffers near the NIC.</p>
+</li>
+<li>
+<p><strong>Encode thread identity in wr_id</strong>: When threads share a CQ, encode the thread ID in <code>wr_id</code> so completions can be routed efficiently.</p>
+</li>
+<li>
+<p><strong>Avoid false sharing</strong>: Ensure per-thread data structures are on separate cache lines (64 bytes on x86). Use <code>__attribute__((aligned(64)))</code> or padding.</p>
+</li>
+</ol>
+<pre><code class="language-c">struct __attribute__((aligned(64))) thread_ctx {
+    struct ibv_cq *cq;
+    struct ibv_qp *qp;
+    uint64_t sends_posted;
+    uint64_t completions;
+    char _pad[0];  /* Ensure next thread_ctx starts on new cache line */
+};
+</code></pre>
+<ol start="7">
+<li><strong>Scale threads to match NIC capacity</strong>: Profile to find the sweet spot. More threads than needed adds context-switch overhead without increasing throughput. Typically, 4-8 threads can saturate a 200 Gbps NIC for large messages, while small-message workloads may need more.</li>
+</ol>
+<p>Multi-threaded RDMA programming requires careful attention to resource partitioning, synchronization, and hardware topology. The QP-per-thread pattern with NUMA-aware placement provides the best performance-to-complexity ratio and is the recommended starting point for high-performance applications.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-3-programming/ch11-advanced-programming/inline-data.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-3-programming/ch11-advanced-programming/zero-copy-patterns.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-3-programming/ch11-advanced-programming/inline-data.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-3-programming/ch11-advanced-programming/zero-copy-patterns.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

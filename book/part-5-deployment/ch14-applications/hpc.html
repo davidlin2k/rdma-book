@@ -1,0 +1,430 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>High-Performance Computing: MPI and UCX - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="142-high-performance-computing-mpi-and-ucx"><a class="header" href="#142-high-performance-computing-mpi-and-ucx">14.2 High-Performance Computing: MPI and UCX</a></h1>
+<p>High-performance computing was the original proving ground for RDMA technology. Long before RDMA found its way into cloud data centers and machine learning clusters, HPC applications running on supercomputers relied on InfiniBand and RDMA to achieve the inter-node communication performance demanded by large-scale scientific simulations. Today, the HPC communication stack has matured into a sophisticated layered architecture, with the Message Passing Interface (MPI) at the top, hardware-abstraction libraries like UCX in the middle, and RDMA verbs at the bottom.</p>
+<h2 id="mpi-the-standard-hpc-communication-api"><a class="header" href="#mpi-the-standard-hpc-communication-api">MPI: The Standard HPC Communication API</a></h2>
+<p>The Message Passing Interface (MPI) is the dominant programming model for distributed-memory parallel computing. An MPI application consists of multiple processes, each with its own address space, that communicate by explicitly sending and receiving messages. The MPI standard defines a rich set of communication primitives – point-to-point operations like <code>MPI_Send</code> and <code>MPI_Recv</code>, collective operations like <code>MPI_Allreduce</code> and <code>MPI_Bcast</code>, and one-sided operations like <code>MPI_Put</code> and <code>MPI_Get</code> – that map naturally onto RDMA capabilities.</p>
+<h3 id="mpi-over-rdma"><a class="header" href="#mpi-over-rdma">MPI over RDMA</a></h3>
+<p>Modern MPI implementations use RDMA verbs to implement message passing with minimal overhead. The mapping from MPI semantics to RDMA operations depends on the message size and communication pattern:</p>
+<p><strong>Eager protocol</strong> (small messages, typically &lt; 8-16 KB):</p>
+<ol>
+<li>The sender copies the message data into a pre-registered eager buffer.</li>
+<li>The sender issues an RDMA Send (or RDMA Write with Immediate) to transfer the data to a pre-posted receive buffer on the receiver.</li>
+<li>The receiver processes the completion and copies data to the application buffer.</li>
+</ol>
+<p>This protocol is optimized for latency: the sender does not wait for the receiver to be ready.</p>
+<p><strong>Rendezvous protocol</strong> (large messages, typically &gt; 16 KB):</p>
+<ol>
+<li>The sender sends a small control message (via RDMA Send) containing the message metadata and the remote memory key (rkey) of the send buffer.</li>
+<li>The receiver registers its receive buffer (if not already registered) and sends back an acknowledgment with its own rkey.</li>
+<li>The sender (or receiver, depending on the implementation) performs an RDMA Read or RDMA Write to transfer the data directly between application buffers – zero-copy.</li>
+<li>A final acknowledgment signals completion.</li>
+</ol>
+<p>This protocol avoids the copy into eager buffers, which is critical for large messages where bandwidth, not latency, is the primary concern.</p>
+<pre><code>Eager Protocol (small messages):          Rendezvous Protocol (large messages):
+
+Sender          Receiver                  Sender          Receiver
+  │                │                        │                │
+  │  RDMA Send     │                        │  RTS (Send)    │
+  │  (data inline) │                        │  (rkey, addr)  │
+  ├───────────────►│                        ├───────────────►│
+  │                │                        │                │
+  │                │ copy to                │  CTS (Send)    │
+  │                │ app buffer             │  (rkey, addr)  │
+  │                │                        │◄───────────────┤
+  │                │                        │                │
+                                            │  RDMA Write    │
+                                            │  (zero-copy)   │
+                                            ├───────────────►│
+                                            │                │
+                                            │  FIN (Send)    │
+                                            ├───────────────►│
+</code></pre>
+<h3 id="major-mpi-implementations"><a class="header" href="#major-mpi-implementations">Major MPI Implementations</a></h3>
+<p><strong>Open MPI</strong> uses a modular architecture with pluggable communication frameworks. The <strong>BTL (Byte Transfer Layer)</strong> and <strong>PML (Point-to-point Messaging Layer)</strong> components handle RDMA transport. Open MPI can use UCX (described below) as its primary communication backend, which provides optimized RDMA support.</p>
+<pre><code class="language-bash"># Build Open MPI with UCX support
+./configure --with-ucx=/usr/local/ucx
+make -j$(nproc) &amp;&amp; make install
+
+# Run an MPI application over RDMA
+mpirun -np 64 --hostfile hosts.txt \
+    --mca pml ucx --mca btl ^vader,tcp,openib \
+    ./my_application
+</code></pre>
+<p><strong>MVAPICH2</strong> is specifically designed for InfiniBand and RDMA networks. Developed at Ohio State University, it includes extensive optimizations for RDMA communication, including adaptive rendezvous thresholds, RDMA-based collectives, and GPUDirect support.</p>
+<pre><code class="language-bash"># Run with MVAPICH2 (RDMA is the default transport)
+mpirun -np 64 -hostfile hosts.txt \
+    MV2_USE_RDMA_CM=1 \
+    MV2_IBA_HCA=mlx5_0 \
+    ./my_application
+</code></pre>
+<p><strong>Intel MPI</strong> provides optimized RDMA support for both InfiniBand and RoCE networks, with automatic transport selection and tuning based on the detected network hardware.</p>
+<div class="note">
+<p>The choice of MPI implementation matters significantly for RDMA performance. MVAPICH2 typically achieves the lowest latency on InfiniBand networks due to its deep integration with RDMA verbs. Open MPI with UCX provides excellent performance with broader hardware support. Intel MPI offers the best integration with Intel architectures and tools. Benchmark your specific workload with each implementation before committing to one.</p>
+</div>
+
+<h3 id="mpi-latency-benchmarks"><a class="header" href="#mpi-latency-benchmarks">MPI Latency Benchmarks</a></h3>
+<p>With modern hardware (ConnectX-7 HCA, HDR InfiniBand), MPI point-to-point latencies are remarkably low:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Message Size</th><th>MPI Latency (RDMA)</th><th>MPI Latency (TCP)</th></tr>
+</thead>
+<tbody>
+<tr><td>0 bytes</td><td>~0.6 μs</td><td>~3.5 μs</td></tr>
+<tr><td>4 bytes</td><td>~0.7 μs</td><td>~3.6 μs</td></tr>
+<tr><td>256 bytes</td><td>~0.9 μs</td><td>~4.0 μs</td></tr>
+<tr><td>4 KB</td><td>~1.5 μs</td><td>~6.5 μs</td></tr>
+<tr><td>64 KB</td><td>~6.0 μs</td><td>~35 μs</td></tr>
+<tr><td>1 MB</td><td>~55 μs</td><td>~350 μs</td></tr>
+</tbody>
+</table>
+</div>
+<p>These benchmarks are typically measured using the OSU Micro-Benchmarks suite:</p>
+<pre><code class="language-bash"># Run latency benchmark
+mpirun -np 2 -hostfile hosts.txt ./osu_latency
+# Run bandwidth benchmark
+mpirun -np 2 -hostfile hosts.txt ./osu_bw
+# Run allreduce benchmark
+mpirun -np 64 -hostfile hosts.txt ./osu_allreduce
+</code></pre>
+<h2 id="ucx-unified-communication-x"><a class="header" href="#ucx-unified-communication-x">UCX: Unified Communication X</a></h2>
+<p>UCX is an open-source communication framework that provides a high-performance, portable abstraction over diverse network transports, including RDMA verbs, shared memory, TCP, and GPU interconnects. It has become the de facto communication backend for Open MPI, OpenSHMEM, and numerous other parallel programming frameworks.</p>
+<h3 id="architecture"><a class="header" href="#architecture">Architecture</a></h3>
+<p>UCX is organized into three layers:</p>
+<pre><code>┌─────────────────────────────────────────────┐
+│              UCP (Protocols)                 │
+│  Tag matching, RMA, Atomic, Streams, AM     │
+├─────────────────────────────────────────────┤
+│              UCT (Transports)               │
+│  RC verbs, DC, UD, shared memory, TCP, ...  │
+├─────────────────────────────────────────────┤
+│              UCS (Services)                 │
+│  Memory management, async, data structures  │
+└─────────────────────────────────────────────┘
+</code></pre>
+<ul>
+<li><strong>UCS (Unified Communication Services)</strong>: Utility layer providing memory management, data structures, debugging facilities, and platform abstraction.</li>
+<li><strong>UCT (Unified Communication Transport)</strong>: Transport layer that provides a low-level API for each network transport. Each transport (e.g., <code>rc_verbs</code>, <code>rc_mlx5</code>, <code>dc_mlx5</code>, <code>ud_verbs</code>, <code>sm/shm</code>) implements the UCT interface. The <code>rc_mlx5</code> transport bypasses the kernel verbs layer and programs the Mellanox/NVIDIA NIC directly through memory-mapped I/O, achieving even lower latency than standard verbs.</li>
+<li><strong>UCP (Unified Communication Protocols)</strong>: Protocol layer that implements high-level communication semantics (tag matching, RMA, atomics, active messages, stream) on top of UCT transports.</li>
+</ul>
+<h3 id="transport-selection"><a class="header" href="#transport-selection">Transport Selection</a></h3>
+<p>One of UCX’s most powerful features is its ability to <strong>automatically select the optimal transport and protocol</strong> based on the available hardware, message size, and communication pattern. When a UCX endpoint is created, the library queries the available network devices, evaluates their capabilities and performance characteristics, and constructs a communication plan that may use different transports for different message sizes.</p>
+<p>For example, UCX might select:</p>
+<ul>
+<li><strong>Shared memory</strong> for intra-node communication</li>
+<li><strong>RC (Reliable Connected)</strong> transport for small inter-node messages</li>
+<li><strong>DC (Dynamically Connected)</strong> transport for large-scale jobs where the number of QPs would be prohibitive</li>
+<li><strong>Rendezvous with RDMA Read</strong> for large messages</li>
+</ul>
+<pre><code class="language-bash"># Query available UCX transports
+ucx_info -d
+
+# Run UCX performance benchmark
+ucx_perftest -t tag_lat   # Tag matching latency
+ucx_perftest -t tag_bw    # Tag matching bandwidth
+ucx_perftest -t put_lat   # RMA put latency
+</code></pre>
+<h3 id="active-messages"><a class="header" href="#active-messages">Active Messages</a></h3>
+<p>UCX Active Messages allow the sender to specify a handler function that the receiver will execute upon message arrival. This is more flexible than simple tag matching and enables complex communication patterns such as remote procedure calls and dynamic load balancing.</p>
+<h3 id="tag-matching-offload"><a class="header" href="#tag-matching-offload">Tag Matching Offload</a></h3>
+<p>Modern RDMA NICs (ConnectX-5 and later) support <strong>hardware tag matching</strong>, where the NIC itself matches incoming messages to pre-posted receive buffers based on MPI-style tags. UCX leverages this offload to further reduce CPU overhead for MPI tag-matching operations, allowing message reception to proceed without any CPU involvement until the completion is signaled.</p>
+<div class="tip">
+<p>To verify that tag matching offload is active, check the UCX log output for the <code>tag_offload</code> transport. Set <code>UCX_LOG_LEVEL=info</code> and look for messages indicating that the tag matching offload has been enabled. This can reduce MPI receive overhead by 30-50% for latency-sensitive workloads.</p>
+</div>
+
+<h2 id="nccl-nvidia-collective-communications-library"><a class="header" href="#nccl-nvidia-collective-communications-library">NCCL: NVIDIA Collective Communications Library</a></h2>
+<p>NCCL (pronounced “Nickel”) is NVIDIA’s library for multi-GPU and multi-node collective communication operations. While NCCL is most commonly associated with machine learning (discussed further in Section 14.5), it is a critical component of the HPC communication stack for GPU-accelerated workloads.</p>
+<h3 id="gpu-to-gpu-communication-over-rdma"><a class="header" href="#gpu-to-gpu-communication-over-rdma">GPU-to-GPU Communication over RDMA</a></h3>
+<p>NCCL leverages <strong>GPUDirect RDMA</strong> to transfer data directly between GPU memory on different nodes without staging through host memory. The communication path is:</p>
+<pre><code>GPU Memory (Node A) → PCIe → RDMA NIC → Network → RDMA NIC → PCIe → GPU Memory (Node B)
+</code></pre>
+<p>This eliminates the two extra copies (GPU→Host and Host→GPU) that would otherwise be required, reducing latency and freeing host memory bandwidth for other operations.</p>
+<h3 id="collective-algorithms"><a class="header" href="#collective-algorithms">Collective Algorithms</a></h3>
+<p>NCCL implements highly optimized collective operations:</p>
+<ul>
+<li><strong>Ring AllReduce</strong>: Each GPU sends and receives data from its neighbors in a ring topology. Requires 2(N-1)/N data transfers (where N is the number of GPUs), achieving near-optimal bandwidth utilization.</li>
+<li><strong>Tree AllReduce</strong>: Uses a binary tree topology to reduce latency for small messages at the cost of lower bandwidth utilization. NCCL dynamically selects between ring and tree based on message size.</li>
+<li><strong>Recursive Halving-Doubling</strong>: Used for power-of-two process counts, providing a good balance between latency and bandwidth.</li>
+</ul>
+<pre><code class="language-bash"># NCCL environment variables for RDMA
+export NCCL_IB_HCA=mlx5_0:1        # Select RDMA device and port
+export NCCL_IB_GID_INDEX=3          # RoCEv2 GID index
+export NCCL_NET_GDR_LEVEL=5         # Enable GPUDirect RDMA
+export NCCL_IB_QPS_PER_CONNECTION=4 # QPs per connection
+
+# Run NCCL test
+mpirun -np 8 --hostfile hosts.txt ./all_reduce_perf -b 8 -e 256M -f 2 -g 1
+</code></pre>
+<h3 id="performance-characteristics"><a class="header" href="#performance-characteristics">Performance Characteristics</a></h3>
+<p>On a modern GPU cluster (8x A100/H100 per node, HDR/NDR InfiniBand), NCCL achieves:</p>
+<ul>
+<li><strong>Intra-node AllReduce</strong>: 300-600 GB/s aggregate bandwidth using NVLink/NVSwitch</li>
+<li><strong>Inter-node AllReduce</strong>: 20-24 GB/s per GPU using HDR InfiniBand (200 Gbps), 40-48 GB/s with NDR (400 Gbps)</li>
+<li><strong>Latency overhead</strong>: ~5-10 μs per step in the ring algorithm</li>
+</ul>
+<div class="warning">
+<p>NCCL performance is extremely sensitive to network topology. Ensure that GPU-to-NIC affinity is correct: each GPU should communicate primarily through the RDMA NIC connected to the same PCIe switch or NUMA node. Use <code>nvidia-smi topo -m</code> to inspect the topology and <code>NCCL_TOPO_DUMP_FILE</code> to export the detected topology for debugging. Incorrect affinity can reduce bandwidth by 50% or more due to cross-NUMA PCIe traffic.</p>
+</div>
+
+<h2 id="putting-it-all-together"><a class="header" href="#putting-it-all-together">Putting It All Together</a></h2>
+<p>The HPC communication stack forms a layered hierarchy where each layer adds value:</p>
+<ol>
+<li><strong>Application</strong> uses MPI (or NCCL for GPU workloads) for portable, high-level communication.</li>
+<li><strong>MPI</strong> delegates to <strong>UCX</strong> for transport-agnostic communication with automatic protocol selection.</li>
+<li><strong>UCX</strong> uses <strong>RDMA verbs</strong> (or direct hardware access via <code>mlx5</code> transport) for the actual data transfer.</li>
+<li>The <strong>RDMA NIC</strong> performs DMA between host/GPU memory and the network fabric.</li>
+</ol>
+<p>This layered design allows application developers to write portable code while still achieving near-hardware-level performance. The key to optimal performance in HPC is understanding the interactions between these layers – selecting the right eager/rendezvous threshold, ensuring correct NUMA affinity, and matching the number of communication channels to the available network bandwidth.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-5-deployment/ch14-applications/storage.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-5-deployment/ch14-applications/databases.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-5-deployment/ch14-applications/storage.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-5-deployment/ch14-applications/databases.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

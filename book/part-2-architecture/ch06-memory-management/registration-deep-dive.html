@@ -1,0 +1,448 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Memory Registration Deep Dive - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="61-memory-registration-deep-dive"><a class="header" href="#61-memory-registration-deep-dive">6.1 Memory Registration Deep Dive</a></h1>
+<p>Memory registration is the process by which an application declares a region of its address space to the RDMA hardware, transforming an ordinary virtual memory buffer into something that a NIC can directly read from and write to via DMA. It is one of the most frequently called verbs operations, and one of the most expensive. Understanding exactly what happens inside <code>ibv_reg_mr()</code> – and how to manage its cost – is essential knowledge for any RDMA developer.</p>
+<h2 id="the-registration-api"><a class="header" href="#the-registration-api">The Registration API</a></h2>
+<p>At the verbs API level, memory registration is straightforward:</p>
+<pre><code class="language-c">struct ibv_mr *ibv_reg_mr(struct ibv_pd *pd, void *addr,
+                          size_t length, int access_flags);
+</code></pre>
+<p>The application provides a Protection Domain, a virtual address and length, and a set of access flags. The function returns a pointer to an <code>ibv_mr</code> structure containing, among other fields, the <strong>L_Key</strong> (Local Key) and <strong>R_Key</strong> (Remote Key) that the application will use in subsequent work requests. The L_Key is used in scatter/gather entries for local operations; the R_Key is communicated to remote peers to authorize RDMA Read and Write access.</p>
+<p>But this simple API surface conceals a multi-layered process that spans user space, the kernel, and the NIC hardware itself. Let us trace each step.</p>
+<h2 id="step-by-step-what-ibv_reg_mr-actually-does"><a class="header" href="#step-by-step-what-ibv_reg_mr-actually-does">Step-by-Step: What ibv_reg_mr() Actually Does</a></h2>
+<pre class="mermaid">sequenceDiagram
+    participant App as Application
+    participant ULib as User-space Library&lt;br/&gt;(libibverbs + provider)
+    participant Kernel as Kernel&lt;br/&gt;(ib_uverbs + HCA driver)
+    participant HCA as NIC Hardware
+
+    App-&gt;&gt;ULib: ibv_reg_mr(pd, addr, len, flags)
+    ULib-&gt;&gt;Kernel: ioctl(REG_MR) via uverbs
+    Note over Kernel: 1. Validate parameters
+    Note over Kernel: 2. get_user_pages_fast()&lt;br/&gt;Pin pages in RAM
+    Note over Kernel: 3. dma_map_page() for&lt;br/&gt;each pinned page
+    Kernel-&gt;&gt;HCA: Program MTT entries&lt;br/&gt;(VA → DMA addr mappings)
+    HCA--&gt;&gt;Kernel: MTT index, keys
+    Note over Kernel: 4. Allocate L_Key, R_Key
+    Kernel--&gt;&gt;ULib: MR handle, L_Key, R_Key
+    ULib--&gt;&gt;App: struct ibv_mr *mr
+</pre>
+
+<h3 id="step-1-user-space-library-processing"><a class="header" href="#step-1-user-space-library-processing">Step 1: User-Space Library Processing</a></h3>
+<p>When your application calls <code>ibv_reg_mr()</code>, it first enters the libibverbs user-space library. This library identifies the correct provider (the vendor-specific driver, such as <code>mlx5</code> for NVIDIA/Mellanox hardware) and prepares the registration request. In modern rdma-core implementations, the library constructs a command buffer and issues a <code>write()</code> or <code>ioctl()</code> system call to the <code>/dev/infiniband/uverbsN</code> character device. This is one of the few moments in an RDMA application’s hot path where a system call occurs – and it is precisely why registration is expensive.</p>
+<h3 id="step-2-kernel-validation-and-page-pinning"><a class="header" href="#step-2-kernel-validation-and-page-pinning">Step 2: Kernel Validation and Page Pinning</a></h3>
+<p>The kernel’s <code>ib_uverbs</code> module receives the request and performs validation: checking that the Protection Domain is valid, that the access flags are legal, and that the requested memory range is within the process’s address space. It then calls <code>get_user_pages_fast()</code> (or its variant <code>pin_user_pages()</code> in newer kernels) to <strong>pin</strong> every physical page backing the virtual address range.</p>
+<p>Pinning is the critical operation. It does two things:</p>
+<ol>
+<li>
+<p><strong>Faults in all pages</strong>: If any pages in the range are not yet backed by physical memory (e.g., because the application used <code>malloc()</code> and hasn’t touched the pages yet), the kernel allocates physical frames and establishes the page table mappings.</p>
+</li>
+<li>
+<p><strong>Prevents reclamation</strong>: The kernel increments a reference count on each page, ensuring that the page cannot be swapped out, migrated, or reclaimed by the memory management subsystem for the duration of the registration.</p>
+</li>
+</ol>
+<p>For a 1 GB buffer with 4 KB pages, this means pinning 262,144 individual pages – a non-trivial operation.</p>
+<h3 id="step-3-dma-mapping"><a class="header" href="#step-3-dma-mapping">Step 3: DMA Mapping</a></h3>
+<p>With the pages pinned, the kernel creates DMA mappings by calling <code>dma_map_page()</code> (or <code>dma_map_sg()</code> for scatter/gather lists) for each page. This step translates kernel physical addresses into bus addresses that the NIC’s DMA engine can use. On systems with an IOMMU (Intel VT-d, AMD-Vi), this step programs the IOMMU page tables, adding another layer of address translation. On systems without an IOMMU, bus addresses typically equal physical addresses and this step is lightweight.</p>
+<h3 id="step-4-programming-the-hca-page-tables-mtt"><a class="header" href="#step-4-programming-the-hca-page-tables-mtt">Step 4: Programming the HCA Page Tables (MTT)</a></h3>
+<p>The kernel’s HCA driver now programs the NIC’s internal <strong>Memory Translation Table (MTT)</strong>. The MTT is a hardware data structure inside the NIC that maps virtual addresses (or IO virtual addresses) to DMA/bus addresses. Each entry in the MTT corresponds to a page of registered memory. The NIC uses this table on every RDMA operation to translate the virtual address in a work request into the physical address needed for DMA.</p>
+<p>The driver also allocates a <strong>Memory Region context</strong> in the HCA, which stores metadata including the base address, length, access permissions, and the L_Key and R_Key values. These keys are indices (with a validity suffix) into the HCA’s internal MR table.</p>
+<h3 id="step-5-return-to-user-space"><a class="header" href="#step-5-return-to-user-space">Step 5: Return to User Space</a></h3>
+<p>The kernel returns the MR handle, L_Key, and R_Key to the user-space library, which populates the <code>ibv_mr</code> structure and returns it to the application. The application can now use <code>mr-&gt;lkey</code> in scatter/gather entries and communicate <code>mr-&gt;rkey</code> to remote peers.</p>
+<h2 id="cost-analysis"><a class="header" href="#cost-analysis">Cost Analysis</a></h2>
+<p>Memory registration is expensive relative to other RDMA operations. While an RDMA Write can complete in 1-2 microseconds, registering a memory region takes significantly longer:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Buffer Size</th><th>Approximate Registration Time</th></tr>
+</thead>
+<tbody>
+<tr><td>4 KB (1 page)</td><td>5-10 us</td></tr>
+<tr><td>64 KB</td><td>10-20 us</td></tr>
+<tr><td>1 MB</td><td>30-80 us</td></tr>
+<tr><td>1 GB</td><td>5-50 ms</td></tr>
+<tr><td>16 GB</td><td>50-500 ms</td></tr>
+</tbody>
+</table>
+</div>
+<p>These numbers vary substantially by hardware, kernel version, IOMMU configuration, and system load. The cost has three major components:</p>
+<ol>
+<li><strong>System call overhead</strong>: The transition to kernel mode and back costs 1-2 us minimum.</li>
+<li><strong>Page pinning</strong>: <code>get_user_pages_fast()</code> must walk page tables and potentially fault in pages. This scales linearly with the number of pages.</li>
+<li><strong>HCA programming</strong>: Writing MTT entries to the NIC involves PCIe transactions. Some NICs support bulk MTT writes; others require per-entry programming.</li>
+</ol>
+<div class="warning">
+<p><strong>Warning</strong>: Never call <code>ibv_reg_mr()</code> in a latency-sensitive path. A single registration of a large buffer can stall your application for milliseconds. Pre-register all buffers during initialization, or use a registration cache.</p>
+</div>
+
+<h2 id="access-flags"><a class="header" href="#access-flags">Access Flags</a></h2>
+<p>The <code>access_flags</code> parameter controls what operations are permitted on the registered region:</p>
+<pre><code class="language-c">enum ibv_access_flags {
+    IBV_ACCESS_LOCAL_WRITE   = 1,       /* Allow local writes (receives, local RDMA) */
+    IBV_ACCESS_REMOTE_WRITE  = (1 &lt;&lt; 1), /* Allow remote RDMA Write */
+    IBV_ACCESS_REMOTE_READ   = (1 &lt;&lt; 2), /* Allow remote RDMA Read */
+    IBV_ACCESS_REMOTE_ATOMIC = (1 &lt;&lt; 3), /* Allow remote atomic operations */
+    IBV_ACCESS_MW_BIND       = (1 &lt;&lt; 4), /* Allow Memory Window binding */
+    IBV_ACCESS_ZERO_BASED    = (1 &lt;&lt; 5), /* Use zero-based addressing */
+    IBV_ACCESS_ON_DEMAND     = (1 &lt;&lt; 6), /* On-Demand Paging (see Section 6.5) */
+    IBV_ACCESS_HUGETLB       = (1 &lt;&lt; 7), /* Region is backed by huge pages */
+    IBV_ACCESS_RELAXED_ORDERING = (1 &lt;&lt; 20), /* Allow relaxed PCIe ordering */
+};
+</code></pre>
+<p>A few critical rules:</p>
+<ul>
+<li><strong><code>IBV_ACCESS_LOCAL_WRITE</code> is required if the NIC will write to the buffer</strong>: This includes receive buffers, RDMA Write targets, and atomic targets. If you forget this flag on a receive buffer, the NIC will fail the operation with a protection error.</li>
+<li><strong>Remote access flags require <code>IBV_ACCESS_LOCAL_WRITE</code></strong>: You cannot grant remote write or atomic access without also allowing local writes.</li>
+<li><strong><code>IBV_ACCESS_REMOTE_READ</code> requires explicit opt-in</strong>: By default, a registered MR is not remotely readable. The application must consciously grant this access.</li>
+<li><strong><code>IBV_ACCESS_RELAXED_ORDERING</code></strong> tells the NIC it may reorder PCIe transactions for higher throughput, at the cost of weaker ordering guarantees. This is useful for large bulk transfers where order does not matter.</li>
+</ul>
+<div class="note">
+<p><strong>Note</strong>: The principle of least privilege applies to RDMA access flags. Only grant the minimum access required. Granting <code>IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_READ</code> to a buffer that will only be used for sends creates an unnecessary attack surface.</p>
+</div>
+
+<h2 id="registration-caching-strategies"><a class="header" href="#registration-caching-strategies">Registration Caching Strategies</a></h2>
+<p>Because registration is expensive, production RDMA applications rarely register and deregister buffers on every operation. Instead, they employ one or more strategies to amortize the cost.</p>
+<h3 id="pre-registration"><a class="header" href="#pre-registration">Pre-Registration</a></h3>
+<p>The simplest strategy: allocate all buffers at startup, register them once, and reuse them for the lifetime of the application. This works well for applications with predictable, static memory usage patterns – for example, a key-value store with a fixed-size slab allocator.</p>
+<pre><code class="language-c">/* During initialization */
+void *buf = malloc(BUFFER_POOL_SIZE);
+struct ibv_mr *mr = ibv_reg_mr(pd, buf, BUFFER_POOL_SIZE,
+                                IBV_ACCESS_LOCAL_WRITE |
+                                IBV_ACCESS_REMOTE_WRITE |
+                                IBV_ACCESS_REMOTE_READ);
+/* Use buf + offsets for all RDMA operations */
+</code></pre>
+<p>The disadvantage is inflexibility: the application must know its maximum memory usage at startup and cannot dynamically grow its registered memory.</p>
+<h3 id="mr-cache-registration-cache"><a class="header" href="#mr-cache-registration-cache">MR Cache (Registration Cache)</a></h3>
+<p>A registration cache maintains a mapping from (virtual address, length) to MR handles. When the application needs to register a buffer, it first checks the cache. If the buffer (or a superset of it) is already registered, the cached MR is returned immediately. If not, a new registration is performed and cached for future use.</p>
+<p>This pattern is widely used in middleware such as MPI implementations (Open MPI, MVAPICH2) and UCX, where the middleware has no control over which buffers the application passes to communication routines.</p>
+<pre><code class="language-c">struct ibv_mr *get_or_register(struct mr_cache *cache,
+                                struct ibv_pd *pd,
+                                void *addr, size_t len, int flags) {
+    struct ibv_mr *mr = mr_cache_lookup(cache, addr, len);
+    if (mr) return mr;
+
+    mr = ibv_reg_mr(pd, addr, len, flags);
+    if (mr) mr_cache_insert(cache, addr, len, mr);
+    return mr;
+}
+</code></pre>
+<div class="warning">
+<p><strong>Warning</strong>: Registration caches must handle memory deallocation carefully. If the application frees a buffer and reallocates new memory at the same virtual address, the cached registration points to stale physical pages. MPI implementations use mechanisms like <code>munmap</code> interposition (via <code>LD_PRELOAD</code>) or <code>userfaultfd</code> to detect when registered memory is freed.</p>
+</div>
+
+<h3 id="lazy-deregistration"><a class="header" href="#lazy-deregistration">Lazy Deregistration</a></h3>
+<p>Rather than deregistering MRs immediately when they are no longer needed, lazy deregistration defers the <code>ibv_dereg_mr()</code> call. The MR is placed in a free list and reused if a future registration request matches the same memory region. Deregistration only occurs when the free list exceeds a configured size or when memory pressure demands it.</p>
+<h3 id="mr-pools"><a class="header" href="#mr-pools">MR Pools</a></h3>
+<p>An MR pool pre-allocates a large contiguous region and manages sub-allocations within it:</p>
+<pre><code class="language-c">struct mr_pool {
+    void *base;
+    size_t total_size;
+    struct ibv_mr *mr;       /* Single registration covers entire pool */
+    /* Free-list or bitmap for sub-allocation */
+};
+
+void *mr_pool_alloc(struct mr_pool *pool, size_t size) {
+    /* Return pointer within the pre-registered region */
+    /* The caller can use pool-&gt;mr-&gt;lkey for all allocations */
+}
+</code></pre>
+<p>This approach is extremely efficient: a single registration covers the entire pool, and individual allocations require no registration at all. The trade-off is that the application must use the pool’s allocator rather than <code>malloc()</code>, and the total pool size must be determined in advance.</p>
+<h2 id="deregistration-ibv_dereg_mr"><a class="header" href="#deregistration-ibv_dereg_mr">Deregistration: ibv_dereg_mr()</a></h2>
+<p>Deregistration reverses the registration process:</p>
+<pre><code class="language-c">int ibv_dereg_mr(struct ibv_mr *mr);
+</code></pre>
+<p>Internally, the kernel:</p>
+<ol>
+<li>Removes the MTT entries from the HCA.</li>
+<li>Invalidates the L_Key and R_Key.</li>
+<li>Calls <code>dma_unmap_page()</code> for each page.</li>
+<li>Calls <code>unpin_user_pages()</code> (or <code>put_user_pages()</code>) to release the pin on each physical page.</li>
+</ol>
+<div class="warning">
+<p><strong>Warning</strong>: You must ensure that no RDMA operations are in flight on the MR when you deregister it. If the NIC attempts to DMA to/from a deregistered MR, the behavior is undefined – it may silently corrupt memory, generate a fatal error, or crash the NIC. Always drain all CQs and ensure all posted work requests have completed before calling <code>ibv_dereg_mr()</code>.</p>
+</div>
+
+<p>The safest pattern for teardown is:</p>
+<pre><code class="language-c">/* 1. Transition QPs to Error state to flush outstanding WRs */
+struct ibv_qp_attr attr = { .qp_state = IBV_QPS_ERR };
+ibv_modify_qp(qp, &amp;attr, IBV_QP_STATE);
+
+/* 2. Poll CQ until all WRs are flushed (will complete with error status) */
+while (outstanding_wrs &gt; 0) {
+    int n = ibv_poll_cq(cq, batch_size, wc_array);
+    outstanding_wrs -= n;
+}
+
+/* 3. Now safe to deregister */
+ibv_dereg_mr(mr);
+</code></pre>
+<h2 id="keys-l_key-and-r_key"><a class="header" href="#keys-l_key-and-r_key">Keys: L_Key and R_Key</a></h2>
+<p>The L_Key and R_Key deserve closer examination. Both are 32-bit values, but they serve different purposes:</p>
+<ul>
+<li>
+<p><strong>L_Key (Local Key)</strong>: Used in scatter/gather entries (<code>struct ibv_sge</code>) to identify the MR for local operations. The NIC uses the L_Key to look up the MTT and verify that the operation is permitted.</p>
+</li>
+<li>
+<p><strong>R_Key (Remote Key)</strong>: Communicated to a remote peer (typically via a Send message during connection setup). The remote peer includes the R_Key in RDMA Read or Write work requests to prove it has been authorized to access the memory.</p>
+</li>
+</ul>
+<p>Both keys contain an index portion (used to look up the MR in the HCA’s table) and a variant portion (a small counter that changes with each registration, preventing stale keys from matching). The exact format is hardware-specific.</p>
+<div class="note">
+<p><strong>Note</strong>: The R_Key is a capability: anyone who possesses it can read from or write to the registered memory (subject to the access flags). Treat R_Keys as secrets. Do not log them, broadcast them, or store them in world-readable locations. See Chapter 16 for a full discussion of RDMA security.</p>
+</div>
+
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>Memory registration is the bridge between the virtual memory world of applications and the physical memory world of DMA-capable hardware. It is a complex, multi-step process involving system calls, page pinning, DMA mapping, and HCA programming. Its cost is significant – microseconds for small buffers, milliseconds for large ones – and managing that cost through pre-registration, caching, pooling, and careful lifecycle management is one of the core disciplines of RDMA programming. In the next section, we examine the page pinning mechanism in greater detail and its implications for system administration.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-2-architecture/ch06-memory-management/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-2-architecture/ch06-memory-management/memory-pinning.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-2-architecture/ch06-memory-management/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-2-architecture/ch06-memory-management/memory-pinning.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

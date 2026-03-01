@@ -1,0 +1,475 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Environment Setup - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="81-environment-setup"><a class="header" href="#81-environment-setup">8.1 Environment Setup</a></h1>
+<p>Before you can write your first line of RDMA code, you need three things: the user-space libraries and headers (rdma-core), a kernel driver that exposes an RDMA device, and a way to verify that the pieces fit together. This section walks through each of these steps on all major Linux distributions, with particular attention to software-emulated transports that let you develop and test without specialized hardware.</p>
+<h2 id="installing-rdma-core-from-packages"><a class="header" href="#installing-rdma-core-from-packages">Installing rdma-core from Packages</a></h2>
+<p>The rdma-core project provides the user-space components of the Linux RDMA stack: libibverbs, librdmacm, provider libraries for specific hardware, and diagnostic utilities. Every major distribution packages it.</p>
+<h3 id="ubuntu--debian"><a class="header" href="#ubuntu--debian">Ubuntu / Debian</a></h3>
+<pre><code class="language-bash"># Install the development libraries, headers, and diagnostic tools
+sudo apt update
+sudo apt install -y rdma-core libibverbs-dev librdmacm-dev \
+                    ibverbs-utils rdmacm-utils ibverbs-providers \
+                    perftest infiniband-diags
+</code></pre>
+<p>The <code>libibverbs-dev</code> and <code>librdmacm-dev</code> packages provide the header files and shared library symlinks you need to compile RDMA programs. The <code>ibverbs-providers</code> package contains the user-space drivers for various hardware and software transports, including Soft-RoCE (rxe) and SoftiWARP (siw). The <code>ibverbs-utils</code> package gives you command-line tools like <code>ibv_devices</code> and <code>ibv_devinfo</code>. The <code>perftest</code> package provides bandwidth and latency benchmarks.</p>
+<h3 id="rhel--centos--fedora"><a class="header" href="#rhel--centos--fedora">RHEL / CentOS / Fedora</a></h3>
+<pre><code class="language-bash"># RHEL 8+ / CentOS Stream / Fedora
+sudo dnf install -y rdma-core rdma-core-devel libibverbs-utils \
+                    librdmacm-utils perftest infiniband-diags
+</code></pre>
+<p>On older RHEL 7 systems that use yum, replace <code>dnf</code> with <code>yum</code>. The package names are the same. RHEL 8 and later include rdma-core in the base repositories; on RHEL 7 you may need to enable the <code>optional</code> or <code>InfiniBand</code> channels.</p>
+<h3 id="suse--opensuse"><a class="header" href="#suse--opensuse">SUSE / openSUSE</a></h3>
+<pre><code class="language-bash">sudo zypper install rdma-core rdma-core-devel libibverbs-utils \
+                     librdmacm-utils perftest infiniband-diags
+</code></pre>
+<p>SUSE Linux Enterprise Server (SLES) includes rdma-core in the HPC module. On openSUSE Tumbleweed and Leap, the packages are in the standard repositories.</p>
+<h2 id="building-rdma-core-from-source"><a class="header" href="#building-rdma-core-from-source">Building rdma-core from Source</a></h2>
+<p>If you need a newer version than your distribution provides, or if you want to modify the libraries themselves, you can build rdma-core from source.</p>
+<pre><code class="language-bash"># Install build dependencies (Ubuntu/Debian)
+sudo apt install -y build-essential cmake gcc libudev-dev \
+                    libnl-3-dev libnl-route-3-dev ninja-build \
+                    pkg-config python3-docutils pandoc
+
+# Clone and build
+git clone https://github.com/linux-rdma/rdma-core.git
+cd rdma-core
+mkdir build &amp;&amp; cd build
+cmake -GNinja -DCMAKE_INSTALL_PREFIX=/usr ..
+ninja
+sudo ninja install
+</code></pre>
+<p>The CMake build system is the canonical way to build rdma-core. The <code>-GNinja</code> flag selects the Ninja build tool, which is faster than Make for this project. If you prefer Make, omit that flag and use <code>make -j$(nproc)</code> instead.</p>
+<div class="warning">
+<p>Building from source will overwrite files installed by your distribution’s packages. If you want both, use a non-default <code>CMAKE_INSTALL_PREFIX</code> such as <code>/usr/local</code> or <code>/opt/rdma-core</code>, and adjust your <code>LD_LIBRARY_PATH</code> and <code>PKG_CONFIG_PATH</code> accordingly.</p>
+</div>
+
+<h2 id="soft-roce-rxe-setup"><a class="header" href="#soft-roce-rxe-setup">Soft-RoCE (rxe) Setup</a></h2>
+<p>Soft-RoCE implements the RoCEv2 protocol entirely in software, in the Linux kernel. It requires no special hardware—any Ethernet interface will do, including the loopback interface. This makes it ideal for development and testing.</p>
+<h3 id="loading-the-kernel-module"><a class="header" href="#loading-the-kernel-module">Loading the Kernel Module</a></h3>
+<pre><code class="language-bash"># Load the Soft-RoCE kernel module
+sudo modprobe rdma_rxe
+</code></pre>
+<p>On most modern kernels (4.9+), the <code>rdma_rxe</code> module is available as part of the standard kernel build. If the <code>modprobe</code> command fails with “Module not found,” your kernel was built without <code>CONFIG_RDMA_RXE</code>. You will need to rebuild the kernel or switch to a distribution kernel that includes it.</p>
+<h3 id="creating-an-rxe-device"><a class="header" href="#creating-an-rxe-device">Creating an rxe Device</a></h3>
+<p>Once the module is loaded, you create an rxe device bound to an existing network interface:</p>
+<pre><code class="language-bash"># Create an rxe device on top of eth0
+# Replace eth0 with your actual interface name (e.g., ens33, enp0s3)
+sudo rdma link add rxe0 type rxe netdev eth0
+</code></pre>
+<p>The <code>rdma</code> command is part of iproute2 and provides a unified interface for managing RDMA links. The name <code>rxe0</code> is arbitrary—you can call it anything you like.</p>
+<h3 id="verification"><a class="header" href="#verification">Verification</a></h3>
+<p>Three commands confirm that the device is up and working:</p>
+<pre><code class="language-bash"># List RDMA links
+rdma link show
+# Expected output:
+# link rxe0/1 state ACTIVE physical_state LINK_UP netdev eth0
+
+# List RDMA devices (from ibverbs-utils)
+ibv_devices
+# Expected output:
+#     device          node GUID
+#     ------          ----------------
+#     rxe0            505400fffe000001
+
+# Show detailed device information
+ibv_devinfo -d rxe0
+# Shows port state, GID table, capabilities, etc.
+</code></pre>
+<p>If <code>ibv_devices</code> shows no output, the most common cause is that the <code>ibverbs-providers</code> package is not installed, or the provider library for rxe (<code>librxe-rdmav2.so</code>) cannot be found. Verify that <code>/etc/libibverbs.d/</code> contains a configuration file for rxe, or that the provider <code>.so</code> files are in a directory on the library search path.</p>
+<h3 id="making-it-persistent-across-reboots"><a class="header" href="#making-it-persistent-across-reboots">Making It Persistent Across Reboots</a></h3>
+<p>The module and device configuration do not survive a reboot by default. To make them persistent:</p>
+<pre><code class="language-bash"># Load the module at boot
+echo "rdma_rxe" | sudo tee /etc/modules-load.d/rdma_rxe.conf
+
+# Create the rxe device at boot via a systemd service or udev rule
+# Simple approach with a systemd oneshot service:
+sudo tee /etc/systemd/system/rxe-setup.service &gt; /dev/null &lt;&lt;EOF
+[Unit]
+Description=Create Soft-RoCE device
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/rdma link add rxe0 type rxe netdev eth0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable rxe-setup.service
+</code></pre>
+<h2 id="softiwarp-siw-setup"><a class="header" href="#softiwarp-siw-setup">SoftiWARP (siw) Setup</a></h2>
+<p>SoftiWARP is the software implementation of iWARP, available in the kernel since version 5.3. Its setup is nearly identical to Soft-RoCE:</p>
+<pre><code class="language-bash"># Load the SoftiWARP kernel module
+sudo modprobe siw
+
+# Create a SoftiWARP device on eth0
+sudo rdma link add siw0 type siw netdev eth0
+
+# Verify
+rdma link show
+ibv_devices
+ibv_devinfo -d siw0
+</code></pre>
+<div class="note">
+<p>You can have both an rxe and a siw device active on the same network interface simultaneously. They will appear as separate devices in <code>ibv_devices</code>. This can be useful for testing transport-layer differences, but in practice you should use one or the other to avoid confusion.</p>
+</div>
+
+<p>SoftiWARP tends to show slightly different behavior from Soft-RoCE because it runs on top of TCP (as iWARP specifies). For the examples in this book, either transport will work. We default to Soft-RoCE because it is available on a wider range of kernel versions.</p>
+<h2 id="two-node-setup-for-testing"><a class="header" href="#two-node-setup-for-testing">Two-Node Setup for Testing</a></h2>
+<p>While a single machine is sufficient for resource allocation and basic testing, data transfer tests require two endpoints. You have several options:</p>
+<h3 id="two-vms-on-the-same-host"><a class="header" href="#two-vms-on-the-same-host">Two VMs on the Same Host</a></h3>
+<p>Create two VMs connected via a host-only or bridged network. Install rdma-core and configure Soft-RoCE on each. This is the simplest approach for local development.</p>
+<pre><code>Host machine
+├── VM1 (192.168.56.10) ─── rxe0 on eth1
+└── VM2 (192.168.56.11) ─── rxe0 on eth1
+</code></pre>
+<h3 id="two-network-namespaces"><a class="header" href="#two-network-namespaces">Two Network Namespaces</a></h3>
+<p>For lightweight testing on a single machine, you can use network namespaces with a veth pair:</p>
+<pre><code class="language-bash"># Create a veth pair connecting two namespaces
+sudo ip netns add ns1
+sudo ip netns add ns2
+sudo ip link add veth1 type veth peer name veth2
+sudo ip link set veth1 netns ns1
+sudo ip link set veth2 netns ns2
+sudo ip netns exec ns1 ip addr add 10.0.0.1/24 dev veth1
+sudo ip netns exec ns1 ip link set veth1 up
+sudo ip netns exec ns1 ip link set lo up
+sudo ip netns exec ns2 ip addr add 10.0.0.2/24 dev veth2
+sudo ip netns exec ns2 ip link set veth2 up
+sudo ip netns exec ns2 ip link set lo up
+
+# Create rxe devices in each namespace
+sudo ip netns exec ns1 rdma link add rxe0 type rxe netdev veth1
+sudo ip netns exec ns2 rdma link add rxe0 type rxe netdev veth2
+</code></pre>
+<h3 id="docker-containers"><a class="header" href="#docker-containers">Docker Containers</a></h3>
+<p>Docker containers with <code>--privileged</code> mode and the <code>/dev/infiniband/</code> devices mounted can run RDMA workloads. Appendix E provides a complete Docker Compose configuration for a two-container RDMA test environment.</p>
+<pre><code class="language-bash"># Quick test with a privileged container
+docker run --rm -it --privileged --network host \
+    ubuntu:22.04 bash -c "apt update &amp;&amp; apt install -y rdma-core ibverbs-utils &amp;&amp; ibv_devices"
+</code></pre>
+<h2 id="verifying-with-ping-pong-tests"><a class="header" href="#verifying-with-ping-pong-tests">Verifying with Ping-Pong Tests</a></h2>
+<p>The definitive verification that your RDMA stack is working end-to-end is the <code>ibv_rc_pingpong</code> test. It establishes an RC connection between two processes and exchanges messages:</p>
+<pre><code class="language-bash"># On the server side (Node 1 / 192.168.56.10):
+ibv_rc_pingpong -d rxe0 -g 0
+
+# On the client side (Node 2 / 192.168.56.11):
+ibv_rc_pingpong -d rxe0 -g 0 192.168.56.10
+</code></pre>
+<p>The <code>-d rxe0</code> flag selects the RDMA device. The <code>-g 0</code> flag specifies GID index 0, which is required for RoCE (unlike InfiniBand, which uses LID-based addressing). The client specifies the server’s IP address.</p>
+<p>A successful run prints statistics like:</p>
+<pre><code>8192000 bytes in 0.02 seconds = 3571.43 Mbit/sec
+1000 iters in 0.02 seconds = 18.36 usec/iter
+</code></pre>
+<h2 id="performance-testing-with-perftest"><a class="header" href="#performance-testing-with-perftest">Performance Testing with perftest</a></h2>
+<p>The <code>perftest</code> suite provides standardized bandwidth and latency benchmarks. A few commonly used tests:</p>
+<pre><code class="language-bash"># Bandwidth test with RDMA Send (server, then client)
+ib_send_bw -d rxe0 --gid-index 0
+ib_send_bw -d rxe0 --gid-index 0 192.168.56.10
+
+# Latency test with RDMA Write
+ib_write_lat -d rxe0 --gid-index 0
+ib_write_lat -d rxe0 --gid-index 0 192.168.56.10
+
+# RDMA Read bandwidth
+ib_read_bw -d rxe0 --gid-index 0
+ib_read_bw -d rxe0 --gid-index 0 192.168.56.10
+</code></pre>
+<div class="note">
+<p>Performance numbers with Soft-RoCE will be far lower than hardware RDMA. This is expected—the entire data path runs in the kernel, with no hardware offload. Soft-RoCE latencies are typically in the tens of microseconds, compared to single-digit microseconds for hardware RoCE and sub-microsecond for InfiniBand. The point of Soft-RoCE is functional correctness, not performance.</p>
+</div>
+
+<h2 id="common-setup-issues-and-troubleshooting"><a class="header" href="#common-setup-issues-and-troubleshooting">Common Setup Issues and Troubleshooting</a></h2>
+<h3 id="ibv_devices-shows-no-devices"><a class="header" href="#ibv_devices-shows-no-devices"><code>ibv_devices</code> shows no devices</a></h3>
+<ul>
+<li>The kernel module is not loaded. Run <code>lsmod | grep rdma_rxe</code> (or <code>siw</code>) to check.</li>
+<li>The rxe device was not created. Run <code>rdma link show</code> to verify.</li>
+<li>The provider library is missing. Ensure <code>ibverbs-providers</code> is installed.</li>
+<li>On older kernels, the legacy <code>rxe_cfg</code> tool was used instead of <code>rdma link</code>. If <code>rdma link add</code> fails, try: <code>rxe_cfg add eth0</code>.</li>
+</ul>
+<h3 id="ibv_rc_pingpong-hangs-or-times-out"><a class="header" href="#ibv_rc_pingpong-hangs-or-times-out"><code>ibv_rc_pingpong</code> hangs or times out</a></h3>
+<ul>
+<li>Firewall rules are blocking UDP traffic. Soft-RoCE uses raw Ethernet / UDP on port 4791. Ensure this port is open:
+<pre><code class="language-bash">sudo iptables -A INPUT -p udp --dport 4791 -j ACCEPT
+</code></pre>
+</li>
+<li>The GID index is wrong. Use <code>ibv_devinfo -d rxe0 -v</code> to list available GIDs, and select the index that corresponds to a valid IPv4 or IPv6 address on the interface.</li>
+<li>IP routing is broken. Verify that the two nodes can ping each other at the IP layer before testing RDMA.</li>
+</ul>
+<h3 id="permission-errors-on-devinfiniband"><a class="header" href="#permission-errors-on-devinfiniband">Permission errors on <code>/dev/infiniband/</code></a></h3>
+<ul>
+<li>RDMA device nodes require appropriate permissions. Check that <code>/dev/infiniband/uverbs0</code> exists and is readable by your user. On systemd-based systems, the <code>rdma</code> package typically installs udev rules to set permissions. You can also add your user to the <code>rdma</code> group if one exists, or run your program with <code>sudo</code> during development.</li>
+</ul>
+<h3 id="memory-registration-fails-with-enomem"><a class="header" href="#memory-registration-fails-with-enomem">Memory registration fails with ENOMEM</a></h3>
+<ul>
+<li>The process has hit its locked memory limit. RDMA requires pinned (locked) memory, which is subject to <code>ulimit -l</code>. Increase it:
+<pre><code class="language-bash"># Temporary (current shell only)
+ulimit -l unlimited
+
+# Persistent (add to /etc/security/limits.conf)
+*    soft    memlock    unlimited
+*    hard    memlock    unlimited
+</code></pre>
+</li>
+</ul>
+<h3 id="modprobe-rdma_rxe-fails"><a class="header" href="#modprobe-rdma_rxe-fails"><code>modprobe rdma_rxe</code> fails</a></h3>
+<ul>
+<li>The module is not built for your kernel. Check <code>uname -r</code> and verify that your kernel configuration includes <code>CONFIG_RDMA_RXE=m</code> or <code>CONFIG_RDMA_RXE=y</code>. Distribution kernels from Ubuntu 18.04+, RHEL 8+, and Fedora 28+ include it by default. If running a custom kernel, enable it under Networking support -&gt; InfiniBand support -&gt; Software RDMA over Ethernet.</li>
+</ul>
+<p>With the environment set up and verified, you are ready to explore the API that makes it all work.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-3-programming/ch08-getting-started/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-3-programming/ch08-getting-started/libibverbs-overview.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-3-programming/ch08-getting-started/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-3-programming/ch08-getting-started/libibverbs-overview.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

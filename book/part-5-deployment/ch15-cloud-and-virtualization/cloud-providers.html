@@ -1,0 +1,480 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Cloud Provider Implementations - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="154-cloud-provider-implementations"><a class="header" href="#154-cloud-provider-implementations">15.4 Cloud Provider Implementations</a></h1>
+<p>Each major cloud provider has developed a distinct approach to delivering RDMA capabilities in their infrastructure. These approaches reflect different engineering philosophies, existing infrastructure investments, and target workload priorities. Understanding the differences is essential for architects designing applications that must run across multiple clouds or selecting the best cloud platform for RDMA-intensive workloads.</p>
+<h2 id="microsoft-azure"><a class="header" href="#microsoft-azure">Microsoft Azure</a></h2>
+<p>Azure has made the most aggressive investment in RDMA infrastructure among the major cloud providers, deploying both InfiniBand and RoCEv2 at massive scale.</p>
+<h3 id="infiniband-for-hpc-and-ai-vms"><a class="header" href="#infiniband-for-hpc-and-ai-vms">InfiniBand for HPC and AI VMs</a></h3>
+<p>Azure offers InfiniBand-connected VM instances for HPC and AI workloads:</p>
+<ul>
+<li><strong>HB-series</strong> (HPC): AMD EPYC processors with HDR InfiniBand (200 Gbps). Designed for computational fluid dynamics, weather modeling, and other tightly-coupled HPC workloads.</li>
+<li><strong>HC-series</strong> (HPC): Intel Xeon processors with HDR InfiniBand. Optimized for compute-intensive workloads.</li>
+<li><strong>ND-series</strong> (AI/ML): NVIDIA GPU instances with InfiniBand. The ND H100 v5 series provides 8x H100 GPUs with 8x NDR InfiniBand (400 Gbps each), delivering 3.2 Tbps of aggregate RDMA bandwidth per VM.</li>
+<li><strong>NDm A100 v4</strong>: 8x A100 80GB GPUs with 8x HDR InfiniBand (200 Gbps each).</li>
+</ul>
+<p>InfiniBand-connected VMs are grouped into <strong>placement groups</strong> that ensure all VMs in the group are on the same InfiniBand fabric partition, minimizing network hops and latency.</p>
+<pre><code class="language-bash"># Azure CLI: create an InfiniBand-connected HPC VM
+az vm create \
+    --resource-group myRG \
+    --name hpc-vm-01 \
+    --size Standard_HB120rs_v3 \
+    --image microsoft-dsvm:ubuntu-hpc:2204:latest \
+    --proximity-placement-group myPPG \
+    --accelerated-networking true
+
+# Inside the VM: verify InfiniBand
+ibstat
+# Should show mlx5 HCA with 200 Gbps (HDR) or 400 Gbps (NDR)
+
+# Test RDMA connectivity between VMs
+ib_write_bw --size=65536 --duration=10 &lt;remote_ip&gt;
+</code></pre>
+<h3 id="accelerated-networking"><a class="header" href="#accelerated-networking">Accelerated Networking</a></h3>
+<p>Beyond InfiniBand, Azure deploys <strong>Accelerated Networking</strong> across its general-purpose VM fleet using SR-IOV. While this primarily provides TCP/IP acceleration rather than RDMA verbs access, it uses the same ConnectX NIC hardware and SR-IOV VF passthrough technology. Azure has deployed RoCEv2 at fleet scale for internal services, including its storage infrastructure.</p>
+<div class="note">
+<p>Azure’s InfiniBand deployment is notable for its scale and integration. The ND H100 v5 VMs include a full InfiniBand Subnet Manager running in the infrastructure, transparent to the user. Users get InfiniBand VFs passed through to their VMs and can run standard RDMA applications (MPI, NCCL) without managing any fabric infrastructure. This level of managed InfiniBand is unique among cloud providers.</p>
+</div>
+
+<h3 id="azure-rdma-architecture"><a class="header" href="#azure-rdma-architecture">Azure RDMA Architecture</a></h3>
+<p>Azure’s RDMA infrastructure includes several distinctive features:</p>
+<ul>
+<li><strong>FPGA-based SmartNIC</strong>: Azure uses custom FPGA-based SmartNICs (Azure Boost/previously FPGA) for general networking, offloading virtual networking, storage, and security functions. InfiniBand HCAs are provided as additional devices for RDMA-capable VM sizes.</li>
+<li><strong>Managed InfiniBand fabric</strong>: Azure operates and manages the InfiniBand subnet manager, QoS policies, and fabric monitoring. Users interact only with the VF-level interface.</li>
+<li><strong>CycleCloud</strong>: Azure CycleCloud provides orchestration for HPC clusters with automatic InfiniBand configuration, Lustre/BeeGFS parallel file system deployment, and job scheduler integration.</li>
+</ul>
+<h2 id="amazon-web-services-aws"><a class="header" href="#amazon-web-services-aws">Amazon Web Services (AWS)</a></h2>
+<p>AWS has taken a fundamentally different approach to high-performance networking. Rather than deploying standard InfiniBand or RoCE, AWS developed a custom networking stack optimized for cloud-scale deployment.</p>
+<h3 id="efa-elastic-fabric-adapter"><a class="header" href="#efa-elastic-fabric-adapter">EFA: Elastic Fabric Adapter</a></h3>
+<p>The <strong>Elastic Fabric Adapter (EFA)</strong> is AWS’s custom network interface for HPC and ML workloads. EFA provides an RDMA-like programming model with a key distinction: it uses AWS’s proprietary <strong>SRD (Scalable Reliable Datagram)</strong> transport protocol instead of standard InfiniBand or RoCE.</p>
+<p>EFA architecture:</p>
+<pre><code>┌─────────────────────────────────────┐
+│           Application               │
+│   (MPI, NCCL, custom)              │
+├─────────────────────────────────────┤
+│          Libfabric                   │
+│   (OFI - OpenFabrics Interface)     │
+├─────────────────────────────────────┤
+│        EFA Provider                  │
+│   (libfabric EFA provider)          │
+├─────────────────────────────────────┤
+│      EFA Device Driver               │
+│   (kernel: ena + efa)               │
+├─────────────────────────────────────┤
+│    AWS Nitro Card (EFA)              │
+│   SRD Transport Protocol            │
+└─────────────────────────────────────┘
+</code></pre>
+<h3 id="srd-scalable-reliable-datagram"><a class="header" href="#srd-scalable-reliable-datagram">SRD: Scalable Reliable Datagram</a></h3>
+<p>SRD is AWS’s transport protocol designed specifically for cloud-scale RDMA-like communication:</p>
+<ul>
+<li><strong>Multi-path</strong>: SRD automatically sprays packets across multiple network paths, achieving better bandwidth utilization than single-path protocols like RC (Reliable Connected) verbs.</li>
+<li><strong>Congestion-aware</strong>: SRD implements congestion control designed for the specific characteristics of AWS’s network topology, avoiding the PFC (Priority Flow Control) dependency of RoCEv2.</li>
+<li><strong>Scalable</strong>: SRD uses a connectionless (datagram) model that avoids the per-connection state scaling issues of RC QPs. A single SRD endpoint can communicate with thousands of peers without creating thousands of QPs.</li>
+<li><strong>Reliable</strong>: SRD provides reliable delivery with selective retransmission, without requiring the lossless fabric that InfiniBand and RoCEv2 depend on.</li>
+</ul>
+<div class="tip">
+<p>EFA does not expose standard RDMA verbs. Applications must use the <strong>Libfabric</strong> (OFI - OpenFabrics Interfaces) API, which is a higher-level abstraction over network fabrics. Most HPC applications (Open MPI, NCCL, Intel MPI) already support Libfabric, so the transition from verbs to EFA is transparent for applications using these frameworks. However, applications that use libibverbs directly will need to be ported to Libfabric.</p>
+</div>
+
+<h3 id="efa-instance-types"><a class="header" href="#efa-instance-types">EFA Instance Types</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Instance Type</th><th>GPUs</th><th>EFA Bandwidth</th><th>Use Case</th></tr>
+</thead>
+<tbody>
+<tr><td>P5.48xlarge</td><td>8x H100</td><td>3200 Gbps</td><td>Large-scale ML</td></tr>
+<tr><td>P4d.24xlarge</td><td>8x A100</td><td>400 Gbps</td><td>ML training</td></tr>
+<tr><td>Hpc7a.96xlarge</td><td>None (CPU)</td><td>300 Gbps</td><td>HPC simulation</td></tr>
+<tr><td>Hpc6a.48xlarge</td><td>None (CPU)</td><td>100 Gbps</td><td>HPC simulation</td></tr>
+<tr><td>Trn1.32xlarge</td><td>16x Trainium</td><td>800 Gbps</td><td>ML (Trainium)</td></tr>
+</tbody>
+</table>
+</div>
+<pre><code class="language-bash"># AWS CLI: launch EFA-enabled instances
+aws ec2 run-instances \
+    --instance-type p5.48xlarge \
+    --network-interfaces "DeviceIndex=0,\
+        InterfaceType=efa,\
+        Groups=[sg-12345]" \
+    --placement "GroupName=my-cluster,Strategy=cluster" \
+    --image-id ami-12345678
+
+# Inside the instance: verify EFA
+fi_info -p efa
+# Should show EFA provider with SRD transport
+
+# Run NCCL test over EFA
+export FI_PROVIDER=efa
+export NCCL_NET=efa
+mpirun -np 16 --hostfile hosts \
+    ./all_reduce_perf -b 8 -e 2G -f 2 -g 1
+</code></pre>
+<h3 id="efa-limitations"><a class="header" href="#efa-limitations">EFA Limitations</a></h3>
+<ul>
+<li><strong>No standard verbs API</strong>: Applications must use Libfabric, not libibverbs.</li>
+<li><strong>No one-sided RDMA Read</strong>: EFA supports RDMA Write and Send/Receive but does not support RDMA Read. Applications relying on RDMA Read must be redesigned.</li>
+<li><strong>Security group enforcement</strong>: EFA traffic passes through AWS security groups, adding a small amount of latency compared to bare-metal RDMA but providing cloud-standard network security.</li>
+</ul>
+<h2 id="google-cloud-platform-gcp"><a class="header" href="#google-cloud-platform-gcp">Google Cloud Platform (GCP)</a></h2>
+<p>Google Cloud has developed a custom networking stack that integrates RDMA capabilities into its proprietary infrastructure.</p>
+<h3 id="gvnic-and-rdma"><a class="header" href="#gvnic-and-rdma">gVNIC and RDMA</a></h3>
+<p>Google’s <strong>gVNIC (Google Virtual NIC)</strong> is a custom virtual network interface that replaces the standard virtio-net in GCP VMs. For GPU-accelerated instances, gVNIC supports RDMA capabilities through Google’s custom networking fabric.</p>
+<h3 id="gpu-instance-types"><a class="header" href="#gpu-instance-types">GPU Instance Types</a></h3>
+<ul>
+<li><strong>A3 Mega</strong>: 8x H100 GPUs with 8x ConnectX-7 NICs (400 Gbps each). Uses InfiniBand via Google’s <strong>Jupiter</strong> network fabric. Provides 3.2 Tbps aggregate RDMA bandwidth.</li>
+<li><strong>A3 High</strong>: 8x H100 GPUs with 4x ConnectX-7 NICs. Provides 1.6 Tbps aggregate bandwidth.</li>
+<li><strong>A2 Ultra</strong>: 8x A100 80GB GPUs with multi-NIC RDMA support.</li>
+</ul>
+<h3 id="jupiter-and-custom-networking"><a class="header" href="#jupiter-and-custom-networking">Jupiter and Custom Networking</a></h3>
+<p>Google’s networking infrastructure is built on custom-designed switches and a proprietary protocol stack:</p>
+<ul>
+<li><strong>Jupiter fabric</strong>: Google’s data center network fabric providing petabit-scale bisection bandwidth.</li>
+<li><strong>Snap</strong>: A user-space networking stack that handles packet processing, virtualization, and network function offload.</li>
+<li><strong>Pony Express</strong>: Google’s custom transport protocol that provides RDMA-like semantics over the Jupiter fabric.</li>
+</ul>
+<p>For GPU instances, Google provisions dedicated InfiniBand or RoCE network segments with GPUDirect RDMA support, enabling NCCL-based distributed training with near-bare-metal performance.</p>
+<pre><code class="language-bash"># GCP: create A3 Mega GPU instance
+gcloud compute instances create gpu-node-01 \
+    --machine-type=a3-megagpu-8g \
+    --zone=us-central1-a \
+    --maintenance-policy=TERMINATE \
+    --accelerator=count=8,type=nvidia-h100-mega-80gb \
+    --network-interface=nic-type=GVNIC
+
+# Verify RDMA inside the instance
+ibstat
+ibv_devinfo
+</code></pre>
+<div class="note">
+<p>Google Cloud’s RDMA implementation is tightly integrated with its custom infrastructure and is less “standard” than Azure’s InfiniBand or even AWS’s EFA. While this provides excellent performance within GCP, it means that networking code and configurations are less portable to other environments. Applications using standard frameworks (MPI, NCCL, Libfabric) abstract these differences, but custom RDMA applications may require GCP-specific adaptations.</p>
+</div>
+
+<h3 id="multi-slice-training"><a class="header" href="#multi-slice-training">Multi-Slice Training</a></h3>
+<p>GCP offers a unique feature called <strong>multi-slice</strong> training, which allows distributed ML training across multiple groups of GPUs (slices) connected via RDMA. Each slice is a set of 8 GPUs with full-bandwidth internal connectivity, and slices are connected through the data center network with RDMA support. This enables training jobs that span hundreds or thousands of GPUs.</p>
+<h2 id="oracle-cloud-infrastructure-oci"><a class="header" href="#oracle-cloud-infrastructure-oci">Oracle Cloud Infrastructure (OCI)</a></h2>
+<p>Oracle Cloud offers a distinctive approach: <strong>bare-metal RDMA clusters</strong> without virtualization overhead.</p>
+<h3 id="bare-metal-gpu-clusters"><a class="header" href="#bare-metal-gpu-clusters">Bare-Metal GPU Clusters</a></h3>
+<p>OCI provides bare-metal instances with direct InfiniBand access:</p>
+<ul>
+<li><strong>BM.GPU.H100.8</strong>: 8x H100 GPUs with 8x ConnectX-7 (NDR, 400 Gbps each). Full bare-metal access – no hypervisor.</li>
+<li><strong>BM.GPU.A100-v2.8</strong>: 8x A100 GPUs with 8x HDR InfiniBand (200 Gbps each).</li>
+<li><strong>BM.HPC2.36</strong>: CPU-only HPC instances with HDR InfiniBand.</li>
+</ul>
+<p><strong>RDMA cluster networking</strong>: OCI provisions dedicated InfiniBand fabrics for customer clusters, providing a non-oversubscribed, low-latency interconnect. Customers get bare-metal access to the InfiniBand HCA and can run standard RDMA applications without any cloud abstraction layer.</p>
+<pre><code class="language-bash"># OCI: launch bare-metal GPU cluster
+oci compute instance launch \
+    --shape BM.GPU.H100.8 \
+    --cluster-network-id ocid1.clusternetwork... \
+    --availability-domain AD-1
+
+# Inside the instance: full bare-metal InfiniBand access
+ibstat       # Shows physical ConnectX-7 HCA
+ibping       # Standard IB diagnostics work
+opensm       # Can even run Subnet Manager (if needed)
+</code></pre>
+<h3 id="oci-supercluster"><a class="header" href="#oci-supercluster">OCI Supercluster</a></h3>
+<p>OCI offers <strong>Superclusters</strong> – pre-built clusters of up to thousands of bare-metal GPU nodes with a dedicated InfiniBand fabric. These are designed for large-scale ML training and provide the closest cloud analog to an on-premises supercomputer.</p>
+<h2 id="comparison-table"><a class="header" href="#comparison-table">Comparison Table</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Feature</th><th>Azure</th><th>AWS</th><th>GCP</th><th>OCI</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>RDMA type</strong></td><td>InfiniBand (IB)</td><td>EFA/SRD (custom)</td><td>IB + custom</td><td>InfiniBand (IB)</td></tr>
+<tr><td><strong>Max GPU/node</strong></td><td>8x H100</td><td>8x H100</td><td>8x H100</td><td>8x H100</td></tr>
+<tr><td><strong>Max BW/node</strong></td><td>3.2 Tbps (NDR)</td><td>3.2 Tbps (EFA)</td><td>3.2 Tbps</td><td>3.2 Tbps (NDR)</td></tr>
+<tr><td><strong>API</strong></td><td>libibverbs</td><td>Libfabric</td><td>libibverbs / custom</td><td>libibverbs</td></tr>
+<tr><td><strong>Virtualization</strong></td><td>SR-IOV VF</td><td>Nitro (custom)</td><td>gVNIC + passthrough</td><td>Bare metal</td></tr>
+<tr><td><strong>Managed fabric</strong></td><td>Yes (Subnet Manager)</td><td>Yes (SRD)</td><td>Yes (Jupiter)</td><td>Yes (customer fabric)</td></tr>
+<tr><td><strong>RDMA Read support</strong></td><td>Yes</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+<tr><td><strong>Live migration</strong></td><td>No (IB VMs)</td><td>No (EFA instances)</td><td>No (GPU instances)</td><td>N/A (bare metal)</td></tr>
+<tr><td><strong>Max cluster size</strong></td><td>4,500+ GPUs</td><td>20,000+ GPUs</td><td>26,000+ GPUs</td><td>16,000+ GPUs</td></tr>
+<tr><td><strong>CPU HPC instances</strong></td><td>HB/HC series</td><td>Hpc6a/Hpc7a</td><td>C2D HPC</td><td>BM.HPC2</td></tr>
+</tbody>
+</table>
+</div>
+<div class="warning">
+<p>Cloud RDMA performance can vary significantly based on placement. Always use <strong>placement groups</strong> (Azure: proximity placement groups, AWS: cluster placement groups, GCP: compact placement policy) to ensure your instances are on the same network fabric segment. Without placement groups, instances may be placed across different data center pods, introducing additional network hops and reducing RDMA bandwidth by 50% or more.</p>
+</div>
+
+<h2 id="selecting-a-cloud-provider-for-rdma"><a class="header" href="#selecting-a-cloud-provider-for-rdma">Selecting a Cloud Provider for RDMA</a></h2>
+<p>The choice of cloud provider for RDMA workloads depends on several factors:</p>
+<p><strong>Choose Azure when:</strong></p>
+<ul>
+<li>You need standard InfiniBand with libibverbs compatibility</li>
+<li>You want managed InfiniBand infrastructure at scale</li>
+<li>Your workload uses tools from the traditional HPC ecosystem (MPI, Lustre, Slurm)</li>
+</ul>
+<p><strong>Choose AWS when:</strong></p>
+<ul>
+<li>You need the largest cluster scale (20,000+ GPUs)</li>
+<li>Your application uses Libfabric or frameworks that support EFA (MPI, NCCL)</li>
+<li>You want RDMA-like performance integrated with the broader AWS ecosystem</li>
+</ul>
+<p><strong>Choose GCP when:</strong></p>
+<ul>
+<li>You want deep integration with Google’s ML ecosystem (TPUs, Vertex AI)</li>
+<li>Your workload benefits from multi-slice training architectures</li>
+<li>You need large-scale GPU clusters with managed RDMA</li>
+</ul>
+<p><strong>Choose OCI when:</strong></p>
+<ul>
+<li>You need bare-metal RDMA performance without virtualization overhead</li>
+<li>You want full control over the InfiniBand fabric configuration</li>
+<li>Your workload requires standard InfiniBand tools and diagnostics</li>
+</ul>
+<p>The cloud RDMA landscape is converging toward a common goal: providing bare-metal-equivalent RDMA performance with cloud-native management, security, and scalability. The approaches differ in how they balance standardization versus customization, but the trajectory is clear – RDMA is becoming a standard cloud infrastructure capability, not a specialized exception.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-5-deployment/ch15-cloud-and-virtualization/containers-kubernetes.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-5-deployment/ch16-security/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-5-deployment/ch15-cloud-and-virtualization/containers-kubernetes.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-5-deployment/ch16-security/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

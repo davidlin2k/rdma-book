@@ -1,0 +1,424 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Computational Storage and Beyond - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="184-computational-storage-and-beyond"><a class="header" href="#184-computational-storage-and-beyond">18.4 Computational Storage and Beyond</a></h1>
+<p>The boundaries between computing, storage, and networking continue to blur. This section surveys the technologies and research directions that extend beyond traditional RDMA, pointing toward a future where data processing happens wherever it is most efficient – in the network, at the storage device, or across a unified global memory fabric.</p>
+<h2 id="computational-storage"><a class="header" href="#computational-storage">Computational Storage</a></h2>
+<p>Computational storage moves processing to where the data resides, rather than moving data to where the processing occurs. The idea is straightforward: if you need to scan a 10 TB dataset to find records matching a predicate, it is far more efficient to run the predicate check at the storage device and return only matching records than to transfer all 10 TB across the network and storage bus to the CPU.</p>
+<h3 id="architecture"><a class="header" href="#architecture">Architecture</a></h3>
+<p>A computational storage device combines storage media (NAND flash, typically) with an embedded processor (FPGA or ARM cores) capable of executing simple computations:</p>
+<pre><code class="language-text">Traditional Query Execution:
+  Storage → PCIe → System Memory → CPU (filter) → Result
+  (10 TB transferred, 10 MB result)
+
+Computational Storage:
+  Storage → Embedded Processor (filter) → PCIe → Result
+  (10 MB transferred)
+</code></pre>
+<h3 id="rdma-for-computational-storage-access"><a class="header" href="#rdma-for-computational-storage-access">RDMA for Computational Storage Access</a></h3>
+<p>RDMA provides a natural interface for accessing computational storage devices across the network. A client can issue an RDMA operation that encodes a computation request, and the target (a computational storage device exposed via NVMe-oF or a custom RDMA service) performs the computation and returns the result.</p>
+<p>This pattern already exists in rudimentary form in NVMe-oF: a remote NVMe Read command is essentially a computation (fetch data from flash, perform error correction, format into block) offloaded to the storage device and accessed via RDMA. Extending this to more complex computations (filtering, aggregation, compression) is a natural evolution.</p>
+<div class="note">
+<p><strong>Note:</strong> Computational storage is standardized by SNIA (Storage Networking Industry Association) through the Computational Storage Architecture and Programming Model specification. However, the interface between RDMA and computational storage functions is not yet standardized, and current implementations are vendor-specific.</p>
+</div>
+
+<h2 id="p4-programmable-switches-in-network-computing"><a class="header" href="#p4-programmable-switches-in-network-computing">P4-Programmable Switches: In-Network Computing</a></h2>
+<p>P4 is a domain-specific language for programming the data plane of network switches. A P4-programmable switch can execute custom packet processing logic at line rate – billions of packets per second – enabling computation to happen inside the network itself.</p>
+<h3 id="how-p4-switches-work"><a class="header" href="#how-p4-switches-work">How P4 Switches Work</a></h3>
+<p>A traditional fixed-function switch has a hardcoded pipeline: parse packet headers, look up the destination in a forwarding table, modify headers if needed, and forward. A P4-programmable switch (such as those based on the Intel Tofino ASIC) lets you define:</p>
+<ol>
+<li><strong>Parser:</strong> What headers to extract from packets (including custom headers).</li>
+<li><strong>Match-action tables:</strong> Rules that match on header fields and execute actions.</li>
+<li><strong>Deparser:</strong> How to reconstruct the packet for forwarding.</li>
+</ol>
+<pre><code class="language-p4">// Simplified P4 example: in-network counter
+header rdma_custom_t {
+    bit&lt;32&gt; key;
+    bit&lt;64&gt; value;
+}
+
+control IngressPipeline(inout headers_t hdr, ...) {
+    register&lt;bit&lt;64&gt;&gt;(65536) counters;
+
+    action increment_counter() {
+        bit&lt;64&gt; current;
+        counters.read(current, hdr.custom.key);
+        current = current + hdr.custom.value;
+        counters.write(hdr.custom.key, current);
+    }
+
+    table counter_table {
+        key = { hdr.custom.key: exact; }
+        actions = { increment_counter; }
+    }
+
+    apply { counter_table.apply(); }
+}
+</code></pre>
+<h3 id="implications-for-rdma"><a class="header" href="#implications-for-rdma">Implications for RDMA</a></h3>
+<p>P4 switches can process RDMA traffic in transit, enabling operations that would otherwise require endpoint processing:</p>
+<ul>
+<li><strong>Traffic monitoring:</strong> Deep inspection of RoCE headers (BTH, RETH) without terminating the RDMA connection.</li>
+<li><strong>Load balancing:</strong> Intelligent distribution of RDMA flows across multiple paths based on QP state, not just hash-based ECMP.</li>
+<li><strong>Access control:</strong> Per-flow or per-QP filtering of RDMA traffic in the network.</li>
+</ul>
+<h2 id="in-network-aggregation"><a class="header" href="#in-network-aggregation">In-Network Aggregation</a></h2>
+<p>In-network aggregation performs data reduction operations (sum, min, max, average) inside the network switches, reducing the amount of data that endpoints must process.</p>
+<h3 id="nvidia-sharp-scalable-hierarchical-aggregation-and-reduction-protocol"><a class="header" href="#nvidia-sharp-scalable-hierarchical-aggregation-and-reduction-protocol">NVIDIA SHArP (Scalable Hierarchical Aggregation and Reduction Protocol)</a></h3>
+<p>SHArP is the most mature in-network aggregation technology for RDMA networks. It is built into NVIDIA (Mellanox) InfiniBand switches and used extensively for distributed machine learning.</p>
+<pre><code class="language-text">Traditional AllReduce (Ring):
+  GPU 0 ──gradient──► GPU 1 ──gradient──► GPU 2 ──gradient──► GPU 3
+  (N-1 steps, each transferring full gradient)
+
+SHArP In-Network AllReduce:
+  GPU 0 ──gradient──┐
+  GPU 1 ──gradient──┤
+                    ├── Switch aggregates ──► All GPUs receive result
+  GPU 2 ──gradient──┤
+  GPU 3 ──gradient──┘
+  (1 step up + 1 step down, reduced data movement)
+</code></pre>
+<p>SHArP reduces AllReduce latency from O(N) to O(log N) in the number of participants, and reduces total data movement by performing partial aggregations at each level of the switch hierarchy. For large-scale distributed training (hundreds or thousands of GPUs), this translates to significant training time reduction.</p>
+<pre><code class="language-bash"># Enable SHArP in NCCL
+export NCCL_NET_PLUGIN=sharp
+export SHARP_COLL_LOG_LEVEL=3
+</code></pre>
+<h3 id="netreduce-and-research-prototypes"><a class="header" href="#netreduce-and-research-prototypes">NetReduce and Research Prototypes</a></h3>
+<p>Academic research has produced several in-network aggregation systems:</p>
+<ul>
+<li><strong>NetReduce:</strong> Performs floating-point aggregation on P4 switches using integer arithmetic approximations.</li>
+<li><strong>SwitchML:</strong> Implements ML-specific aggregation (gradient compression, quantization) in the switch data plane.</li>
+<li><strong>ATP (In-Network Aggregation for Shared Machine Learning Clusters):</strong> Dynamically schedules aggregation across available switch resources.</li>
+</ul>
+<p>These systems demonstrate that in-network computing can provide order-of-magnitude improvements for specific workloads, but they require careful integration with RDMA transport and are limited by switch memory and processing capabilities.</p>
+<h2 id="key-value-stores-in-the-switchnic"><a class="header" href="#key-value-stores-in-the-switchnic">Key-Value Stores in the Switch/NIC</a></h2>
+<p>Research has explored implementing key-value stores entirely within the network – either in programmable switches or in SmartNIC processing units.</p>
+<p><strong>NetCache</strong> (2017) implemented a key-value cache in a P4 switch, handling hot-key queries at switch line rate (billions of lookups per second). The switch maintains a small cache of frequently accessed keys and serves queries directly, forwarding cache misses to backend servers.</p>
+<p><strong>NIC-based KV stores</strong> use the SmartNIC/DPU’s ARM cores or FPGA logic to implement a key-value store that responds to RDMA requests without involving the host CPU. This provides:</p>
+<ul>
+<li>Sub-microsecond read latency (no host CPU in the path).</li>
+<li>Predictable tail latency (no OS scheduling jitter).</li>
+<li>Host CPU savings for compute-intensive workloads.</li>
+</ul>
+<div class="tip">
+<p><strong>Tip:</strong> In-network key-value stores are most effective for read-heavy, hot-key workloads where a small number of keys account for a large fraction of accesses. For write-heavy or uniformly distributed workloads, the limited memory in switches and NICs makes them impractical as primary stores, though they remain useful as caches.</p>
+</div>
+
+<h2 id="consensus-in-the-network"><a class="header" href="#consensus-in-the-network">Consensus in the Network</a></h2>
+<p>Distributed consensus protocols (Paxos, Raft) are fundamental to replicated systems but add latency to every write operation. Research has explored implementing consensus logic inside the network:</p>
+<p><strong>NetPaxos</strong> (2015) demonstrated that a P4 switch can act as a Paxos acceptor, processing consensus messages at line rate. By placing the consensus logic in the switch, the latency of the consensus round is reduced to the network round-trip time plus switch processing time, eliminating the server-side processing delay.</p>
+<p><strong>NOPaxos</strong> (Network-Ordered Paxos) uses the network to provide total ordering of messages, simplifying the consensus protocol. A sequencer in the network assigns sequence numbers to all messages, and replicas can agree on the order without running a full consensus round for each message.</p>
+<p>These approaches use RDMA or RDMA-like transports for the data path while leveraging programmable network elements for the protocol logic.</p>
+<h2 id="post-rdma-networking-what-comes-after"><a class="header" href="#post-rdma-networking-what-comes-after">Post-RDMA Networking: What Comes After?</a></h2>
+<p>RDMA, for all its performance advantages, has well-known limitations:</p>
+<ul>
+<li><strong>Connection-oriented scaling:</strong> RC QPs require per-connection state on the NIC, limiting the number of concurrent connections.</li>
+<li><strong>Limited operation set:</strong> The fixed set of RDMA operations (Read, Write, Send, Atomic) cannot be extended without hardware changes.</li>
+<li><strong>Reliability overhead:</strong> Go-back-N retransmission in hardware is inefficient for lossy networks.</li>
+<li><strong>Security model:</strong> Trust-the-endpoint does not fit multi-tenant clouds.</li>
+</ul>
+<p>Several efforts are working on “what comes after” RDMA.</p>
+<h2 id="ultra-ethernet-consortium"><a class="header" href="#ultra-ethernet-consortium">Ultra Ethernet Consortium</a></h2>
+<p>The Ultra Ethernet Consortium (UEC), founded in 2023 by AMD, Broadcom, Cisco, Intel, Meta, Microsoft, and others, is developing a next-generation Ethernet transport protocol designed for AI and HPC workloads. The UEC aims to provide:</p>
+<ul>
+<li><strong>Packet spraying with reordering:</strong> Spread traffic across all available paths (not just ECMP hashing) and reassemble in order at the receiver. This dramatically improves bandwidth utilization.</li>
+<li><strong>Improved congestion control:</strong> Hardware-based congestion control designed for the bursty, all-to-all traffic patterns of AI training.</li>
+<li><strong>Multipath reliability:</strong> If one path fails, traffic is seamlessly rerouted to another without application-visible errors.</li>
+<li><strong>Scalable connection model:</strong> Reduce per-connection state on the NIC to support millions of concurrent flows.</li>
+<li><strong>Built-in security:</strong> Encryption and authentication as first-class protocol features.</li>
+</ul>
+<pre><code class="language-text">RDMA/RoCE (current):
+  Packet → ECMP hash → Single path → Destination
+  (head-of-line blocking if path is congested)
+
+UEC (future):
+  Packet → Spray across all paths → Reorder at destination
+  (utilizes all available bandwidth)
+</code></pre>
+<div class="note">
+<p><strong>Note:</strong> The UEC transport protocol is complementary to RDMA verbs, not a replacement. The goal is to provide a better transport layer (replacing the RoCE/IB transport) while potentially maintaining compatibility with the verbs programming interface. Applications using libibverbs may be able to use UEC transport without code changes.</p>
+</div>
+
+<h2 id="unified-memory-semantics"><a class="header" href="#unified-memory-semantics">Unified Memory Semantics</a></h2>
+<p>The ultimate vision of memory-centric computing is a single global address space where any processor can access any memory location, regardless of where it is physically located. The distinction between local memory, remote memory, GPU memory, storage, and NIC memory dissolves – all memory is simply “memory,” accessible through load/store instructions with hardware-managed coherence and transport.</p>
+<p>This vision requires the convergence of several technologies:</p>
+<ol>
+<li><strong>CXL</strong> provides cache-coherent access to nearby (intra-rack) memory.</li>
+<li><strong>RDMA</strong> (or its successor) provides access to remote (inter-rack) memory.</li>
+<li><strong>GPUDirect</strong> provides access to accelerator memory.</li>
+<li><strong>Computational storage</strong> provides access to storage-attached memory.</li>
+<li><strong>A unified software layer</strong> abstracts all of these behind a single interface.</li>
+</ol>
+<p>Linux’s Heterogeneous Memory Management (HMM) framework is an early step in this direction, providing a unified interface for managing memory across CPUs, GPUs, and other devices. The ongoing development of CXL, RDMA, and accelerator interconnects is gradually building the hardware foundation.</p>
+<pre><code class="language-text">Today's Architecture:
+  CPU Memory ←── CPU API (malloc)
+  GPU Memory ←── GPU API (cudaMalloc)
+  Remote Memory ←── RDMA API (ibv_reg_mr)
+  Storage ←── File API (read/write)
+  (4 different APIs, 4 different memory spaces)
+
+Future Vision:
+  Global Address Space ←── Unified API (load/store everywhere)
+  (hardware manages location, coherence, transport)
+</code></pre>
+<h2 id="the-long-term-vision"><a class="header" href="#the-long-term-vision">The Long-Term Vision</a></h2>
+<p>The trajectory of high-performance computing points toward a world where:</p>
+<ul>
+<li><strong>Memory is disaggregated:</strong> Compute and memory are separate, composable resources allocated dynamically based on workload needs.</li>
+<li><strong>Processing is distributed:</strong> Computation happens at the optimal location – CPU, GPU, NIC, switch, or storage device – determined by data locality and processing requirements.</li>
+<li><strong>Transport is transparent:</strong> Applications express data access patterns, and the hardware/runtime selects the optimal transport (CXL, RDMA, or their successors) based on distance, latency, and bandwidth requirements.</li>
+<li><strong>Security is built in:</strong> Encryption, authentication, and access control are integral to the transport protocol, not afterthoughts bolted on top.</li>
+</ul>
+<p>RDMA, as we know it today, is a milestone on this path – the first widely deployed technology that proved direct memory access across a network could be practical, performant, and useful. The concepts it pioneered – kernel bypass, zero-copy, hardware-offloaded protocols, and one-sided memory access – will persist even as the specific implementations evolve. The engineer who understands RDMA deeply is well-positioned to work with whatever comes next, because the fundamental trade-offs – latency versus throughput, hardware versus software, generality versus performance – remain the same.</p>
+<p>What changes is the scale of ambition. RDMA made it practical to access memory on another server as if it were almost local. The technologies surveyed in this chapter are working toward making it practical to access any memory, anywhere, with the performance characteristics appropriate to the physical distance and the application’s needs. That is a worthy goal, and it is closer today than it has ever been.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-6-future/ch18-future-directions/gpudirect.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../appendices/appendix-a-verbs-api-reference.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-6-future/ch18-future-directions/gpudirect.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../appendices/appendix-a-verbs-api-reference.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

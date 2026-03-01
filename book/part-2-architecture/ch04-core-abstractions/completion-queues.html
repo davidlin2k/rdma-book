@@ -1,0 +1,542 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Completion Queues (CQ) - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="43-completion-queues-cq"><a class="header" href="#43-completion-queues-cq">4.3 Completion Queues (CQ)</a></h1>
+<p>If Queue Pairs are where work begins, Completion Queues are where work ends. Every RDMA operation – send, receive, RDMA write, RDMA read, atomic – eventually generates a completion. The Completion Queue is the mechanism by which the NIC reports to the application that a work request has been processed. Understanding the CQ is essential not only for correctness (knowing when a buffer can be reused) but for performance (the completion path is often the bottleneck in high-throughput applications).</p>
+<h2 id="the-role-of-completions"><a class="header" href="#the-role-of-completions">The Role of Completions</a></h2>
+<p>Why do completions exist? Consider what happens when you post a send work request:</p>
+<ol>
+<li>You call <code>ibv_post_send()</code>, which writes a WQE into the QP’s Send Queue.</li>
+<li>The NIC reads the WQE via DMA, reads the data from your registered buffer via DMA, and transmits the packet.</li>
+<li>For RC QPs, the NIC waits for an acknowledgment from the remote side.</li>
+<li>Only at this point is the operation truly complete: the data has been transmitted, acknowledged (for RC), and the buffer is safe to reuse or free.</li>
+</ol>
+<p>Without completions, you would have no way to know when step 4 has occurred. You would either have to assume the worst case (wait an arbitrarily long time) or risk reusing a buffer while the NIC is still reading from it – a recipe for data corruption.</p>
+<p>The Completion Queue Entry (CQE) is the answer: a small structure written by the NIC into a ring buffer accessible to the application, containing the status and metadata of a completed operation.</p>
+<h2 id="cqe-structure"><a class="header" href="#cqe-structure">CQE Structure</a></h2>
+<p>The application reads completions through the <code>ibv_wc</code> (work completion) structure:</p>
+<pre><code class="language-c">struct ibv_wc {
+    uint64_t        wr_id;          /* The wr_id from the original WQE */
+    enum ibv_wc_status status;      /* IBV_WC_SUCCESS or error code */
+    enum ibv_wc_opcode opcode;      /* IBV_WC_SEND, IBV_WC_RECV, IBV_WC_RDMA_WRITE, etc. */
+    uint32_t        vendor_err;     /* Vendor-specific error code */
+    uint32_t        byte_len;       /* Number of bytes transferred (for receive ops) */
+    uint32_t        imm_data;       /* Immediate data (network byte order) */
+    uint32_t        qp_num;         /* QP number that generated this completion */
+    uint32_t        src_qp;         /* Source QPN (for UD receives) */
+    uint16_t        pkey_index;     /* Partition key index */
+    uint16_t        slid;           /* Source LID (for UD receives) */
+    uint8_t         sl;             /* Service Level (for UD receives) */
+    uint8_t         dlid_path_bits; /* DLID path bits (for UD receives) */
+    /* ... additional fields ... */
+};
+</code></pre>
+<p>Key fields:</p>
+<ul>
+<li><strong>wr_id</strong>: This is the 64-bit value you set in the original work request. It is your primary mechanism for correlating completions with requests. A common pattern is to store a pointer to a context structure or an index into a work-request tracking array.</li>
+<li><strong>status</strong>: <code>IBV_WC_SUCCESS</code> (0) means the operation completed normally. Any other value indicates an error. Common error codes include <code>IBV_WC_LOC_LEN_ERR</code> (local length error), <code>IBV_WC_LOC_PROT_ERR</code> (local protection error – typically an lkey/rkey mismatch), <code>IBV_WC_REM_ACCESS_ERR</code> (remote access error), and <code>IBV_WC_RETRY_EXC_ERR</code> (retry count exceeded – the remote side is unreachable).</li>
+<li><strong>opcode</strong>: Indicates what kind of operation completed. Note that for send-side completions, this reflects the original operation (Send, RDMA Write, RDMA Read, etc.). For receive-side completions, the opcode is <code>IBV_WC_RECV</code> or <code>IBV_WC_RECV_RDMA_WITH_IMM</code>.</li>
+<li><strong>byte_len</strong>: Only meaningful for receive completions – indicates how many bytes of data were actually received.</li>
+<li><strong>qp_num</strong>: Identifies which QP generated this completion. This is essential when a single CQ is shared across multiple QPs.</li>
+</ul>
+<div class="admonition warning">
+<div class="admonition-title">Warning</div>
+
+When <code>status != IBV_WC_SUCCESS</code>, the only reliable fields in the CQE are <code>wr_id</code>, <code>status</code>, <code>vendor_err</code>, and <code>qp_num</code>. All other fields are undefined. Do not read <code>byte_len</code>, <code>opcode</code>, or any other field from a failed completion.
+</div>
+
+<h2 id="the-completion-flow"><a class="header" href="#the-completion-flow">The Completion Flow</a></h2>
+<pre class="mermaid">sequenceDiagram
+    participant App as Application
+    participant PL as Provider Library
+    participant SQ as Send Queue (Ring Buffer)
+    participant NIC as NIC Hardware
+    participant CQ as Completion Queue (Ring Buffer)
+
+    App-&gt;&gt;PL: ibv_post_send(qp, wr)
+    PL-&gt;&gt;SQ: Write WQE to tail of SQ
+    PL-&gt;&gt;NIC: Ring doorbell (MMIO write)
+
+    NIC-&gt;&gt;SQ: DMA read WQE from SQ
+    NIC-&gt;&gt;NIC: DMA read data from MR&lt;br/&gt;Transmit packet&lt;br/&gt;Wait for ACK (RC)
+
+    NIC-&gt;&gt;CQ: DMA write CQE to CQ
+
+    App-&gt;&gt;PL: ibv_poll_cq(cq, n, wc)
+    PL-&gt;&gt;CQ: Read CQE(s) from CQ
+    PL-&gt;&gt;App: Return completed ibv_wc entries
+
+    Note over App: Buffer is now safe to reuse
+</pre>
+
+<p>The key observation is that the NIC writes CQEs directly into application-accessible memory via DMA. The <code>ibv_poll_cq()</code> call does not involve a system call or kernel transition – the provider library simply reads from the CQ’s ring buffer in user-space memory. This is why CQ polling achieves sub-microsecond latency.</p>
+<h2 id="cq-sizing"><a class="header" href="#cq-sizing">CQ Sizing</a></h2>
+<p>A Completion Queue has a fixed capacity set at creation time. It must be large enough to accommodate the maximum number of outstanding CQEs that can be generated before the application polls them.</p>
+<p>The sizing calculation depends on which QPs are associated with the CQ:</p>
+<pre><code>Required CQ size ≥ Σ(max_send_wr for all QPs using this CQ for send completions)
+                  + Σ(max_recv_wr for all QPs using this CQ for recv completions)
+</code></pre>
+<p>In practice, not all send WQEs generate completions – only those with <code>IBV_SEND_SIGNALED</code> set (when <code>sq_sig_all = 0</code>). However, sizing the CQ for the worst case is the safe approach:</p>
+<pre><code class="language-c">/* Two QPs, each with 256 send WRs and 256 recv WRs, sharing one CQ */
+int cq_size = 2 * (256 + 256);  /* = 1024 */
+
+struct ibv_cq *cq = ibv_create_cq(ctx, cq_size, NULL, NULL, 0);
+if (!cq) {
+    perror("ibv_create_cq");
+    exit(1);
+}
+/* Like QPs, the actual CQ size may be rounded up by the hardware */
+printf("Actual CQ size: %d\n", cq-&gt;cqe);
+</code></pre>
+<div class="admonition warning">
+<div class="admonition-title">Warning: CQ Overrun</div>
+
+If the CQ becomes full and the NIC cannot write a new CQE, a <strong>CQ overrun</strong> occurs. This is a fatal error: the NIC generates an asynchronous error event, and all QPs associated with the overflowing CQ are moved to the Error state. Recovery requires destroying and recreating the affected QPs. Always size your CQ generously and poll it frequently enough to prevent this condition.
+</div>
+
+<h2 id="polling-mode-ibv_poll_cq"><a class="header" href="#polling-mode-ibv_poll_cq">Polling Mode: ibv_poll_cq()</a></h2>
+<p>The most common and lowest-latency approach to consuming completions is <strong>busy polling</strong> (also called spinning):</p>
+<pre><code class="language-c">struct ibv_wc wc[16];  /* Poll up to 16 completions at once */
+int ne;
+
+/* Busy-poll loop */
+while (running) {
+    ne = ibv_poll_cq(cq, 16, wc);
+    if (ne &lt; 0) {
+        fprintf(stderr, "ibv_poll_cq failed\n");
+        break;
+    }
+    for (int i = 0; i &lt; ne; i++) {
+        if (wc[i].status != IBV_WC_SUCCESS) {
+            fprintf(stderr, "Completion error on wr_id %lu: %s (%d)\n",
+                    wc[i].wr_id,
+                    ibv_wc_status_str(wc[i].status),
+                    wc[i].status);
+            handle_error(&amp;wc[i]);
+            continue;
+        }
+        process_completion(&amp;wc[i]);
+    }
+}
+</code></pre>
+<p><code>ibv_poll_cq()</code> is a non-blocking call that returns:</p>
+<ul>
+<li><strong>&gt; 0</strong>: The number of completions retrieved (up to the requested count).</li>
+<li><strong>0</strong>: No completions are available.</li>
+<li><strong>&lt; 0</strong>: An error occurred.</li>
+</ul>
+<p>This function is typically the hottest function in an RDMA application. It executes entirely in user space – no system call, no context switch, no kernel involvement. On modern hardware with ConnectX-5+, a single <code>ibv_poll_cq()</code> call takes on the order of tens of nanoseconds.</p>
+<p>The trade-off is CPU consumption: a busy-poll loop consumes 100% of one CPU core. This is often acceptable in high-performance computing and low-latency trading, where dedicated cores are the norm. For applications that cannot afford a dedicated polling core, event-driven mode provides an alternative.</p>
+<h2 id="event-driven-mode-completion-channels"><a class="header" href="#event-driven-mode-completion-channels">Event-Driven Mode: Completion Channels</a></h2>
+<p>For applications that need to wait for completions without spinning, RDMA provides a <strong>completion channel</strong> mechanism based on file descriptors and the <code>select()</code>/<code>poll()</code>/<code>epoll()</code> system calls:</p>
+<pre><code class="language-c">/* Step 1: Create a completion channel */
+struct ibv_comp_channel *channel = ibv_create_comp_channel(ctx);
+
+/* Step 2: Create the CQ with the completion channel */
+struct ibv_cq *cq = ibv_create_cq(ctx, cq_size, NULL, channel, 0);
+
+/* Step 3: Request notification -- arm the CQ */
+ibv_req_notify_cq(cq, 0);  /* 0 = notify on any completion */
+                             /* 1 = notify only on solicited completions */
+
+/* Step 4: Wait for notification */
+struct ibv_cq *ev_cq;
+void *ev_ctx;
+ibv_get_cq_event(channel, &amp;ev_cq, &amp;ev_ctx);  /* Blocks until notification */
+
+/* Step 5: Acknowledge the event (MUST be done to avoid resource leak) */
+ibv_ack_cq_events(ev_cq, 1);
+
+/* Step 6: Re-arm the CQ for the next notification */
+ibv_req_notify_cq(cq, 0);
+
+/* Step 7: Poll for ALL completions */
+struct ibv_wc wc[16];
+int ne;
+while ((ne = ibv_poll_cq(cq, 16, wc)) &gt; 0) {
+    for (int i = 0; i &lt; ne; i++) {
+        process_completion(&amp;wc[i]);
+    }
+}
+</code></pre>
+<p>The event-driven model introduces several important concepts:</p>
+<h3 id="completion-channels"><a class="header" href="#completion-channels">Completion Channels</a></h3>
+<p>A completion channel (<code>ibv_comp_channel</code>) is a file-descriptor-based notification mechanism. Its file descriptor can be used with <code>select()</code>, <code>poll()</code>, or <code>epoll()</code>, making it compatible with event-loop frameworks. Multiple CQs can share a single completion channel.</p>
+<h3 id="arming-the-cq"><a class="header" href="#arming-the-cq">Arming the CQ</a></h3>
+<p>The <code>ibv_req_notify_cq()</code> call “arms” the CQ: it tells the NIC to generate an interrupt (and thus a notification on the completion channel) when the next CQE is written. This is a one-shot mechanism – after a notification fires, the CQ must be re-armed to receive another.</p>
+<h3 id="solicited-only-notifications"><a class="header" href="#solicited-only-notifications">Solicited-Only Notifications</a></h3>
+<p>The second parameter to <code>ibv_req_notify_cq()</code> controls which completions trigger notification:</p>
+<ul>
+<li><strong>0 (unsolicited)</strong>: Notify on any completion.</li>
+<li><strong>1 (solicited only)</strong>: Notify only when a CQE arrives for a receive operation where the sender set the <code>IBV_SEND_SOLICITED</code> flag. This is an optimization that allows the receiver to avoid waking up for routine completions while still being notified for “important” ones.</li>
+</ul>
+<div class="admonition note">
+<div class="admonition-title">Note</div>
+
+The event-driven model has inherently higher latency than busy polling because it involves an interrupt from the NIC, a kernel-to-user notification via the file descriptor, and the overhead of the event acknowledgment. Typical added latency is 5-20 microseconds. For this reason, high-performance applications often use a hybrid approach: busy-poll for a period, then fall back to event-driven mode after a timeout to save CPU.
+</div>
+
+<h3 id="the-race-condition-and-its-resolution"><a class="header" href="#the-race-condition-and-its-resolution">The Race Condition and Its Resolution</a></h3>
+<p>There is a subtle race between <code>ibv_req_notify_cq()</code> and <code>ibv_poll_cq()</code>. Consider:</p>
+<ol>
+<li>You arm the CQ with <code>ibv_req_notify_cq()</code>.</li>
+<li>A CQE arrives <em>before</em> you call <code>ibv_get_cq_event()</code>.</li>
+<li>You call <code>ibv_get_cq_event()</code>, which returns immediately because the event already fired.</li>
+<li>You poll the CQ and process the completion.</li>
+<li>You re-arm the CQ.</li>
+</ol>
+<p>But what if another CQE arrived between steps 4 and 5? It would be missed until the <em>next</em> notification, which might never come if no more work is posted.</p>
+<p>The solution is the polling loop in step 7 above: after receiving a notification, always poll the CQ until it is empty, and only <em>then</em> re-arm. This ensures no completions are missed. Even better, re-arm <em>before</em> draining the CQ:</p>
+<pre><code class="language-c">/* Better pattern: re-arm before polling to close the race window */
+ibv_get_cq_event(channel, &amp;ev_cq, &amp;ev_ctx);
+ibv_ack_cq_events(ev_cq, 1);
+ibv_req_notify_cq(cq, 0);  /* Re-arm BEFORE polling */
+
+/* Now drain all completions -- if new ones arrive during this
+   drain, they will trigger another event */
+while ((ne = ibv_poll_cq(cq, 16, wc)) &gt; 0) {
+    /* ... process ... */
+}
+</code></pre>
+<h2 id="shared-cqs"><a class="header" href="#shared-cqs">Shared CQs</a></h2>
+<p>A single CQ can serve as the send CQ and/or receive CQ for multiple QPs. This is both common and recommended:</p>
+<pre><code class="language-c">/* One CQ shared by many QPs */
+struct ibv_cq *shared_cq = ibv_create_cq(ctx, total_depth, NULL, NULL, 0);
+
+for (int i = 0; i &lt; num_qps; i++) {
+    struct ibv_qp_init_attr attr = {
+        .send_cq = shared_cq,
+        .recv_cq = shared_cq,
+        .cap = { ... },
+        .qp_type = IBV_QPT_RC,
+    };
+    qps[i] = ibv_create_qp(pd, &amp;attr);
+}
+</code></pre>
+<p>Benefits of shared CQs:</p>
+<ul>
+<li><strong>Fewer objects to manage</strong>: One poll loop drains completions from all QPs.</li>
+<li><strong>Natural work aggregation</strong>: When processing completions from multiple QPs in one poll, you can batch responses and repost receive buffers more efficiently.</li>
+<li><strong>Reduced interrupt overhead</strong>: In event-driven mode, one completion channel and one CQ event replaces N separate events.</li>
+</ul>
+<p>The <code>qp_num</code> field in each CQE identifies which QP generated the completion, so the application can still dispatch appropriately.</p>
+<div class="admonition tip">
+<div class="admonition-title">Tip</div>
+
+A common high-performance pattern is to use separate send and receive CQs. This allows different threads to poll send and receive completions concurrently without lock contention, while still sharing each CQ across multiple QPs.
+</div>
+
+<h2 id="cq-moderation-and-coalescing"><a class="header" href="#cq-moderation-and-coalescing">CQ Moderation and Coalescing</a></h2>
+<p>At very high message rates (millions of messages per second), even the overhead of polling for each individual completion can become significant. <strong>CQ moderation</strong> (also called interrupt coalescing, though it applies to polling as well) allows the NIC to delay generating CQEs or events until a threshold is reached:</p>
+<pre><code class="language-c">struct ibv_modify_cq_attr cq_attr = {
+    .attr_mask = IBV_CQ_ATTR_MODERATE,
+    .moderate = {
+        .cq_count  = 64,     /* Generate event after 64 completions */
+        .cq_period = 10,     /* ... or after 10 microseconds, whichever comes first */
+    },
+};
+ibv_modify_cq(cq, &amp;cq_attr);
+</code></pre>
+<p>CQ moderation reduces the number of events (and thus interrupts, if using event-driven mode) at the cost of increased latency for individual completions. This is primarily useful for event-driven applications processing high-throughput bulk transfers. For busy-polling applications, CQ moderation is less relevant since the application is already polling at maximum rate.</p>
+<h2 id="extended-cq-ibv_create_cq_ex"><a class="header" href="#extended-cq-ibv_create_cq_ex">Extended CQ: ibv_create_cq_ex()</a></h2>
+<p>The extended CQ interface provides additional capabilities:</p>
+<pre><code class="language-c">struct ibv_cq_init_attr_ex cq_attr = {
+    .cqe = cq_size,
+    .cq_context = my_context,
+    .channel = comp_channel,
+    .comp_vector = 0,
+    .wc_flags = IBV_WC_EX_WITH_BYTE_LEN |
+                IBV_WC_EX_WITH_IMM |
+                IBV_WC_EX_WITH_COMPLETION_TIMESTAMP,
+    .flags = IBV_CREATE_CQ_ATTR_SINGLE_THREADED,  /* No internal locking */
+};
+
+struct ibv_cq_ex *cq_ex = ibv_create_cq_ex(ctx, &amp;cq_attr);
+</code></pre>
+<p>Notable extensions:</p>
+<ul>
+<li><strong>Completion timestamps</strong> (<code>IBV_WC_EX_WITH_COMPLETION_TIMESTAMP</code>): The NIC records a hardware timestamp when each CQE is generated. This is invaluable for latency measurement and profiling.</li>
+<li><strong>Single-threaded flag</strong> (<code>IBV_CREATE_CQ_ATTR_SINGLE_THREADED</code>): Tells the provider that only one thread will access this CQ, eliminating internal locking overhead.</li>
+<li><strong>Flexible CQE fields</strong>: The <code>wc_flags</code> parameter specifies exactly which fields the application needs, allowing the provider to optimize CQE parsing by skipping unnecessary fields.</li>
+</ul>
+<p>The extended CQ uses a different polling interface based on iterators:</p>
+<pre><code class="language-c">struct ibv_poll_cq_attr poll_attr = {};
+int ret = ibv_start_poll(cq_ex, &amp;poll_attr);
+while (ret == 0) {
+    /* Access fields via accessor functions */
+    uint64_t wr_id = cq_ex-&gt;wr_id;
+    enum ibv_wc_status status = cq_ex-&gt;status;
+    uint32_t byte_len = ibv_wc_read_byte_len(cq_ex);
+    uint64_t timestamp = ibv_wc_read_completion_ts(cq_ex);
+
+    /* Process completion... */
+
+    ret = ibv_next_poll(cq_ex);
+}
+ibv_end_poll(cq_ex);
+</code></pre>
+<h2 id="completion-vectors"><a class="header" href="#completion-vectors">Completion Vectors</a></h2>
+<p>When creating a CQ, the <code>comp_vector</code> parameter specifies which completion vector (interrupt vector) the NIC should use for event delivery:</p>
+<pre><code class="language-c">struct ibv_cq *cq = ibv_create_cq(ctx, depth, NULL, channel, comp_vector);
+</code></pre>
+<p>Completion vectors correspond to MSI-X interrupt vectors on the NIC. By assigning different CQs to different completion vectors, and binding those vectors to specific CPU cores (via <code>/proc/irq/N/smp_affinity</code>), you can control which core handles each CQ’s interrupts. This is critical for NUMA-aware designs:</p>
+<ul>
+<li>Place the CQ’s completion vector on the same NUMA node as the polling thread.</li>
+<li>Spread CQs across vectors to avoid interrupt concentration on a single core.</li>
+</ul>
+<p>The number of available completion vectors can be queried via <code>ibv_query_device()</code>:</p>
+<pre><code class="language-c">printf("Completion vectors: %d\n", ctx-&gt;num_comp_vectors);
+</code></pre>
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>The Completion Queue is the feedback mechanism of the RDMA programming model. Its ring-buffer design enables the NIC to report completed operations directly to user space, without kernel involvement. The choice between busy polling and event-driven notification is a fundamental design decision that trades CPU consumption for latency. Proper CQ sizing prevents overrun, shared CQs reduce overhead for multi-QP designs, and extended CQ features like timestamps and single-threaded optimization unlock additional performance.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-2-architecture/ch04-core-abstractions/queue-pairs.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-2-architecture/ch04-core-abstractions/memory-regions.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-2-architecture/ch04-core-abstractions/queue-pairs.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-2-architecture/ch04-core-abstractions/memory-regions.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

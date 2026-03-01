@@ -1,0 +1,526 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Client-Server with RDMA_CM - Mastering RDMA: From Fundamentals to Production Systems</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to Remote Direct Memory Access, from fundamentals to production deployment">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../theme/custom-f444d4c9.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-722b935f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-e2f8dd18.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Mastering RDMA: From Fundamentals to Production Systems</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="102-client-server-with-rdma_cm"><a class="header" href="#102-client-server-with-rdma_cm">10.2 Client-Server with RDMA_CM</a></h1>
+<p>This section develops a complete RDMA client-server application using <code>librdmacm</code>. We will walk through the server and client lifecycles in detail, compare them with the raw verbs approach from Chapter 9, and provide fully annotated code that you can compile and run. By the end, you will see how RDMA_CM reduces connection setup from hundreds of lines of boilerplate to a clean, event-driven flow.</p>
+<h2 id="comparison-with-raw-verbs"><a class="header" href="#comparison-with-raw-verbs">Comparison with Raw Verbs</a></h2>
+<p>Recall the connection setup from Chapter 9. To establish a single RC connection using raw verbs, both sides needed to:</p>
+<ol>
+<li>Open the device and allocate a protection domain.</li>
+<li>Create completion queues and a queue pair.</li>
+<li>Query the port for the local LID and GID.</li>
+<li>Exchange QP numbers, LIDs, GIDs, and PSN values over a TCP socket.</li>
+<li>Transition the QP from RESET to INIT (setting port number, access flags).</li>
+<li>Transition from INIT to RTR (setting the remote QPN, LID, GID, PSN, MTU, and numerous other parameters).</li>
+<li>Transition from RTR to RTS (setting timeout, retry count, RNR retry, and SQ PSN).</li>
+</ol>
+<p>With RDMA_CM, steps 3 through 7 are eliminated entirely. The library resolves addresses, discovers routes, exchanges QP metadata, and drives the state machine internally. The application only needs to:</p>
+<ol>
+<li>Create an <code>rdma_cm_id</code> on an event channel.</li>
+<li>For the server: bind to an address and listen.</li>
+<li>For the client: resolve address and route, then connect.</li>
+<li>Create a QP (using <code>rdma_create_qp()</code> which associates it with the CM ID).</li>
+<li>Accept or establish the connection through the event loop.</li>
+</ol>
+<p>The following table summarizes the difference:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Step</th><th>Raw Verbs</th><th>RDMA_CM</th></tr>
+</thead>
+<tbody>
+<tr><td>Metadata exchange</td><td>Manual TCP socket</td><td>Automatic (CM protocol)</td></tr>
+<tr><td>QP state: RESET-&gt;INIT</td><td><code>ibv_modify_qp()</code></td><td>Automatic</td></tr>
+<tr><td>QP state: INIT-&gt;RTR</td><td><code>ibv_modify_qp()</code> with 10+ params</td><td>Automatic</td></tr>
+<tr><td>QP state: RTR-&gt;RTS</td><td><code>ibv_modify_qp()</code> with 5+ params</td><td>Automatic</td></tr>
+<tr><td>Transport portability</td><td>Must handle IB/RoCE/iWARP differences</td><td>Transparent</td></tr>
+<tr><td>Side channel needed</td><td>Yes (TCP socket)</td><td>No</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="server-lifecycle"><a class="header" href="#server-lifecycle">Server Lifecycle</a></h2>
+<p>The server follows a lifecycle that mirrors TCP servers: create, bind, listen, accept. Here is the sequence in detail.</p>
+<h3 id="step-1-create-the-event-channel-and-listener-id"><a class="header" href="#step-1-create-the-event-channel-and-listener-id">Step 1: Create the Event Channel and Listener ID</a></h3>
+<pre><code class="language-c">struct rdma_event_channel *channel = rdma_create_event_channel();
+
+struct rdma_cm_id *listener;
+rdma_create_id(channel, &amp;listener, NULL, RDMA_PS_TCP);
+</code></pre>
+<p>The <code>RDMA_PS_TCP</code> port space indicates reliable, connection-oriented service (analogous to RC transport). For datagram service, you would use <code>RDMA_PS_UDP</code>. The fourth parameter (<code>NULL</code> in this example) is a user-defined context pointer that will be accessible via <code>listener-&gt;context</code> in event handlers.</p>
+<h3 id="step-2-bind-to-an-address"><a class="header" href="#step-2-bind-to-an-address">Step 2: Bind to an Address</a></h3>
+<pre><code class="language-c">struct sockaddr_in addr = {
+    .sin_family = AF_INET,
+    .sin_port = htons(12345),
+    .sin_addr.s_addr = INADDR_ANY
+};
+rdma_bind_addr(listener, (struct sockaddr *)&amp;addr);
+</code></pre>
+<p>This binds the listener to a specific port on all available RDMA devices. If you bind to a specific IP address, RDMA_CM will automatically select the RDMA device whose port is associated with that address. This is one of the key advantages of RDMA_CM: device selection is driven by IP addressing rather than explicit device enumeration.</p>
+<h3 id="step-3-listen-for-connections"><a class="header" href="#step-3-listen-for-connections">Step 3: Listen for Connections</a></h3>
+<pre><code class="language-c">rdma_listen(listener, 10);  /* backlog of 10 */
+</code></pre>
+<p>After this call, the server will begin accepting incoming connection requests. The backlog parameter works the same way as in TCP’s <code>listen()</code>.</p>
+<h3 id="step-4-handle-connection-requests"><a class="header" href="#step-4-handle-connection-requests">Step 4: Handle Connection Requests</a></h3>
+<p>When a client connects, the event loop receives <code>RDMA_CM_EVENT_CONNECT_REQUEST</code>. The event carries a new <code>rdma_cm_id</code> representing the incoming connection:</p>
+<pre><code class="language-c">case RDMA_CM_EVENT_CONNECT_REQUEST: {
+    struct rdma_cm_id *client_id = event-&gt;id;
+
+    /* Allocate PD if not done already */
+    struct ibv_pd *pd = ibv_alloc_pd(client_id-&gt;verbs);
+
+    /* Create CQ */
+    struct ibv_cq *cq = ibv_create_cq(client_id-&gt;verbs,
+                                        16, NULL, NULL, 0);
+
+    /* Create QP on the new connection ID */
+    struct ibv_qp_init_attr qp_attr = {
+        .send_cq = cq,
+        .recv_cq = cq,
+        .qp_type = IBV_QPT_RC,
+        .cap = {
+            .max_send_wr = 16,
+            .max_recv_wr = 16,
+            .max_send_sge = 1,
+            .max_recv_sge = 1
+        }
+    };
+    rdma_create_qp(client_id, pd, &amp;qp_attr);
+
+    /* Post receive buffers before accepting */
+    post_receive(client_id);
+
+    /* Accept the connection */
+    struct rdma_conn_param conn_param = {
+        .responder_resources = 1,
+        .initiator_depth = 1,
+    };
+    rdma_accept(client_id, &amp;conn_param);
+    break;
+}
+</code></pre>
+<div class="warning">
+<p><strong>Important</strong>: Always post receive buffers <em>before</em> calling <code>rdma_accept()</code>. Once the connection is established, the remote side may begin sending immediately. If no receive buffers are posted, those sends will fail with a Receiver Not Ready (RNR) error.</p>
+</div>
+
+<p>Note that <code>rdma_create_qp()</code> replaces the raw <code>ibv_create_qp()</code>. The key difference is that <code>rdma_create_qp()</code> associates the QP with the <code>rdma_cm_id</code>, allowing the CM to manage its state transitions automatically. You must not call <code>ibv_modify_qp()</code> on a QP managed by RDMA_CM.</p>
+<h3 id="step-5-connection-established"><a class="header" href="#step-5-connection-established">Step 5: Connection Established</a></h3>
+<p>After the client confirms the connection, both sides receive <code>RDMA_CM_EVENT_ESTABLISHED</code>:</p>
+<pre><code class="language-c">case RDMA_CM_EVENT_ESTABLISHED:
+    printf("Connection established with client\n");
+    /* Begin data transfer operations */
+    break;
+</code></pre>
+<h2 id="client-lifecycle"><a class="header" href="#client-lifecycle">Client Lifecycle</a></h2>
+<p>The client lifecycle involves resolving the server’s address, resolving the network route, and connecting.</p>
+<h3 id="step-1-create-event-channel-and-cm-id"><a class="header" href="#step-1-create-event-channel-and-cm-id">Step 1: Create Event Channel and CM ID</a></h3>
+<pre><code class="language-c">struct rdma_event_channel *channel = rdma_create_event_channel();
+
+struct rdma_cm_id *conn;
+rdma_create_id(channel, &amp;conn, NULL, RDMA_PS_TCP);
+</code></pre>
+<h3 id="step-2-resolve-address"><a class="header" href="#step-2-resolve-address">Step 2: Resolve Address</a></h3>
+<pre><code class="language-c">struct sockaddr_in addr = {
+    .sin_family = AF_INET,
+    .sin_port = htons(12345)
+};
+inet_pton(AF_INET, server_ip, &amp;addr.sin_addr);
+
+rdma_resolve_addr(conn, NULL, (struct sockaddr *)&amp;addr, 2000 /* ms timeout */);
+</code></pre>
+<p>This is an asynchronous call. It resolves the IP address to an RDMA device and port. When resolution completes, the event loop receives <code>RDMA_CM_EVENT_ADDR_RESOLVED</code>.</p>
+<h3 id="step-3-resolve-route"><a class="header" href="#step-3-resolve-route">Step 3: Resolve Route</a></h3>
+<p>Upon receiving <code>RDMA_CM_EVENT_ADDR_RESOLVED</code>:</p>
+<pre><code class="language-c">case RDMA_CM_EVENT_ADDR_RESOLVED:
+    rdma_resolve_route(event-&gt;id, 2000 /* ms timeout */);
+    break;
+</code></pre>
+<p>Route resolution determines the path to the remote peer. On InfiniBand, this involves querying the Subnet Manager for path information. On RoCE and iWARP, the route is derived from IP routing tables. When complete, the event loop receives <code>RDMA_CM_EVENT_ROUTE_RESOLVED</code>.</p>
+<h3 id="step-4-create-qp-and-connect"><a class="header" href="#step-4-create-qp-and-connect">Step 4: Create QP and Connect</a></h3>
+<p>Upon receiving <code>RDMA_CM_EVENT_ROUTE_RESOLVED</code>:</p>
+<pre><code class="language-c">case RDMA_CM_EVENT_ROUTE_RESOLVED: {
+    struct ibv_pd *pd = ibv_alloc_pd(event-&gt;id-&gt;verbs);
+    struct ibv_cq *cq = ibv_create_cq(event-&gt;id-&gt;verbs,
+                                        16, NULL, NULL, 0);
+
+    struct ibv_qp_init_attr qp_attr = {
+        .send_cq = cq,
+        .recv_cq = cq,
+        .qp_type = IBV_QPT_RC,
+        .cap = {
+            .max_send_wr = 16,
+            .max_recv_wr = 16,
+            .max_send_sge = 1,
+            .max_recv_sge = 1
+        }
+    };
+    rdma_create_qp(event-&gt;id, pd, &amp;qp_attr);
+
+    /* Post receive buffers before connecting */
+    post_receive(event-&gt;id);
+
+    struct rdma_conn_param conn_param = {
+        .responder_resources = 1,
+        .initiator_depth = 1,
+    };
+    rdma_connect(event-&gt;id, &amp;conn_param);
+    break;
+}
+</code></pre>
+<h2 id="private-data-exchange"><a class="header" href="#private-data-exchange">Private Data Exchange</a></h2>
+<p>One of the elegant features of RDMA_CM is the ability to exchange small amounts of <strong>private data</strong> during the connection handshake. The client can attach data to <code>rdma_connect()</code>, and the server can attach data to <code>rdma_accept()</code>, eliminating the need for a separate metadata exchange channel.</p>
+<pre><code class="language-c">/* Client side: send memory region info with connect request */
+struct conn_metadata {
+    uint64_t addr;
+    uint32_t rkey;
+    uint32_t size;
+};
+
+struct conn_metadata my_meta = {
+    .addr = (uint64_t)(uintptr_t)mr-&gt;addr,
+    .rkey = mr-&gt;rkey,
+    .size = BUFFER_SIZE
+};
+
+struct rdma_conn_param param = {
+    .responder_resources = 1,
+    .initiator_depth = 1,
+    .private_data = &amp;my_meta,
+    .private_data_len = sizeof(my_meta),
+};
+rdma_connect(conn, &amp;param);
+</code></pre>
+<p>The server receives this data in the <code>RDMA_CM_EVENT_CONNECT_REQUEST</code> event:</p>
+<pre><code class="language-c">case RDMA_CM_EVENT_CONNECT_REQUEST: {
+    struct conn_metadata *peer_meta =
+        (struct conn_metadata *)event-&gt;param.conn.private_data;
+    printf("Remote buffer: addr=0x%lx, rkey=0x%x, size=%u\n",
+           peer_meta-&gt;addr, peer_meta-&gt;rkey, peer_meta-&gt;size);
+
+    /* Copy before ack! */
+    struct conn_metadata saved_meta = *peer_meta;
+    /* ... */
+}
+</code></pre>
+<div class="tip">
+<p><strong>Tip</strong>: The maximum private data size depends on the transport. For InfiniBand RC connections, the limit is 56 bytes for connect requests and 148 bytes for accept responses. For iWARP, the limits are larger (up to 512 bytes). Always check <code>RDMA_MAX_PRIVATE_DATA</code> or handle the transport-specific limits. For larger metadata, use a send/receive exchange after connection establishment.</p>
+</div>
+
+<h2 id="automatic-qp-state-management"><a class="header" href="#automatic-qp-state-management">Automatic QP State Management</a></h2>
+<p>A key benefit of RDMA_CM is that you never directly modify QP state. The library handles the full state machine:</p>
+<ul>
+<li><strong>After <code>rdma_create_qp()</code></strong>: QP is in RESET state.</li>
+<li><strong>When processing CONNECT_REQUEST</strong> (server side): CM transitions QP to INIT and RTR internally before delivering the event.</li>
+<li><strong>After <code>rdma_accept()</code> / <code>rdma_connect()</code></strong>: CM transitions QP to RTS.</li>
+<li><strong>On <code>RDMA_CM_EVENT_ESTABLISHED</code></strong>: QP is fully in RTS state, ready for data transfer.</li>
+</ul>
+<p>This means all the transport-specific parameters (MTU, retry counts, RNR timers, PSN values, destination QPN) are negotiated and configured automatically. If you need to customize these parameters, you can do so through <code>rdma_conn_param</code> fields:</p>
+<pre><code class="language-c">struct rdma_conn_param param = {
+    .responder_resources = 4,   /* max incoming RDMA reads */
+    .initiator_depth = 4,       /* max outgoing RDMA reads */
+    .retry_count = 7,           /* transport retries */
+    .rnr_retry_count = 7,       /* RNR retries (7 = infinite) */
+};
+</code></pre>
+<h2 id="disconnection-and-cleanup"><a class="header" href="#disconnection-and-cleanup">Disconnection and Cleanup</a></h2>
+<p>Either side can initiate disconnection:</p>
+<pre><code class="language-c">rdma_disconnect(conn);
+</code></pre>
+<p>This triggers <code>RDMA_CM_EVENT_DISCONNECTED</code> on both sides. Cleanup follows the reverse of creation:</p>
+<pre><code class="language-c">case RDMA_CM_EVENT_DISCONNECTED:
+    rdma_destroy_qp(event-&gt;id);
+    ibv_dereg_mr(mr);
+    ibv_destroy_cq(cq);
+    ibv_dealloc_pd(pd);
+    rdma_destroy_id(event-&gt;id);
+    break;
+</code></pre>
+<p>For the server’s listening ID:</p>
+<pre><code class="language-c">rdma_destroy_id(listener);
+rdma_destroy_event_channel(channel);
+</code></pre>
+<h2 id="complete-code-walkthrough"><a class="header" href="#complete-code-walkthrough">Complete Code Walkthrough</a></h2>
+<p>The full client and server implementations are provided in <code>src/code/ch10-cm-client-server/</code>. Here is a summary of the code structure:</p>
+<p><strong><code>cm_server.c</code></strong> implements:</p>
+<ul>
+<li>Event channel and listener creation</li>
+<li>Binding to port and listening</li>
+<li>Handling CONNECT_REQUEST: allocate resources, create QP, post receives, accept</li>
+<li>Handling ESTABLISHED: perform a send/receive data exchange</li>
+<li>Handling DISCONNECTED: clean up resources</li>
+<li>Graceful shutdown</li>
+</ul>
+<p><strong><code>cm_client.c</code></strong> implements:</p>
+<ul>
+<li>Event channel and CM ID creation</li>
+<li>Address and route resolution through event handlers</li>
+<li>QP creation and connection on ROUTE_RESOLVED</li>
+<li>Data exchange on ESTABLISHED</li>
+<li>Disconnection and cleanup</li>
+</ul>
+<p>Both programs exchange a simple message to demonstrate the complete lifecycle. The server waits for a message from the client, then sends a response. This mirrors the ping-pong pattern from Chapter 9 but with dramatically less setup code.</p>
+<p>To build and run:</p>
+<pre><code class="language-bash">cd src/code/ch10-cm-client-server
+make
+
+# Terminal 1 (server):
+./cm_server
+
+# Terminal 2 (client):
+./cm_client 192.168.1.1
+</code></pre>
+<p>The server binds to <code>0.0.0.0:12345</code> by default and the client connects to the specified IP address. On success, you will see the connection lifecycle events logged by both sides, followed by the exchanged message content.</p>
+<div class="tip">
+<p><strong>Tip</strong>: RDMA_CM works transparently with SoftRoCE (<code>rxe</code>), making it possible to develop and test these examples on machines without physical RDMA hardware. Refer to Appendix E for SoftRoCE setup instructions.</p>
+</div>
+
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../part-3-programming/ch10-rdma-cm-programming/cm-event-loop.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../part-3-programming/ch10-rdma-cm-programming/multicast.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../part-3-programming/ch10-rdma-cm-programming/cm-event-loop.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../part-3-programming/ch10-rdma-cm-programming/multicast.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-c2a407aa.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../mermaid-eefea253.min.js"></script>
+        <script src="../../mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>
