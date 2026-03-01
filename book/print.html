@@ -37,10 +37,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-722b935f.js";
+            window.path_to_searchindex_js = "searchindex-a5f470ee.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-e2f8dd18.js"></script>
+        <script src="toc-b911a98a.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -183,6 +183,9 @@
 <p><em>A comprehensive guide to Remote Direct Memory Access – the technology reshaping how modern datacenters move data.</em></p>
 <hr>
 <p><strong>First Edition</strong></p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="disclaimer"><a class="header" href="#disclaimer">Disclaimer</a></h1>
+<p>The content is fully AI generated. The purpose is to provide a compiled resources for reference, please use at your own discretion.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="preface"><a class="header" href="#preface">Preface</a></h1>
 <p>In the summer of 2015, I watched a colleague demonstrate a key-value store that could serve ten million lookups per second from a single machine. The latency was under two microseconds. My first instinct was disbelief – I had spent years building networked systems where a single remote read took hundreds of microseconds at best. When I looked at the code, I found no calls to <code>send()</code> or <code>recv()</code>. There were no sockets, no serialization libraries, no event loops. The application was writing directly into a remote machine’s memory, and the remote CPU had no idea it was happening.</p>
