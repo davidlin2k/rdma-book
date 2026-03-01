@@ -28,22 +28,15 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
-    env:
-      MDBOOK_VERSION: 0.4.44
-      MDBOOK_MERMAID_VERSION: 0.14.0
-      MDBOOK_KATEX_VERSION: 0.9.1
     steps:
       - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
       - name: Install mdBook and preprocessors
         run: |
-          mkdir -p $HOME/.local/bin
-          # Install mdBook
-          curl -sSL "https://github.com/rust-lang/mdBook/releases/download/v${MDBOOK_VERSION}/mdbook-v${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -xz -C $HOME/.local/bin
-          # Install mdbook-mermaid
-          curl -sSL "https://github.com/badboy/mdbook-mermaid/releases/download/v${MDBOOK_MERMAID_VERSION}/mdbook-mermaid-v${MDBOOK_MERMAID_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -xz -C $HOME/.local/bin
-          # Install mdbook-katex
-          curl -sSL "https://github.com/lzanini/mdbook-katex/releases/download/v${MDBOOK_KATEX_VERSION}/mdbook-katex-v${MDBOOK_KATEX_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -xz -C $HOME/.local/bin
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          cargo install mdbook --version 0.4.44
+          cargo install mdbook-mermaid --version 0.14.0
+          cargo install mdbook-katex --version 0.9.1
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
