@@ -1,6 +1,6 @@
 # 15.1 SR-IOV for RDMA
 
-Single Root I/O Virtualization (SR-IOV) is a PCI Express specification that allows a single physical device to present itself as multiple independent virtual devices. For RDMA NICs, SR-IOV enables a single physical NIC to be partitioned into dozens of virtual instances, each assignable to a different virtual machine with near-native performance. SR-IOV is the most widely deployed technology for providing RDMA access in virtualized environments, offering the best balance between performance and multi-tenancy among current approaches.
+Single Root I/O Virtualization (SR-IOV) is a PCI Express specification that allows a single physical device to present itself as multiple independent virtual devices.[^2] For RDMA NICs, SR-IOV partitions a single physical NIC into dozens of virtual instances, each assignable to a different virtual machine with near-native performance. It remains the dominant technology for RDMA in virtualized environments because it keeps the data path entirely in hardware -- no hypervisor involvement, no software switching overhead.
 
 ## PF and VF Architecture
 
@@ -9,6 +9,8 @@ An SR-IOV-capable NIC exposes two types of PCIe functions:
 **Physical Function (PF)**: The full-featured PCIe function that represents the physical NIC. The PF has complete access to all NIC resources and configuration registers. It is managed by the hypervisor host and is responsible for creating, configuring, and managing Virtual Functions. The PF driver (e.g., `mlx5_core` for NVIDIA ConnectX NICs) runs on the host operating system.
 
 **Virtual Function (VF)**: A lightweight PCIe function that provides a subset of the PF's capabilities. Each VF has its own set of PCIe configuration space, memory-mapped I/O (MMIO) registers, and MSI-X interrupt vectors. VFs can be passed through to VMs via VFIO (Virtual Function I/O), giving the guest VM direct hardware access without hypervisor involvement in the data path.
+
+The VF communicates with the PF through a **command interface** (sometimes called a mailbox or command channel). Resource allocation requests -- creating QPs, registering memory regions, modifying queue state -- are forwarded from the VF driver to the PF driver, which validates the request, applies resource limits, and programs the NIC hardware. This is why control path operations (MR registration, QP creation) show higher overhead than data path operations: each control operation requires a VF-to-PF round trip through the command interface, while data path operations (posting WRs, polling CQs) operate directly on the VF's MMIO-mapped hardware registers.
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -45,6 +47,10 @@ dmesg | grep -i iommu
 # If not enabled, add to kernel command line:
 # Intel: intel_iommu=on iommu=pt
 # AMD: amd_iommu=on iommu=pt
+# The "iommu=pt" (passthrough) flag is important: it configures
+# IOMMU in passthrough mode for devices NOT using VFIO, avoiding
+# a performance penalty on the PF and other host devices while
+# still providing IOMMU protection for VFs passed through to VMs.
 
 # 2. Check SR-IOV capability of the NIC
 lspci -s 01:00.0 -vvv | grep -i "SR-IOV"
@@ -124,6 +130,12 @@ SR-IOV provides near-native RDMA performance because the VF data path bypasses t
 
 The overhead is minimal for data path operations (latency, bandwidth, IOPS) but slightly higher for control path operations (memory registration, QP creation) due to VF-to-PF communication required for resource allocation.
 
+<div class="note">
+
+The performance numbers above are representative of typical SR-IOV overhead patterns, but actual measurements depend heavily on the specific NIC model, firmware version, hypervisor configuration (e.g., CPU pinning, NUMA topology), and workload characteristics. The key insight is structural: data path operations go directly through VF hardware registers and incur near-zero overhead, while control path operations traverse the VF-to-PF command interface and incur measurable but generally acceptable overhead. For latency-sensitive workloads, pre-allocate all RDMA resources (QPs, MRs, CQs) during initialization to keep the command interface off the critical path.
+
+</div>
+
 ## GID Table Management in Virtualized Environments
 
 The GID (Global Identifier) table is a critical component for RDMA addressing. In a virtualized environment, GID management requires special attention:
@@ -183,13 +195,15 @@ ovs-ofctl add-flow br0 "in_port=enp1s0f0_0,actions=output:enp1s0f0_1"
 
 Despite its performance advantages, SR-IOV has significant limitations in cloud environments:
 
-**Limited VF count**: A single NIC typically supports 64-128 VFs. On dense hosts running hundreds of containers or lightweight VMs, VFs become a scarce resource.
+**Limited VF count**: Current NVIDIA ConnectX NICs support up to 127 VFs per port (a firmware-enforced limit, despite datasheets advertising higher numbers).[^1] On dense hosts running hundreds of containers or lightweight VMs, VFs become a scarce resource. NVIDIA's newer **Scalable Functions (SFs)** address this by supporting thousands of lightweight virtual endpoints per NIC. SFs are software-defined sub-functions managed through `devlink port` rather than PCIe SR-IOV. Unlike VFs, SFs do not require separate PCIe function slots -- they share the PF's PCIe resources while maintaining isolated RDMA namespaces, making them more suitable for container-dense environments. However, SFs require BlueField DPU or ConnectX-7+ firmware support and are not interchangeable with traditional SR-IOV VFs.
+
+[^1]: NVIDIA ConnectX-6 datasheets advertise "up to 1K VFs per port," but the firmware limit remains 127. See [NVIDIA Developer Forum discussion](https://forums.developer.nvidia.com/t/as-described-in-datasheet-for-connectx-6-there-are-8-pfs-and-up-to-1k-vfs-per-port-however-the-parameter-num-of-vfs-can-only-be-set-to-127-at-max-and-there-are-two-physical-ports-so-how-can-we-configure-connectx-6-with-8-pfs-and-1k-vfs/206061).
 
 **No live migration**: Because the VF is a PCIe device passed through to the guest, live migration requires detaching the VF, migrating the VM, and reattaching a VF on the destination host. This process interrupts RDMA connectivity, and any active RDMA connections (QPs, MRs) are lost. Applications must handle reconnection, which many RDMA applications do not support gracefully.
 
 <div class="tip">
 
-To mitigate the live migration limitation, some deployments use a **bond** configuration inside the VM, combining an SR-IOV VF (for performance) with a virtio-net interface (for migration). During normal operation, traffic flows through the VF. Before migration, traffic is switched to the virtio interface, the VF is detached, the VM is migrated, a new VF is attached on the destination, and traffic is switched back to the VF. This approach provides near-zero downtime migration but requires application-level tolerance for brief connectivity interruptions.
+To mitigate the live migration limitation, some deployments use a **bond** configuration inside the VM, combining an SR-IOV VF (for performance) with a virtio-net interface (for migration).[^3] During normal operation, traffic flows through the VF. Before migration, traffic is switched to the virtio interface, the VF is detached, the VM is migrated, a new VF is attached on the destination, and traffic is switched back to the VF. This approach provides near-zero downtime migration but requires application-level tolerance for brief connectivity interruptions.
 
 </div>
 
@@ -199,4 +213,8 @@ To mitigate the live migration limitation, some deployments use a **bond** confi
 
 **No software-defined networking by default**: In legacy eSwitch mode, VF traffic bypasses the host's software networking stack, making it invisible to host-based firewalls, monitoring tools, and SDN controllers. Switchdev mode addresses this but adds complexity.
 
-Despite these limitations, SR-IOV remains the dominant technology for RDMA in virtualized environments, particularly for workloads that require near-native performance and can tolerate the migration constraints. For workloads that require live migration, VDPA (discussed in the next section) offers a promising alternative.
+These limitations are real but tolerable for the workloads that need SR-IOV most: long-running HPC jobs, ML training runs, and storage backends that are pinned to specific hosts for hours or days. For workloads that need live migration, VDPA (discussed in the next section) trades some performance for that flexibility.
+
+[^2]: SR-IOV is defined in the PCI-SIG "Single Root I/O Virtualization and Sharing Specification," first published in 2007 and revised in subsequent PCI Express base specification updates.
+
+[^3]: This VF/virtio bond pattern is used in production by Azure (Accelerated Networking with failover to synthetic NIC) and documented in the QEMU/KVM community. See the [QEMU net failover documentation](https://www.qemu.org/docs/master/system/devices/net-failover.html) for the implementation details of automatic VF/virtio failover.

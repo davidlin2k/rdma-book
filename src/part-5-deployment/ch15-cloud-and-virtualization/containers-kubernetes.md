@@ -1,6 +1,6 @@
 # 15.3 Containers and Kubernetes
 
-Containers have become the dominant deployment model for modern applications, and Kubernetes has become the standard orchestration platform. As RDMA-dependent workloads -- machine learning training, high-performance databases, distributed storage -- move into containerized environments, the challenge is providing RDMA access to containers with appropriate isolation, resource management, and scheduling. Unlike virtual machines, where SR-IOV provides a clean hardware partition, containers share the host kernel and require a different set of mechanisms for RDMA device access, isolation, and resource accounting.
+RDMA-dependent workloads -- ML training, high-performance databases, distributed storage -- are increasingly deployed in containers on Kubernetes. The challenge: containers share the host kernel, so the clean hardware partitioning that SR-IOV provides for VMs does not directly apply. Containers need a different set of mechanisms for RDMA device access, isolation, and resource accounting.
 
 ## RDMA in Containers: Fundamentals
 
@@ -41,7 +41,7 @@ This created a fundamental tension: containerized RDMA applications could see ea
 
 ## RDMA Namespace Isolation
 
-Starting with Linux kernel 5.3, the kernel supports **RDMA network namespace isolation**. When enabled, each network namespace has its own isolated view of RDMA devices and resources. RDMA devices can be assigned to specific network namespaces, and processes in one namespace cannot see or access RDMA resources in another.
+Starting with Linux kernel 5.3, the kernel supports **RDMA network namespace isolation**.[^1] When enabled, each network namespace has its own isolated view of RDMA devices and resources. RDMA devices can be assigned to specific network namespaces, and processes in one namespace cannot see or access RDMA resources in another.
 
 ### Modes of Operation
 
@@ -49,16 +49,17 @@ The RDMA subsystem supports two namespace modes, controlled per device:
 
 **Shared mode** (default): The RDMA device is visible to all network namespaces. All containers sharing the device can see each other's resources. This is the legacy behavior.
 
-**Exclusive mode**: The RDMA device is assigned to a specific network namespace. Only processes in that namespace can access the device, and they have a fully isolated view of RDMA resources.
+**Exclusive mode**: The RDMA device is assigned to a specific network namespace. Only processes in that namespace can access the device, and they have a fully isolated view of RDMA resources. In exclusive mode, each namespace sees its own independent QP number space, PD handles, and MR keys -- a process in one namespace cannot forge an rkey to access another namespace's memory regions, even if it knows the rkey value. This is critical for multi-tenant RDMA security: without exclusive mode, rkey guessing attacks are trivial because the NIC hardware trusts any rkey presented by any process sharing the device.
 
 ```bash
 # Check current RDMA namespace mode
 rdma system show netns
 
-# Set per-device namespace mode
-rdma dev set mlx5_0 netns exclusive
+# Set system-wide RDMA namespace mode to exclusive
+# (this is a system-level setting, not per-device)
+rdma system set netns exclusive
 
-# Move an RDMA device to a specific network namespace
+# Create a network namespace and move an RDMA device into it
 ip netns add rdma_ns1
 rdma dev set mlx5_0 netns rdma_ns1
 
@@ -68,15 +69,20 @@ ip netns exec rdma_ns1 rdma dev show
 
 ### RDMA Cgroup Controller
 
-The RDMA cgroup controller limits the RDMA resources that a container (cgroup) can consume. This prevents a single container from exhausting shared NIC resources such as QPs, CQs, MRs, and completion vectors.
+The RDMA cgroup controller[^5] limits the RDMA resources that a container (cgroup) can consume. This prevents a single container from exhausting shared NIC resources such as QPs, CQs, MRs, and completion vectors.
 
 ```bash
 # Set RDMA resource limits for a cgroup
+# cgroup v1 path (legacy):
 echo "mlx5_0 hca_handle=32 hca_object=4096" > \
     /sys/fs/cgroup/rdma/container1/rdma.max
 
+# cgroup v2 path (current, used by systemd-based distros):
+# echo "mlx5_0 hca_handle=32 hca_object=4096" > \
+#     /sys/fs/cgroup/container1/rdma.max
+
 # Resource types that can be limited:
-#   hca_handle  - Number of RDMA device handles (PDs)
+#   hca_handle  - Number of RDMA device handles
 #   hca_object  - Total number of RDMA objects (QPs, CQs, MRs, etc.)
 
 # Check current usage
@@ -95,7 +101,7 @@ Kubernetes requires explicit mechanisms to discover, advertise, and schedule RDM
 
 ### RDMA Device Plugins
 
-The **k8s-rdma-shared-dev-plugin** (also known as the RDMA shared device plugin) is the most widely used plugin for making RDMA devices available to Kubernetes pods. It discovers RDMA devices on each node and advertises them as extended resources that pods can request.
+The **k8s-rdma-shared-dev-plugin**[^2] (also known as the RDMA shared device plugin) is the most widely used plugin for making RDMA devices available to Kubernetes pods. It discovers RDMA devices on each node and advertises them as extended resources that pods can request.
 
 **Shared mode**: Multiple pods share the same RDMA device. The plugin provides access to the device files and ensures proper permissions, but isolation depends on the kernel's RDMA namespace support.
 
@@ -145,11 +151,13 @@ spec:
 
 The `IPC_LOCK` capability is essential for RDMA in containers. RDMA requires pinning memory pages (via `mlock()`) to prevent them from being swapped out, as the NIC accesses physical memory directly via DMA. Without `IPC_LOCK`, memory registration calls will fail with `EPERM`. In Kubernetes, add this capability via the pod's security context.
 
+For large memory registrations, also consider requesting **hugepages** (`hugepages-2Mi` or `hugepages-1Gi` resources). Hugepages reduce TLB pressure during RDMA operations and speed up memory registration because the kernel pins fewer, larger pages. Many high-performance RDMA applications allocate their buffer pools from hugepage-backed memory for this reason.
+
 </div>
 
 ### SR-IOV Network Operator
 
-For deployments that require hardware-isolated RDMA (SR-IOV VFs assigned to individual pods), the **SR-IOV Network Operator** automates the lifecycle management of SR-IOV VFs in Kubernetes:
+For deployments that require hardware-isolated RDMA (SR-IOV VFs assigned to individual pods), the **SR-IOV Network Operator**[^3] automates the lifecycle management of SR-IOV VFs in Kubernetes:
 
 1. **Discovery**: The operator discovers SR-IOV-capable NICs on each node.
 2. **VF creation**: It creates VFs according to a `SriovNetworkNodePolicy` configuration.
@@ -203,6 +211,11 @@ spec:
     image: rdma-app:latest
     resources:
       limits:
+        # The resource prefix depends on your SR-IOV device plugin
+        # configuration. On OpenShift the default is "openshift.io/",
+        # on vanilla K8s it is typically configured in the device
+        # plugin's config. The suffix must match resourceName from
+        # your SriovNetworkNodePolicy.
         openshift.io/rdma_sriov: 1
     securityContext:
       capabilities:
@@ -211,7 +224,7 @@ spec:
 
 ### NVIDIA Network Operator
 
-The **NVIDIA Network Operator** (formerly Mellanox Network Operator) provides a comprehensive solution for deploying RDMA-capable networking in Kubernetes. It manages the complete stack:
+The **NVIDIA Network Operator**[^4] (formerly Mellanox Network Operator) provides a comprehensive solution for deploying RDMA-capable networking in Kubernetes. It manages the complete stack:
 
 - **NIC driver installation**: Deploys OFED (OpenFabrics Enterprise Distribution) drivers on nodes via a DaemonSet.
 - **Device plugin**: Manages RDMA and SR-IOV device plugins.
@@ -334,7 +347,7 @@ spec:
 
 <div class="warning">
 
-RDMA in Kubernetes introduces security considerations beyond standard container isolation. A pod with RDMA access can potentially perform DMA to physical memory addresses, bypassing kernel memory protection. Ensure that IOMMU is enabled and properly configured on all nodes to prevent DMA attacks. Additionally, restrict RDMA device access to trusted workloads using Kubernetes RBAC and admission controllers. Never grant RDMA access to untrusted or multi-tenant workloads without proper IOMMU and RDMA namespace isolation.
+RDMA in Kubernetes introduces security considerations beyond standard container isolation. Without IOMMU, an RDMA device can DMA to arbitrary physical memory addresses, bypassing kernel memory protection entirely. **Always ensure IOMMU is enabled** (`intel_iommu=on` or `amd_iommu=on`) on all RDMA-capable nodes -- with IOMMU active, DMA is restricted to memory regions the kernel has explicitly mapped for that device's IOMMU domain, preventing unauthorized memory access. Additionally, restrict RDMA device access to trusted workloads using Kubernetes RBAC and admission controllers, and enable RDMA namespace isolation (exclusive mode) for multi-tenant environments.
 
 </div>
 
@@ -343,7 +356,7 @@ RDMA in Kubernetes introduces security considerations beyond standard container 
 Kubernetes scheduling for RDMA workloads must account for hardware topology:
 
 - **NUMA affinity**: RDMA performance is sensitive to NUMA topology. Use the Topology Manager (kubelet `--topology-manager-policy=single-numa-node`) to ensure that a pod's CPUs, memory, and RDMA device are all on the same NUMA node.
-- **GPU-NIC affinity**: For ML workloads using GPUDirect RDMA, the GPU and RDMA NIC must be on the same PCIe root complex. The NVIDIA GPU Operator and Network Operator work together to enforce this affinity.
+- **GPU-NIC affinity**: For ML workloads using GPUDirect RDMA, the GPU and RDMA NIC should be on the same PCIe root complex (ideally the same PCIe switch) to avoid crossing the CPU's root complex, which adds latency and consumes CPU memory bandwidth. The NVIDIA GPU Operator and Network Operator work together to enforce this affinity. On multi-socket systems, a GPU and NIC on different NUMA nodes can halve GPUDirect RDMA throughput due to cross-socket QPI/UPI traffic.
 - **Resource accounting**: Ensure that the device plugin correctly reports the number of available RDMA devices (shared or VF-based) to prevent over-subscription.
 
 ```yaml
@@ -363,4 +376,14 @@ spec:
     whenUnsatisfiable: DoNotSchedule
 ```
 
-The integration of RDMA with Kubernetes continues to mature rapidly. The combination of SR-IOV Network Operator, NVIDIA Network Operator, and Kubernetes-native resource management is making it increasingly practical to deploy RDMA-dependent workloads in containerized environments with proper isolation, scheduling, and lifecycle management.
+The RDMA-in-Kubernetes stack has matured substantially. The combination of SR-IOV Network Operator, NVIDIA Network Operator, and Kubernetes-native resource management makes it practical to deploy RDMA workloads in containers with proper isolation, scheduling, and lifecycle management -- though the operational complexity of managing OFED drivers, device plugins, CNI plugins, and topology-aware scheduling across a fleet should not be underestimated.
+
+[^1]: RDMA network namespace support was merged for Linux 5.3. See Parav Pandit's patchset and the [`rdma-system(8)` man page](https://www.man7.org/linux/man-pages/man8/rdma-system.8.html) for the `netns` subcommand documentation.
+
+[^2]: [Mellanox/k8s-rdma-shared-dev-plugin](https://github.com/Mellanox/k8s-rdma-shared-dev-plugin) on GitHub. The plugin advertises RDMA devices as Kubernetes extended resources under the `rdma/` prefix.
+
+[^3]: [k8snetworkplumbingwg/sriov-network-operator](https://github.com/k8snetworkplumbingwg/sriov-network-operator) on GitHub. Despite the `sriovnetwork.openshift.io` API group name (a historical artifact from the project's Red Hat origins), the operator works on vanilla Kubernetes as well as OpenShift.
+
+[^4]: [Mellanox/network-operator](https://github.com/Mellanox/network-operator) on GitHub. The `NicClusterPolicy` CRD uses the `mellanox.com/v1alpha1` API group. See the [NVIDIA Network Operator documentation](https://docs.nvidia.com/networking/display/kubernetes2570/deployment-guide-kubernetes.html) for deployment guides.
+
+[^5]: The RDMA cgroup controller is documented in the [Linux kernel RDMA controller documentation](https://docs.kernel.org/admin-guide/cgroup-v1/rdma.html). It is supported in both cgroup v1 and v2 (since kernel 4.11). The two resource types, `hca_handle` and `hca_object`, provide coarse-grained limits on RDMA device handles and total RDMA objects respectively.
