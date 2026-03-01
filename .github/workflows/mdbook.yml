@@ -29,9 +29,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      MDBOOK_VERSION: 0.4.44
-      MDBOOK_MERMAID_VERSION: 0.14.0
-      MDBOOK_KATEX_VERSION: 0.9.3
+      MDBOOK_VERSION: 0.5.2
+      MDBOOK_MERMAID_VERSION: 0.17.0
+      MDBOOK_KATEX_VERSION: 0.10.0-alpha
     steps:
       - uses: actions/checkout@v4
       - name: Install mdBook and preprocessors
